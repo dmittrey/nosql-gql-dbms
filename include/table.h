@@ -10,21 +10,23 @@ Structures and functions to handle datatables
 typedef const char *const table_name_t;
 typedef u_int64_t pr_key_t;
 
-struct Namespace {
+typedef struct Namespace {
+    size_t count;
     struct Extent *first_table_extent[];
-};
+} Namespace;
 
-struct TableStoreTableHandle
+typedef struct TableStoreTableHandle
 {
     TableStoreFileHandle *file;
     table_name_t name;
     TableStoreTableSchemaInfo *tables_schema;
     Namespace *namespaces;
-};
+} TableStoreTableHandle;
 
-struct TableStoreRecordData {
+typedef struct TableStoreRecordData {
+    size_t count;
     TableStoreRecord *params[];
-};
+} TableStoreRecordData;
 
 TableStoreTableHandle tableStoreFileCreateTable(TableStoreFileHandle* file,
                                                 table_name_t table_name, TableStoreTableSchemaInfo table_schema);

@@ -9,16 +9,16 @@
 #define size_of_column_type_TABLE_STORE_TYPE_STRING sizeof(char)
 #define size_of_column_type_TABLE_STORE_TYPE_SINGLE sizeof(float)
 
-enum TableStoreTableSchemaColumnTypes
+typedef enum TableStoreTableSchemaColumnTypes
 {
     TABLE_STORE_TYPE_INT32,
     TABLE_STORE_TYPE_BOOL,
     TABLE_STORE_TYPE_STRING,
     TABLE_STORE_TYPE_SINGLE
-};
+} TableStoreTableSchemaColumnTypes;
 
-struct TableStoreRecord
+typedef struct TableStoreRecord
 {
-    TableStoreTableSchemaColumnTypes type;
+    enum TableStoreTableSchemaColumnTypes type;
     void *value;
-};
+} TableStoreRecord;
