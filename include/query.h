@@ -12,14 +12,19 @@ enum OperationType {
     DELETE 
 };
 
-enum PerformStatus {
-    OK = 0,
-    FAILED = 1
+enum OperationDataType {
+    NODE,
+    DOCUMENT
 };
 
 struct QueryRequest {
-    OperationType op_type;
-    Node *node;
+    enum OperationType op_type;
+    enum OperationDataType data_type;
+    union data
+    {
+        struct Node *node;
+        struct Document *document;
+    };
 };
 
 /* 

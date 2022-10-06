@@ -22,6 +22,10 @@ Table representation in file:
 
 In other words, there is 2 random placed sections with information about docs and nodes.
 */
+enum SectionType {
+    DOCUMENTS,
+    EXTENT
+};
 
 /*
 Struct of Documents section:
@@ -42,6 +46,7 @@ size(bytes) |  8          | unknw    | 8               | 8        |
 TOTAL SECTION SIZE IS 8KB => RAM size is constant
 */
 struct Documents {
+    fileoff_t location;
     fileoff_t size;
     fileoff_t next;
     struct Document* document[];
@@ -70,6 +75,7 @@ size(bytes) | 8            | unknw       | 8           | 8          | 8        |
 TOTAL SECTION SIZE IS 8KB => RAM size is constant
 */
 struct Extent {
+    fileoff_t location;
     fileoff_t size;
     fileoff_t next;
     fileoff_t prev;
