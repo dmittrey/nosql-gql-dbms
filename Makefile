@@ -2,18 +2,20 @@ EXEC 	:= app
 
 SRC_DIR := src
 BLD_DIR := build
+BIN_DIR := ${BLD_DIR}/bin
 INC_DIR	:= include
 DOC_DIR := doc
 
 SRC  	:= $(wildcard $(SRC_DIR)/*.c)
-OBJS	:= $(patsubst $(SRC_DIR)/%.c,$(BLD_DIR)/%.o, $(SRC))
+OBJS	:= $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%.o, $(SRC))
 
 .PHONY: dirs build clean
 
-all: build
+all: dirs build
 	
 dirs:
 	@mkdir -p $(BLD_DIR)
+	@mkdir -p ${BIN_DIR}
 	@mkdir -p $(SRC_DIR)
 	@mkdir -p $(INC_DIR)
 	@mkdir -p $(DOC_DIR)
@@ -21,7 +23,7 @@ dirs:
 build: $(OBJS) | dirs
 	gcc $^ -o ${BLD_DIR}/${EXEC}.out
 
-$(BLD_DIR)/%.o: $(SRC_DIR)/%.c 
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c 
 	gcc -I $(INC_DIR) -c $< -o $@
 
 clean:
