@@ -1,6 +1,4 @@
 #include "table_file.h"
-#include "file_utils.h"
-#include "stdio.h"
 
 #define SUCCESSFUL 0
 #define NOT_OPENED 1
@@ -15,13 +13,16 @@ struct TransactionResult openOrCreateTableStoreFile(file_path_t file_path) {
         t = createOrBlankFile(file_path);
         
         if (!IS_VALID_TRANSACTION(t)) {
+            LOG("File cannot be opened!");
             return TRANSACTION_FAILED();
         }
     }
 
+    LOG("File opened!");
     return t;
 };
 
 struct TransactionResult closeTableStoreFile(table_file_t *file) {
-    fclose(file);
+    fclose((FILE*)file);
+    LOG("File closed!");
 };

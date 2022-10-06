@@ -2,10 +2,9 @@
 
 #include <stdio.h>
 
+#include "file_utils.h"
 #include "xml.h"
 #include "table.h"
-
-typedef const char* file_path_t;
 
 /* 
 Abstraction to manipulate with data representation in file
@@ -15,28 +14,6 @@ Reponsibilities:
     - Work with data and perform queries
     - Open and close file  
 */
-
-// Own program abstraction above file 
-typedef FILE * table_file_t;
-
-// Abstraction of performing ops
-struct TransactionResult {
-    table_file_t file; // Nullable or ptr to start queried data
-    enum PerformStatus status;
-};
-
-/* Utility */
-
-#define TRANSACTION_OK(file_ptr) (struct TransactionResult) { \
-            .file = file_ptr, \
-            .status = 0 \
-        }
-#define TRANSACTION_FAILED() (struct TransactionResult) { \
-            .file = NULL, \
-            .status = 1 \
-        }
-
-#define IS_VALID_TRANSACTION(transaction_result) transaction_result.status
 
 /* File manipulation */
 
