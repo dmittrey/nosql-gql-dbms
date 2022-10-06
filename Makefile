@@ -10,7 +10,7 @@ OBJS	:= $(patsubst $(SRC_DIR)/%.c,$(BLD_DIR)/%.o, $(SRC))
 
 .PHONY: dirs build clean
 
-all: dirs build
+all: build
 	
 dirs:
 	@mkdir -p $(BLD_DIR)
@@ -18,7 +18,7 @@ dirs:
 	@mkdir -p $(INC_DIR)
 	@mkdir -p $(DOC_DIR)
 
-build: $(OBJS)
+build: $(OBJS) | dirs
 	gcc $^ -o ${BLD_DIR}/${EXEC}.out
 
 $(BLD_DIR)/%.o: $(SRC_DIR)/%.c 
