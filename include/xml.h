@@ -3,10 +3,10 @@
 #include "utils.h"
 
 enum TypeOfNode {
-    START_TAG = 0,
-    END_TAG,
+    START_TAG = 0, // <address>
+    END_TAG, // </address>
     TEXT,
-    EMPTY_TAG
+    EMPTY_TAG // <hr />
 };
 
 struct Attribute {
