@@ -10,22 +10,21 @@ enum TypeOfNode {
 };
 
 struct Attribute {
-    string_t name;
-    string_t value;
-    struct Attribute *next; // Nullable
+    struct string_t name;
+    struct string_t value;
 };
 
 struct Node {
     struct Document *document;
     struct Node *parent;
-    string_t name;
+    struct string_t name;
     enum TypeOfNode *type;
-    struct Attribute* attribute; // Nullable
+    struct Attribute** attribute; // Nullable
     struct Node* children; // Nullable
-    string_t text; // Nullable(terminal tags)
+    struct string_t text; // Nullable(terminal tags)
 };
 
 struct Document {
-    string_t name; 
+    struct string_t name; 
     struct Node *first_node; // Nullable
 };

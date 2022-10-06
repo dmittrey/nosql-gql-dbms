@@ -1,6 +1,7 @@
 #pragma once
 
 #include "query.h"
+#include "file.h"
 
 /* 
 Abstraction to manipulate with data in RAM
@@ -26,4 +27,4 @@ Reponsibilities:
 
 /* Perform queries */
 
-struct QueryResponse performAction(struct QueryRequest query_request);
+struct QueryResponse performAction(struct TableFile *file, struct QueryRequest query_request);
