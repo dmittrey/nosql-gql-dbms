@@ -1,47 +1,77 @@
 #pragma once
 
+#include <stdio.h>
+
+#include "xml.h"
+
+typedef u_int64_t fileoff_t;
+
 /*
-Structures and functions to handle datatables
+Table representation in file:
+-------------
+| Documents |
+-------------
+| Extent    |
+-------------
+| Extent    |
+-------------
+| Documents |
+-------------
+| Extent    |
+-------------
+
+In other words, there is 2 random placed sections with information about docs and nodes.
 */
 
-#include "file.h"
-#include "schema.h"
+/*
+Struct of Documents section:
+            --------------------------
+            | HEADER                 |
+            --------------------------
+content     | length      | next_doc |
+            --------------------------
+size(bytes) | 8           | 8        |
+            -------------------------------------------------------
+            | Documents                                           |
+            -------------------------------------------------------
+content     | name_length | name     | first_node_addr | next_sec |
+            -------------------------------------------------------
+size(bytes) |  8          | unknw    | 8               | 8        |
+            -------------------------------------------------------
 
-typedef const char *const table_name_t;
-typedef u_int64_t pr_key_t;
+TOTAL SECTION SIZE IS 8KB => RAM size is constant
+*/
+struct Documents {
+    fileoff_t size;
+    fileoff_t next;
+    struct Document* document[];
+};
 
-typedef struct Namespace {
-    size_t count;
-    struct Extent *first_table_extent[];
-} Namespace;
+/*
+Struct of Extent section:
+            --------------------------------------
+            | HEADER                             |
+            --------------------------------------
+content     | length | next_extent | prev_extent |
+            --------------------------------------
+size(bytes) | 8      | 8           | 8           |
+            ------------------------------------------------------------------------------------------------
+            | Nodes                                                                                        |
+            ------------------------------------------------------------------------------------------------
+content     | doc_addr     | parent_addr | name_len    | name       | type     | attr_name_len | attr_name | 
+            ------------------------------------------------------------------------------------------------
+size(bytes) | 8            | 8           | 8           | unknw      | 1        | 8             | unknw     | 
+            ------------------------------------------------------------------------------------------------
+content     | attr_val_len | attr_val    | child_count | child_addr | text_len | text          |
+            ------------------------------------------------------------------------------------
+size(bytes) | 8            | unknw       | 8           | 8          | 8        | unknw         |
+            ------------------------------------------------------------------------------------
 
-typedef struct TableStoreTableHandle
-{
-    TableStoreFileHandle *file;
-    table_name_t name;
-    TableStoreTableSchemaInfo *tables_schema;
-    Namespace *namespaces;
-} TableStoreTableHandle;
-
-typedef struct TableStoreRecordData {
-    size_t count;
-    TableStoreRecord *params[];
-} TableStoreRecordData;
-
-TableStoreTableHandle tableStoreFileCreateTable(TableStoreFileHandle* file,
-                                                table_name_t table_name, TableStoreTableSchemaInfo table_schema);
-
-TableStoreTableHandle tableStoreFileOpenTable(TableStoreFileHandle* file, table_name_t table_name);
-
-void tableStoreFileCloseTable(TableStoreTableHandle *file_handler);
-
-void tableStoreFileSeekTable(TableStoreTableHandle *file_handler, size_t offset, int seek_option);
-
-void tableStoreAddRecord(TableStoreFileHandle *file_handler, TableStoreRecordData *record);
-
-TableStoreRecordData* tableStoreFilePrepareRecordDataStructure(TableStoreTableHandle *table_handler);
-
-void tableStoreFileReadRecord(TableStoreTableHandle *table_handler, TableStoreRecordData *record);
-
-void tableStoreFileCleanupRecordDataStructure(TableStoreRecordData *record);
-
+TOTAL SECTION SIZE IS 8KB => RAM size is constant
+*/
+struct Extent {
+    fileoff_t size;
+    fileoff_t next;
+    fileoff_t prev;
+    struct Node *nodes[];
+};
