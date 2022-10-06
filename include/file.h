@@ -52,11 +52,11 @@ struct TransactionsResult updateDocument(struct TableFile *file, struct Document
 
 struct TransactionsResult deleteDocument(struct TableFile *file, struct Document *document);
 
-struct TransactionsResult insertData(struct TableFile *file, struct Node *node);
+struct TransactionsResult insertNode(struct TableFile *file, struct Node *node);
 
-struct TransactionsResult readData(struct TableFile *file, struct Node *node);
+struct TransactionsResult readNode(struct TableFile *file, struct Node *node);
 
-struct TransactionsResult updateData(struct TableFile *file, struct Node *prev_node, struct Node *new_node);
+struct TransactionsResult updateNode(struct TableFile *file, struct Node *prev_node, struct Node *new_node);
 
-struct TransactionsResult deleteData(struct TableFile *file, struct Node *node);
+struct TransactionsResult deleteNode(struct TableFile *file, struct Node *node);
 
