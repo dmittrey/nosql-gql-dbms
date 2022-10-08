@@ -23,12 +23,14 @@ struct TransactionResult closeTableStoreFile(table_file_t *file);
 /* Section manipulation */
 
 enum PerformStatus createDocumentsSection(
-    table_file_t *file,
+    table_file_t *table_file,
+    fileoff_t location,
     struct Documents* prev_section // Can be null if section is first
 );
 
 enum PerformStatus createExtentSection(
-    table_file_t *file,
+    table_file_t *table_file,
+    fileoff_t location,
     struct Extent* prev_section // Can be null if section is first
 );
 

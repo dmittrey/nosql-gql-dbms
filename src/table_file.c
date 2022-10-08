@@ -1,4 +1,5 @@
 #include "table_file.h"
+#include <inttypes.h>
 
 //TODO Session logs? (f.e. Not opened files etc.)
 
@@ -8,7 +9,7 @@ static struct TransactionResult openFile(file_path_t file_path);
 
 static struct TransactionResult createOrBlankFile(file_path_t file_path);
 
-
+static enum PerformStatus createHeader(FILE* file, struct Header *header, fileoff_t location);
 
 
 
@@ -40,22 +41,51 @@ struct TransactionResult openOrCreateTableStoreFile(file_path_t file_path) {
 }
 
 struct TransactionResult closeTableStoreFile(table_file_t *file) {
-    fclose((FILE*)file);
+    fclose(to_FILE(file));
     INFO("File closed!");
 }
 
+/*
+Creates document section at the place, where is buffer ptr
+*/
 enum PerformStatus createDocumentsSection(
-    table_file_t *file,
+    table_file_t *table_file,
+    fileoff_t location,
     struct Documents* prev_section // Can be null if section is first
 ) {
+    FILE* file = to_FILE(table_file);
 
+    // Set prev next ptr to next
+    if (prev_section != NULL) {
+        prev_section->header->next = location;
+    }
+    
+    // Alloc and write header
+    struct Header *header = my_malloc(struct Header);
+    header->length = DOCUMENTS_SECTION_SIZE;
+    header->length = NULL_NEXT;
+
+    return createHeader(file, header, location);
 }
 
 enum PerformStatus createExtentSection(
-    table_file_t *file,
+    table_file_t *table_file,
+    fileoff_t location,
     struct Extent* prev_section // Can be null if section is first
 ) {
+    FILE* file = to_FILE(table_file);
+
+    // Set prev next ptr to next
+    if (prev_section != NULL) {
+        prev_section->header->next = location;
+    }
     
+    // Alloc and write header
+    struct Header *header = my_malloc(struct Header);
+    header->length = EXTENT_SECTION_SIZE;
+    header->length = NULL_NEXT;
+
+    return createHeader(file, header, location);
 }
 
 
@@ -84,4 +114,15 @@ static struct TransactionResult openFile(file_path_t file_path) {
 
 static struct TransactionResult createOrBlankFile(file_path_t file_path) {
     return performFileOpen(file_path, READ_WRITE_NEW);
+}
+
+static enum PerformStatus createHeader(FILE* file, struct Header *header, fileoff_t location) {
+    if (fseek(file, location, SEEK_SET) != 0) {
+        return FAILED;
+    };
+
+    fprintf(file, "%" PRIu64, header->length);
+    fprintf(file, "%" PRIu64, header->next);
+
+    return OK;
 }

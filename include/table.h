@@ -1,10 +1,11 @@
 #pragma once
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "xml.h"
 
-typedef u_int64_t fileoff_t;
+typedef uint64_t fileoff_t;
 
 /*
 Table representation in file:
@@ -27,12 +28,21 @@ enum SectionType {
     EXTENT
 };
 
+struct Header {
+    fileoff_t length;
+    fileoff_t next;
+};
+
+#define NULL_NEXT 0
+
+#define DOCUMENTS_SECTION_SIZE 8192
+
 /*
 Struct of Documents section:
             --------------------------
             | HEADER                 |
             --------------------------
-content     | length      | next_doc |
+content     | length      | next     |
             --------------------------
 size(bytes) | 8           | 8        |
             -------------------------------------------------------
@@ -46,20 +56,20 @@ size(bytes) |  8          | unknw    | 8               | 8        |
 TOTAL SECTION SIZE IS 8KB => RAM size is constant
 */
 struct Documents {
-    fileoff_t location;
-    fileoff_t size;
-    fileoff_t next;
+    struct Header* header;
     struct Document* document[];
 };
 
+#define EXTENT_SECTION_SIZE 8192
+
 /*
 Struct of Extent section:
-            --------------------------------------
-            | HEADER                             |
-            --------------------------------------
-content     | length | next_extent | prev_extent |
-            --------------------------------------
-size(bytes) | 8      | 8           | 8           |
+            ------------------------------
+            | HEADER                     |
+            ------------------------------
+content     | length       | next        |
+            ------------------------------
+size(bytes) | 8            | 8           |
             ------------------------------------------------------------------------------------------------
             | Nodes                                                                                        |
             ------------------------------------------------------------------------------------------------
@@ -75,9 +85,6 @@ size(bytes) | 8            | unknw       | 8           | 8          | 8        |
 TOTAL SECTION SIZE IS 8KB => RAM size is constant
 */
 struct Extent {
-    fileoff_t location;
-    fileoff_t size;
-    fileoff_t next;
-    fileoff_t prev;
+    struct Header* header;
     struct Node *nodes[];
 };

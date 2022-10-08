@@ -4,10 +4,12 @@
 
 #include "utils.h"
 
-#define READ_WRITE "r+"
-#define READ_WRITE_NEW "w+"
+#define READ_WRITE "rb+"
+#define READ_WRITE_NEW "wb+"
 
 typedef const char* file_path_t;
+
+#define to_FILE(file) (FILE*) file
 
 // Own program abstraction above file 
 typedef FILE * table_file_t;
