@@ -1,6 +1,7 @@
 #include "table_file.h"
 
 int main (int argc, char** argv) {
-    printf("First arg: %d", argv[0]);
-    openOrCreateTableStoreFile("NAME");
+    struct TransactionResult file = openOrCreateTableStoreFile("/Users/dmitry/Desktop/low-level-programming/test.txt");
+
+    closeTableStoreFile(file.file);
 }

@@ -27,18 +27,4 @@ struct TransactionResult {
             .status = 1 \
         }
 
-#define IS_VALID_TRANSACTION(transaction_result) transaction_result.status
-
-static struct TransactionResult performFileOpen(file_path_t file_path, const char* op_flag) {
-    FILE *open_file = fopen(file_path, op_flag);
-
-    return (open_file) ? TRANSACTION_OK(open_file) : TRANSACTION_FAILED();
-}
-
-struct TransactionResult openFile(file_path_t file_path) {
-    return performFileOpen(file_path, READ_WRITE);
-}
-
-struct TransactionResult createOrBlankFile(file_path_t file_path) {
-    return performFileOpen(file_path, READ_WRITE_NEW);
-}
+#define IS_INVALID_TRANSACTION(transaction_result) transaction_result.status 

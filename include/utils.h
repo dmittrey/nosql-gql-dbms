@@ -1,24 +1,22 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdio.h>
 
-#define my_malloc(X) ((X*) malloc(sizeof(X)))
+#define my_malloc(X) ((X *)malloc(sizeof(X)))
 
-// extern bool log_enabled = true;
-
-// #if log_enabled == true
-    #define LOG(message) printf(message)
-// #else
-    // #define LOG(message) 
-// #endif
+#define INFO(message) printf("INFO: "); printf(message)
+#define ERROR(message) printf("ERROR: "); printf(message)
 
 // Own type of string to simplify handling
-struct string_t {
+struct string_t
+{
     const char *val;
-    const int count; 
+    const int count;
 };
 
-enum PerformStatus {
+enum PerformStatus
+{
     OK = 0,
     FAILED = 1
 };
