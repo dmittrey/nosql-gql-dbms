@@ -21,10 +21,10 @@ dirs:
 	@mkdir -p $(DOC_DIR)
 
 build: $(OBJS) | dirs
-	gcc $^ -o ${BLD_DIR}/${EXEC}.out
+	gcc -g $^ -o ${BLD_DIR}/${EXEC}.out
 
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.c 
-	gcc -I $(INC_DIR) -c $< -o $@
+	gcc -g -I $(INC_DIR) -c $< -o $@
 
 clean:
 	rm -rf $(BLD_DIR) 
