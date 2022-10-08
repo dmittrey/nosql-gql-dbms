@@ -1,4 +1,4 @@
-#include "table_file.h"
+#include "../include/table_file.h"
 
 int main(int argc, char **argv)
 {

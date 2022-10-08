@@ -1,4 +1,4 @@
-#include "table_file.h"
+#include "../include/table_file.h"
 #include <inttypes.h>
 
 //TODO Session logs? (f.e. Not opened files etc.)
@@ -43,6 +43,7 @@ struct TransactionResult openOrCreateTableStoreFile(file_path_t file_path) {
 struct TransactionResult closeTableStoreFile(table_file_t *file) {
     fclose(to_FILE(file));
     INFO("File closed!");
+    return TRANSACTION_FAILED();
 }
 
 /*
@@ -63,7 +64,7 @@ enum PerformStatus createDocumentsSection(
     // Alloc and write header
     struct Header *header = my_malloc(struct Header);
     header->length = DOCUMENTS_SECTION_SIZE;
-    header->length = NULL_NEXT;
+    header->next = NULL_NEXT;
 
     return createHeader(file, header, location);
 }
@@ -121,8 +122,15 @@ static enum PerformStatus createHeader(FILE* file, struct Header *header, fileof
         return FAILED;
     };
 
-    fprintf(file, "%" PRIu64, header->length);
-    fprintf(file, "%" PRIu64, header->next);
+    uint64_t * buffer = (uint64_t*) malloc(sizeof(uint64_t) * 2);
+
+    size_t result = fread(buffer, sizeof(uint64_t), 2, file);
+
+    printf("%" PRIu64 "\n", buffer[0]);
+    printf("%" PRIu64 "\n", buffer[1]);
+
+    fwrite(&header->length, sizeof(header->length), 1, file);
+    fwrite(&header->next, sizeof(header->next), 1, file);
 
     return OK;
 }
