@@ -118,19 +118,10 @@ static struct TransactionResult createOrBlankFile(file_path_t file_path) {
 }
 
 static enum PerformStatus createHeader(FILE* file, struct Header *header, fileoff_t location) {
-    if (fseek(file, location, SEEK_SET) != 0) {
-        return FAILED;
-    };
+    SEEK_OR_RETURN_FAIL(file, location);
 
-    uint64_t * buffer = (uint64_t*) malloc(sizeof(uint64_t) * 2);
-
-    size_t result = fread(buffer, sizeof(uint64_t), 2, file);
-
-    printf("%" PRIu64 "\n", buffer[0]);
-    printf("%" PRIu64 "\n", buffer[1]);
-
-    fwrite(&header->length, sizeof(header->length), 1, file);
-    fwrite(&header->next, sizeof(header->next), 1, file);
+    WRITE_UINT64_OR_RETURN_FAIL(file, header->length);
+    WRITE_UINT64_OR_RETURN_FAIL(file, header->next);
 
     return OK;
 }
