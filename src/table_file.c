@@ -46,6 +46,8 @@ struct TransactionResult closeTableStoreFile(table_file_t *file) {
     return TRANSACTION_FAILED();
 }
 
+/* Section manipulation */
+
 /*
 Creates document section at the place, where is buffer ptr
 */
@@ -56,6 +58,8 @@ enum PerformStatus createDocumentsSection(
 ) {
     FILE* file = to_FILE(table_file);
 
+    SEEK_OR_RETURN_FAIL(file, location);
+
     // Set prev next ptr to next
     if (prev_section != NULL) {
         prev_section->header->next = location;
@@ -65,6 +69,10 @@ enum PerformStatus createDocumentsSection(
     struct Header *header = my_malloc(struct Header);
     header->length = DOCUMENTS_SECTION_SIZE;
     header->next = NULL_NEXT;
+    //TODO need +1??
+    header->last_item_ptr = location + sizeof(header->length) + sizeof(header->next) + 1;
+    //TODO need -1??
+    header->first_record_ptr = location + DOCUMENTS_SECTION_SIZE - 1;
 
     return createHeader(file, header, location);
 }
@@ -76,6 +84,8 @@ enum PerformStatus createExtentSection(
 ) {
     FILE* file = to_FILE(table_file);
 
+    SEEK_OR_RETURN_FAIL(file, location);
+
     // Set prev next ptr to next
     if (prev_section != NULL) {
         prev_section->header->next = location;
@@ -84,9 +94,25 @@ enum PerformStatus createExtentSection(
     // Alloc and write header
     struct Header *header = my_malloc(struct Header);
     header->length = EXTENT_SECTION_SIZE;
-    header->length = NULL_NEXT;
+    header->next = NULL_NEXT;
+    //TODO need +1??
+    header->last_item_ptr = location + sizeof(header->length) + sizeof(header->next) + 1;
+    //TODO need -1??
+    header->first_record_ptr = location + DOCUMENTS_SECTION_SIZE - 1;
 
     return createHeader(file, header, location);
+}
+
+/* Data manipulation */
+
+/*
+Firstly, we check free space and decide to put it in this section or create new
+
+Secondly, we going to end of items and put information about document. 
+Document's name we put at the end of section before older names.
+*/
+enum PerformStatus insertDocument(table_file_t *file, struct Document *document) {
+
 }
 
 
@@ -118,10 +144,19 @@ static struct TransactionResult createOrBlankFile(file_path_t file_path) {
 }
 
 static enum PerformStatus createHeader(FILE* file, struct Header *header, fileoff_t location) {
-    SEEK_OR_RETURN_FAIL(file, location);
+    size_t wroten = 0;
+    
+    wroten = fwrite(&header->length, sizeof(header->length), 1, file);
+    if (wroten != 1) return FAILED; // fwrite returns successfully written objects
 
-    WRITE_UINT64_OR_RETURN_FAIL(file, header->length);
-    WRITE_UINT64_OR_RETURN_FAIL(file, header->next);
+    wroten = fwrite(&header->next, sizeof(header->next), 1, file);
+    if (wroten != 1) return FAILED;
+
+    wroten = fwrite(&header->last_item_ptr, sizeof(header->last_item_ptr), 1, file);
+    if (wroten != 1) return FAILED;
+
+    wroten = fwrite(&header->first_record_ptr, sizeof(header->first_record_ptr), 1, file);
+    if (wroten != 1) return FAILED;
 
     return OK;
 }
