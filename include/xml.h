@@ -25,6 +25,6 @@ struct Node {
 };
 
 struct Document {
-    struct string_t name; 
+    struct string_t *name; 
     struct Node *first_node; // Nullable
 };
