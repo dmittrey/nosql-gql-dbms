@@ -16,6 +16,14 @@ struct string_t
     const int count;
 };
 
+/*
+1 - str_1 > str_2
+0 - str_1 == str_2
+-1 - str1 != str2
+-2 - str_1 < str_2
+*/
+int compare_string_t(struct string_t str_1, struct string_t str_2);
+
 enum PerformStatus
 {
     OK = 0,
