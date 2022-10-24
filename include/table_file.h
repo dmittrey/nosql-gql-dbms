@@ -36,19 +36,19 @@ enum PerformStatus createExtentSection(
 
 /* Data manipulation */
 
-struct TransactionResult insertDocument(table_file_t *file, struct Document *document);
+enum PerformStatus insertDocumentNode(table_file_t *file, struct Document *document);
 
-struct TransactionResult readDocument(table_file_t *file, struct Document *document);
+enum PerformStatus readDocumentNode(table_file_t *file, struct string_t name, struct Document* res_document);
 
-struct TransactionResult updateDocument(table_file_t *file, struct Document *prev_document, struct Document *new_document);
+enum PerformStatus updateDocumentNode(table_file_t *file, struct Document *prev_document, struct Document *new_document);
 
-struct TransactionResult deleteDocument(table_file_t *file, struct Document *document);
+enum PerformStatus deleteDocumentNode(table_file_t *file, struct string_t *doc_name);
 
-struct TransactionResult insertNode(table_file_t *file, struct Node *node);
+enum PerformStatus insertNode(table_file_t *file, struct Node *node);
 
-struct TransactionResult readNode(table_file_t *file, struct Node *node);
+enum PerformStatus readNode(table_file_t *file, fileoff_t location, struct Node *res_node);
 
-struct TransactionResult updateNode(table_file_t *file, struct Node *prev_node, struct Node *new_node);
+enum PerformStatus updateNode(table_file_t *file, struct Node *prev_node, struct Node *new_node);
 
-struct TransactionResult deleteNode(table_file_t *file, struct Node *node);
+enum PerformStatus deleteNode(table_file_t *file, struct Node *node);
 
