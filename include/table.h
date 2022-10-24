@@ -29,7 +29,7 @@ enum SectionType {
 };
 
 struct Header {
-    fileoff_t length;
+    fileoff_t free_space;
     fileoff_t next;
     fileoff_t last_item_ptr; // Pointer to first free cell(after items)
     fileoff_t first_record_ptr; // Pointer to last free cell(before records)
@@ -39,24 +39,33 @@ struct Header {
 
 #define DOCUMENTS_SECTION_SIZE 8192
 
+#define ITEM_SIZE 8
+
 /*
 Struct of Documents section:
             ---------------------------------------------------------------
             | HEADER                                                      |
             ---------------------------------------------------------------
-content     | length      | next     | last_item_ptr   | first_record_ptr |
+content     | free_space  | next     | last_item_ptr   | first_record_ptr |
             ---------------------------------------------------------------
 size(bytes) | 8           | 8        | 8               | 8                |
             ---------------------------------------------------------------
             | Documents                                                   |
             ---------------------------------------------------------------
-content     | name_length | name_ptr | first_node_addr | next_sec         |
-            ---------------------------------------------------------------
-size(bytes) |  8          | 8        | 8               | 8                |
-            ---------------------------------------------------------------
+content     | name_length | name_ptr | first_node_addr |
+            --------------------------------------------
+size(bytes) |  8          | 8        | 8               |
+            --------------------------------------------
+
+TODO refactor image representation, firstly i want to rows of items(8b), 
+then random size records 
 
 Records increase from start to end. Names increase from end to start. 
 It's useful in cases, when we would change name to longer or shorter
+
+Contract :  All items point to records in same section !!!
+            Last item ptr points to first bit after all items
+            Firsty record ptr points to first filled by records bit
 
 TOTAL SECTION SIZE IS 8KB => RAM size is constant
 */
