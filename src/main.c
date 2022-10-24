@@ -8,6 +8,7 @@ static void checkCreateSections(struct TransactionResult file) {
     assert(docCreateStatus != FAILED);
 
     fseek(file.file, 0, SEEK_SET);
+
     uint64_t *doc_buffer = (uint64_t *)malloc(sizeof(uint64_t) * 4);
 
     fread(doc_buffer, sizeof(uint64_t), 4, file.file);
@@ -19,7 +20,7 @@ static void checkCreateSections(struct TransactionResult file) {
     assert(doc_buffer[2] < doc_buffer[3]);                                   // Last item placed before first buffer
 
     // TODO dangerous +1
-    enum PerformStatus extCreateStatus = createExtentSection(file.file, DOCUMENTS_SECTION_SIZE + 1, NULL);
+    enum PerformStatus extCreateStatus = createExtentSection(file.file, DOCUMENTS_SECTION_SIZE, NULL);
 
     assert(extCreateStatus != FAILED);
 
