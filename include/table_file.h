@@ -38,7 +38,7 @@ enum PerformStatus createExtentSection(
 
 enum PerformStatus insertDocumentNode(table_file_t *file, struct Document *document);
 
-enum PerformStatus readDocumentNode(table_file_t *file, struct string_t name, struct Document* res_document);
+enum PerformStatus readDocumentNode(table_file_t *file, struct string_t* name, struct Document* res_document);
 
 enum PerformStatus updateDocumentNode(table_file_t *file, struct Document *prev_document, struct Document *new_document);
 

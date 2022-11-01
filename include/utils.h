@@ -13,7 +13,7 @@
 struct string_t
 {
     const char *val;
-    const int count;
+    int count;
 };
 
 /*

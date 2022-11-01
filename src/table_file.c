@@ -13,6 +13,8 @@ static enum PerformStatus writeHeader(FILE *file, struct Header *header, fileoff
 
 static enum PerformStatus readHeader(FILE *file, struct Header *header, fileoff_t location);
 
+static struct Document *readDocumentFromItem(table_file_t file);
+
 /* File manipulation */
 
 struct TransactionResult openOrCreateTableStoreFile(file_path_t file_path)
@@ -56,9 +58,7 @@ enum PerformStatus createDocumentsSection(
     struct Documents *prev_section // Can be null if section is first
 )
 {
-    FILE *file = to_FILE(table_file);
-
-    SEEK_OR_RETURN_FAIL(file, location);
+    SEEK_OR_RETURN_FAIL(table_file, location);
 
     // Set prev next ptr to next
     if (prev_section != NULL)
@@ -73,7 +73,7 @@ enum PerformStatus createDocumentsSection(
     header->last_item_ptr = location + sizeof(header);
     header->first_record_ptr = location + DOCUMENTS_SECTION_SIZE - 1;
 
-    return writeHeader(file, header, location);
+    return writeHeader(table_file, header, location);
 }
 
 enum PerformStatus createExtentSection(
@@ -103,28 +103,6 @@ enum PerformStatus createExtentSection(
 }
 
 /* Data manipulation */
-
-/*
-We lose file seek in this method
-*/
-static struct Document *readDocumentFromItem(table_file_t file)
-{
-    struct Document *document = my_malloc(struct Document);
-    document->name = my_malloc(struct string_t);
-
-    fread(document->name->count, sizeof(uint64_t), 1, file);
-
-    fileoff_t name_fileoff;
-    fread(&name_fileoff, sizeof(name_fileoff), 1, file);
-
-    fread(document->first_node, sizeof(document->first_node), 1, file);
-
-    // Migrate to record address
-    fseek(file, name_fileoff, SEEK_SET);
-    fread(document->name->val, sizeof(char), document->name->count, file);
-
-    return document;
-}
 
 // TODO check perform status
 enum PerformStatus readDocumentNode(table_file_t *file, struct string_t doc_name, struct Document *res_document)
@@ -251,7 +229,7 @@ enum PerformStatus updateDocumentNode(table_file_t *file, struct Document *prev_
 /*
 Change ptr's in the header(We will override data, because of it wi will not touch data)
 */
-enum PerformStatus deleteDocumentNode(table_file_t *file, struct string_t doc_name)
+enum PerformStatus deleteDocumentNode(table_file_t *file, struct string_t* doc_name)
 {
     fileoff_t cur_sec_location = 0;
     struct Header *documents_header;
@@ -373,4 +351,26 @@ static enum PerformStatus readHeader(FILE *file, struct Header *header, fileoff_
         return FAILED;
 
     return OK;
+}
+
+/*
+We lose file seek in this method
+*/
+static struct Document *readDocumentFromItem(table_file_t file)
+{
+    struct Document *document = my_malloc(struct Document);
+    document->name = my_malloc(struct string_t);
+
+    fread(document->name->count, sizeof(uint64_t), 1, file);
+
+    fileoff_t name_fileoff;
+    fread(&name_fileoff, sizeof(name_fileoff), 1, file);
+
+    fread(document->first_node, sizeof(document->first_node), 1, file);
+
+    // Migrate to record address
+    fseek(file, name_fileoff, SEEK_SET);
+    fread(document->name->val, sizeof(char), document->name->count, file);
+
+    return document;
 }

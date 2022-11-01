@@ -36,11 +36,38 @@ static void checkCreateSections(struct TransactionResult file) {
     assert(ext_buffer[2] < ext_buffer[3]);                                   // Last item placed before first buffer
 }
 
+static void checkInsertDocumentNode(struct TransactionResult file, struct Document *document) {
+
+}
+
+static void readDocumentNode(struct TransactionResult file, struct string_t name) {
+
+}
+
+static void checkUpdateDocumentNode(table_file_t *file, struct Document *prev_document, struct Document *new_document) {
+
+}
+
+static void checkDeleteDocumentNode(table_file_t *file, struct string_t *doc_name) {
+
+}
+
 int main(int argc, char **argv)
 {
     struct TransactionResult file = openOrCreateTableStoreFile("/Users/dmitry/Desktop/low-level-programming/test.txt");
 
     checkCreateSections(file);
+
+    closeTableStoreFile(file.file);
+
+    struct TransactionResult file = openOrCreateTableStoreFile("/Users/dmitry/Desktop/low-level-programming/test.txt");
+
+    struct Document *doc = my_malloc(struct Document);
+    doc->name->val = "tag";
+    doc->name->count = 3;
+    doc->first_node = NULL_NEXT;
+
+    checkInsertDocumentNode(file, doc);
 
     closeTableStoreFile(file.file);
 }
