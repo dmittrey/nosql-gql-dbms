@@ -8,7 +8,7 @@
 
 #define XML_NODE_GET_DECLARE(FIELD_TYPE, FIELD) FIELD_TYPE xml_node_get_##FIELD(struct xml_node_t *node)
 
-#define XML_NODE_SET_DECLARE(FIELD_TYPE, FIELD) bool xml_node_set_##FIELD(struct xml_node_t *node, FIELD_TYPE new_##FIELD)
+#define XML_NODE_SET_DECLARE(FIELD_TYPE, FIELD) void xml_node_set_##FIELD(struct xml_node_t *node, FIELD_TYPE new_##FIELD)
 
 struct xml_node_t;
 
@@ -31,8 +31,6 @@ struct xml_node_t *xml_node_new();
 void xml_node_ctor(struct xml_node_t *, struct xml_document_t *, struct xml_node_t *, string_t *,
                    enum type_of_node_t *, struct attribute_t **, struct xml_node_t **, string_t *);
 void xml_node_dtor(struct xml_node_t *);
-
-size_t xml_node_get_size(struct xml_node_t *);
 
 /* Getters */
 XML_NODE_GET_DECLARE(struct xml_document_t *, document);

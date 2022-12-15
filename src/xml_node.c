@@ -7,10 +7,9 @@
     }
 
 #define XML_NODE_SET_DEFINE(FIELD_TYPE, FIELD)                          \
-    bool xml_node_set_##FIELD(xml_node_t *node, FIELD_TYPE new_##FIELD) \
+    void xml_node_set_##FIELD(xml_node_t *node, FIELD_TYPE new_##FIELD) \
     {                                                                   \
         node->FIELD = new_##FIELD;                                      \
-        return false;                                                   \
     }
 
 typedef struct
@@ -30,12 +29,24 @@ xml_node_t *xml_node_new()
 }
 
 void xml_node_ctor(xml_node_t *my_node, struct xml_document_t *document, xml_node_t *parent, string_t *name,
-                   struct type_of_node_t *type, struct attribute_t **attributes, xml_node_t **children, string_t *text) {}
-void xml_node_dtor(xml_node_t *node) {}
-
-size_t xml_node_get_size(xml_node_t *node)
+                   struct type_of_node_t *type, struct attribute_t **attributes, xml_node_t **children, string_t *text)
 {
-    return 5;
+    my_node->document = document;
+    my_node->parent = parent;
+    my_node->name = name;
+    my_node->type = type;
+    my_node->attributes = attributes;
+    my_node->text = text;
+}
+void xml_node_dtor(xml_node_t *my_node)
+{
+    free(my_node->document);
+    free(my_node->parent);
+    free(my_node->name);
+    free(my_node->type);
+    free(my_node->attributes);
+    free(my_node->children);
+    free(my_node->text);
 }
 
 XML_NODE_GET_DEFINE(struct xml_document_t *, document);
