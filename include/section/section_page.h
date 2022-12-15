@@ -1,6 +1,6 @@
 #pragma once
 
-#include "xml.h"
+#include "utils.h"
 
 /**
  * Third layer of abstractions
@@ -17,10 +17,10 @@
  */
 struct section_page_t;
 
-struct section_page_t *page_new();
+struct section_page_t *section_page_new();
 
-void page_ctor(struct section_page_t *, FILE *filep);
-void page_dtor(struct section_page_t *);
+void section_page_ctor(struct section_page_t *, FILE *filep);
+void section_page_dtor(struct section_page_t *);
 
-PerformStatus page_write(struct section_page_t *, sectoff_t, xml_node_t *);
-PerformStatus page_read(struct section_page_t *, sectoff_t, xml_node_t *);
+enum PerformStatus section_page_write(struct section_page_t *, sectoff_t, xml_node_t *);
+enum PerformStatus section_page_read(struct section_page_t *, sectoff_t, xml_node_t *);
