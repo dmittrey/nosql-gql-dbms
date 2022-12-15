@@ -28,8 +28,8 @@ xml_node_t *xml_node_new()
     return my_malloc(xml_node_t);
 }
 
-void xml_node_ctor(xml_node_t *my_node, struct xml_document_t *document, xml_node_t *parent, string_t *name,
-                   struct type_of_node_t *type, struct attribute_t **attributes, xml_node_t **children, string_t *text)
+void xml_node_ctor(xml_node_t *my_node, struct xml_document_t *document, struct xml_node_t *parent, string_t *name,
+                   struct type_of_node_t *type, struct attribute_t **attributes, struct xml_node_t **children, string_t *text)
 {
     my_node->document = document;
     my_node->parent = parent;

@@ -4,7 +4,7 @@
 #include "table.h"
 
 #define SECTION_PAGE_FIELD_GETTER_DECLARE(FIELD_TYPE, FIELD_NAME) \
-    FIELD_TYPE FIELD_NAME section_page_get_##FIELD_NAME(section_page_t *page)
+    FIELD_TYPE section_page_get_##FIELD_NAME(section_page_t *page)
 
 #define SECTION_PAGE_FIELD_SETTER_DECLARE(FIELD_TYPE, FIELD_NAME) \
     enum PerformStatus section_page_set_##FIELD_NAME(section_page_t *page, FIELD_TYPE FIELD_NAME)
