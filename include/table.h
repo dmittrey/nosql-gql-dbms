@@ -1,11 +1,6 @@
 #pragma once
 
-#include <stdio.h>
 #include <inttypes.h>
-
-#include "xml.h"
-
-typedef uint64_t fileoff_t;
 
 /*
 Table representation in file:
@@ -23,25 +18,6 @@ Table representation in file:
 
 In other words, there is 2 random placed sections with information about docs and nodes.
 */
-enum SectionType
-{
-    DOCUMENTS,
-    EXTENT
-};
-
-struct Header
-{
-    fileoff_t free_space;
-    fileoff_t next;
-    fileoff_t last_item_ptr;    // Pointer to first free cell(after items)
-    fileoff_t first_record_ptr; // Pointer to last free cell(before records)
-};
-
-#define NULL_NEXT 0
-
-#define DOCUMENTS_SECTION_SIZE 8192
-
-#define ITEM_SIZE 8
 
 /*
 Struct of Documents section:
@@ -66,18 +42,11 @@ Records increase from start to end. Names increase from end to start.
 It's useful in cases, when we would change name to longer or shorter
 
 Contract :  All items point to records in same section !!!
-            Last item ptr points to first bit after all items
-            Firsty record ptr points to first filled by records bit
+            Last item ptr points to first free bit after all items
+            First record points to last free bit before all records
 
 TOTAL SECTION SIZE IS 8KB => RAM size is constant
 */
-struct Documents
-{
-    struct Header *header;
-    struct Document *document[];
-};
-
-#define EXTENT_SECTION_SIZE 8192
 
 /*
 Struct of Extent section:
@@ -101,8 +70,10 @@ size(bytes) | unknw        | 8            | unknw         | 8                | 8
 
 TOTAL SECTION SIZE IS 8KB => RAM size is constant
 */
-struct Extent
-{
-    struct Header *header;
-    struct Node *nodes[];
-};
+
+#define SECTION_SIZE 8192
+
+#define ITEM_SIZE 8
+
+typedef uint64_t fileoff_t;
+typedef uint64_t sectoff_t;
