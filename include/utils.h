@@ -7,9 +7,6 @@
 #define my_malloc(T) ((T *)malloc(sizeof(T)))
 #define my_malloc_array(T, count) ((T *)malloc(sizeof(T) * count))
 
-typedef uint64_t sectoff_t;
-typedef uint64_t fileoff_t;
-
 // Own type of string to simplify handling
 typedef struct
 {
