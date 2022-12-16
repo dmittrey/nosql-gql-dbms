@@ -47,6 +47,7 @@ void xml_node_dtor(xml_node_t *my_node)
     free(my_node->attributes);
     free(my_node->children);
     free(my_node->text);
+    free(my_node);
 }
 
 XML_NODE_GET_DEFINE(struct xml_document_t *, document);
