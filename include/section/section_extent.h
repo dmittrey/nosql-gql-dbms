@@ -1,17 +1,22 @@
 #pragma once
 
-#include "section/section_page_p.h"
-
-#include "xml/xml_document.h"
-
 #include "utils.h"
+#include "table.h"
 
-struct section_extent_t;
+#include "xml/xml_node.h"
 
-struct section_extent_t *page_new();
+#include "section/section_page.h"
 
-void page_ctor(struct section_extent_t *, FILE *filep);
-void page_dtor(struct section_extent_t *);
+typedef struct
+{
+    section_page_t page;
+} section_extent_t;
 
-enum PerformStatus section_extent_write(struct section_extent_t *, struct xml_node_t *);
-enum PerformStatus section_extent_read(struct section_extent_t *, struct xml_node_t *);
+section_extent_t *section_extent_new();
+
+void section_extent_ctor(section_extent_t *, FILE *, fileoff_t);
+void section_extent_dtor(section_extent_t *);
+
+PerformStatus section_extent_sync(section_extent_t *);
+
+PerformStatus section_extent_write(section_extent_t *, xml_node_t *);

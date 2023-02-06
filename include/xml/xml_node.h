@@ -6,46 +6,32 @@
 
 #include "utils.h"
 
-#define XML_NODE_GET_DECLARE(FIELD_TYPE, FIELD) FIELD_TYPE xml_node_get_##FIELD(struct xml_node_t *node)
-
-#define XML_NODE_SET_DECLARE(FIELD_TYPE, FIELD) void xml_node_set_##FIELD(struct xml_node_t *node, FIELD_TYPE new_##FIELD)
-
-struct xml_node_t;
-
-enum type_of_node_t
+typedef enum
 {
     START_TAG = 0, // <address>
     END_TAG,       // </address>
     TEXT,
     EMPTY_TAG // <hr />
-};
+} type_of_node_t;
 
-struct attribute_t
+typedef struct
 {
     string_t name;
     string_t value;
-};
+} attribute_t;
 
-struct xml_node_t *xml_node_new();
+typedef struct
+{
+    struct xml_document_t *document;
+    struct xml_node_t *parent;
+    string_t *name;
+    struct type_of_node_t *type;
+    struct attribute_t **attributes;
+    struct xml_node_t **children;
+    string_t *text;
+} xml_node_t;
 
-void xml_node_ctor(struct xml_node_t *, struct xml_document_t *, struct xml_node_t *, string_t *,
-                   enum type_of_node_t *, struct attribute_t **, struct xml_node_t **, string_t *);
-void xml_node_dtor(struct xml_node_t *);
+xml_node_t *xml_node_new();
 
-/* Getters */
-XML_NODE_GET_DECLARE(struct xml_document_t *, document);
-XML_NODE_GET_DECLARE(struct xml_node_t *, parent);
-XML_NODE_GET_DECLARE(string_t *, name);
-XML_NODE_GET_DECLARE(enum type_of_node_t *, type);
-XML_NODE_GET_DECLARE(struct attribute_t **, attributes);
-XML_NODE_GET_DECLARE(struct xml_node_t **, children);
-XML_NODE_GET_DECLARE(string_t *, text);
-
-/* Setters */
-XML_NODE_SET_DECLARE(struct xml_document_t *, document);
-XML_NODE_SET_DECLARE(struct xml_node_t *, parent);
-XML_NODE_SET_DECLARE(string_t *, name);
-XML_NODE_SET_DECLARE(enum type_of_node_t *, type);
-XML_NODE_SET_DECLARE(struct attribute_t **, attributes);
-XML_NODE_SET_DECLARE(struct xml_node_t **, children);
-XML_NODE_SET_DECLARE(string_t *, text);
+void xml_node_ctor(xml_node_t *);
+void xml_node_dtor(xml_node_t *);
