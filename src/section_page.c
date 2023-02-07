@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 
 #include "utils.h"
 #include "table.h"
@@ -18,12 +19,21 @@
  */
 PerformStatus section_page_sync(section_page_t *page)
 {
+    long prev_ptr = ftell(page->filp);
+
     FWRITE_OR_FAIL(&page->free_space, sizeof(page->free_space), page->filp);
     FWRITE_OR_FAIL(&page->next, sizeof(page->next), page->filp);
     FWRITE_OR_FAIL(&page->last_item_ptr, sizeof(page->last_item_ptr), page->filp);
     FWRITE_OR_FAIL(&page->first_record_ptr, sizeof(page->first_record_ptr), page->filp);
 
+    FSEEK_OR_FAIL(page->filp, prev_ptr);
+
     return OK;
+}
+
+sectoff_t section_page_size(section_page_t *page)
+{
+    return sizeof(page->free_space) + sizeof(page->next) + sizeof(page->first_record_ptr) + sizeof(page->last_item_ptr);
 }
 
 section_page_t *section_page_new()
@@ -33,10 +43,12 @@ section_page_t *section_page_new()
 
 void section_page_ctor(section_page_t *page, FILE *filp)
 {
-    page->free_space = SECTION_SIZE - sizeof(section_page_t);
+    assert(filp != NULL);
+
+    page->free_space = SECTION_SIZE - section_page_size(page);
     page->next = 0; // If we have 0 then we don't have next section
-    page->last_item_ptr = sizeof(page->free_space) + sizeof(page->next) + sizeof(page->last_item_ptr) + sizeof(page->first_record_ptr);
-    page->first_record_ptr = SECTION_SIZE - 1;
+    page->last_item_ptr = ftell(filp) + section_page_size(page);
+    page->first_record_ptr = ftell(filp) + SECTION_SIZE - 1;
     page->filp = filp;
 
     section_page_sync(page);
@@ -51,6 +63,8 @@ PerformStatus section_page_shift_last_item_ptr(section_page_t *page, sectoff_t s
     page->free_space -= shift;
     page->last_item_ptr += shift;
 
+    section_page_sync(page);
+
     return OK;
 }
 
@@ -58,6 +72,8 @@ PerformStatus section_page_shift_first_record_ptr(section_page_t *page, sectoff_
 {
     page->free_space -= shift;
     page->first_record_ptr += shift;
+
+    section_page_sync(page);
 
     return OK;
 }
