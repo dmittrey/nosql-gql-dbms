@@ -25,6 +25,8 @@ PerformStatus section_page_shift_first_record_ptr(section_page_t *, sectoff_t);
 
 PerformStatus section_page_sync(section_page_t *);
 
+sectoff_t section_page_size();
+
 SECTION_PAGE_FIELD_SETTER_DECLARE(sectoff_t, free_space);
 SECTION_PAGE_FIELD_SETTER_DECLARE(sectoff_t, next);
 SECTION_PAGE_FIELD_SETTER_DECLARE(sectoff_t, last_item_ptr);

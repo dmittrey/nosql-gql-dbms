@@ -6,5 +6,5 @@
 
 #define ITEM_SIZE 8
 
-typedef uint64_t fileoff_t;
-typedef uint64_t sectoff_t;
+typedef int64_t fileoff_t;
+typedef int64_t sectoff_t;
