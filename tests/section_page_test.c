@@ -1,41 +1,131 @@
+#include <assert.h>
+
 #include "utils.h"
+#include "table.h"
 
 #include "section/section_page.h"
 
 // Создание с существующим файлом и нулевым отступом
-int SectionPage_DefaultCtor_Successful() {
-    FILE* file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+void SectionPage_DefaultCtor_Successful()
+{
+    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
 
     section_page_t *page = section_page_new();
     section_page_ctor(page, file);
 
-    printf("%llu, %llu, %llu, %llu", page->free_space, page->next, page->last_item_ptr, page->first_record_ptr);
+    assert(page->free_space == (SECTION_SIZE - section_page_size(page)));
+    assert(page->next == 0); // Next section is undefined
+    assert(page->last_item_ptr == section_page_size(page));
+    assert(page->first_record_ptr == SECTION_SIZE - 1);
 
     fclose(file);
-
-    return 0;
 }
 
 // Создание с существующим файлом и ненулевым отступом
-int SectionPage_CtorWithFileStartNotFromZero_Successful() {
-    FILE* file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+void SectionPage_CtorWithFileStartNotFromZero_Successful()
+{
+    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
     fseek(file, 5, SEEK_SET);
 
     section_page_t *page = section_page_new();
     section_page_ctor(page, file);
 
-    printf("%llu, %llu, %llu, %llu", page->free_space, page->next, page->last_item_ptr, page->first_record_ptr);
+    assert(page->free_space == (SECTION_SIZE - section_page_size(page)));
+    assert(page->next == 0); // Next section is undefined
+    assert(page->last_item_ptr == ftell(file) + section_page_size(page));
+    assert(page->first_record_ptr == ftell(file) + SECTION_SIZE - 1);
 
     fclose(file);
+}
 
-    return 0;
+bool SectionPage_ShiftLastItemPtr_Successful()
+{
+    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    sectoff_t shift = 5;
+
+    section_page_t *page = section_page_new();
+    section_page_ctor(page, file);
+
+    PerformStatus perform_result = section_page_shift_last_item_ptr(page, shift);
+
+    assert(perform_result == OK);
+    assert(page->last_item_ptr == section_page_size(page) + shift);
+
+    sectoff_t file_last_item_ptr;
+    FSEEK_OR_FAIL(file, sizeof(page->free_space) + sizeof(page->next));
+    FREAD_OR_FAIL(&file_last_item_ptr, sizeof(sectoff_t), file);
+    assert(file_last_item_ptr == section_page_size(page) + shift);
+
+    return true;
+}
+
+bool SectionPage_ShiftFirstRecordPtr_Successful()
+{
+    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    sectoff_t shift = -5;
+
+    section_page_t *page = section_page_new();
+    section_page_ctor(page, file);
+
+    PerformStatus perform_result = section_page_shift_first_record_ptr(page, shift);
+
+    assert(perform_result == OK);
+    assert(page->first_record_ptr == SECTION_SIZE - 1 + shift);
+
+    sectoff_t file_first_record_ptr;
+    FSEEK_OR_FAIL(file, sizeof(page->free_space) + sizeof(page->next) + sizeof(page->last_item_ptr));
+    FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
+    assert(file_first_record_ptr == SECTION_SIZE - 1 + shift);
+
+    return true;
+}
+
+bool SectionPage_SyncAfterUpdateInnerState_Successful()
+{
+    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    section_page_t *page = section_page_new();
+
+    page->free_space = 5;
+    page->next = 6;
+    page->last_item_ptr = 7;
+    page->first_record_ptr = 8;
+    page->filp = file;
+
+    section_page_sync(page);
+    // TODO Refactor to macro
+    sectoff_t file_free_space;
+    FREAD_OR_FAIL(&file_free_space, sizeof(sectoff_t), file);
+    assert(file_free_space == 5);
+
+    sectoff_t file_next;
+    FREAD_OR_FAIL(&file_next, sizeof(sectoff_t), file);
+    assert(file_next == 6);
+
+    sectoff_t file_last_item_ptr;
+    FREAD_OR_FAIL(&file_last_item_ptr, sizeof(sectoff_t), file);
+    assert(file_last_item_ptr == 7);
+
+    sectoff_t file_first_record_ptr;
+    FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
+    assert(file_first_record_ptr == 8);
+
+    return true;
 }
 
 // Создание с несуществующим файлом
-int SectionPage_CtorWithUndefinedFile_Exception() {
-    
+void SectionPage_CtorWithUndefinedFile_Exception()
+{
+    FILE *file = NULL;
+
+    section_page_t *page = section_page_new();
+    section_page_ctor(page, file);
 }
 
-int main() {
+int main()
+{
+    SectionPage_DefaultCtor_Successful();
     SectionPage_CtorWithFileStartNotFromZero_Successful();
+    SectionPage_ShiftLastItemPtr_Successful();
+    SectionPage_ShiftFirstRecordPtr_Successful();
+    SectionPage_SyncAfterUpdateInnerState_Successful();
 }
