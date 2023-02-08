@@ -33,7 +33,7 @@ PerformStatus section_page_sync(section_page_t *page)
 
 sectoff_t section_page_size(section_page_t *page)
 {
-    return sizeof(page->free_space) + sizeof(page->next) + sizeof(page->first_record_ptr) + sizeof(page->last_item_ptr);
+    return sizeof(page->free_space) + sizeof(page->next) + sizeof(page->last_item_ptr) + sizeof(page->first_record_ptr);
 }
 
 section_page_t *section_page_new()
@@ -41,14 +41,15 @@ section_page_t *section_page_new()
     return my_malloc(section_page_t);
 }
 
-void section_page_ctor(section_page_t *page, FILE *filp)
+void section_page_ctor(section_page_t *page, fileoff_t offset, FILE *filp)
 {
     assert(filp != NULL);
 
     page->free_space = SECTION_SIZE - section_page_size(page);
     page->next = 0; // If we have 0 then we don't have next section
     page->last_item_ptr = ftell(filp) + section_page_size(page);
-    page->first_record_ptr = ftell(filp) + SECTION_SIZE - 1;
+    page->first_record_ptr = ftell(filp) + SECTION_SIZE;
+    page->section_offset = offset;
     page->filp = filp;
 
     section_page_sync(page);

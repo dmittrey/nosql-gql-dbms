@@ -16,7 +16,7 @@ void SectionPage_DefaultCtor_Successful()
     assert(page->free_space == (SECTION_SIZE - section_page_size(page)));
     assert(page->next == 0); // Next section is undefined
     assert(page->last_item_ptr == section_page_size(page));
-    assert(page->first_record_ptr == SECTION_SIZE - 1);
+    assert(page->first_record_ptr == SECTION_SIZE);
 
     fclose(file);
 }
@@ -33,7 +33,7 @@ void SectionPage_CtorWithFileStartNotFromZero_Successful()
     assert(page->free_space == (SECTION_SIZE - section_page_size(page)));
     assert(page->next == 0); // Next section is undefined
     assert(page->last_item_ptr == ftell(file) + section_page_size(page));
-    assert(page->first_record_ptr == ftell(file) + SECTION_SIZE - 1);
+    assert(page->first_record_ptr == ftell(file) + SECTION_SIZE);
 
     fclose(file);
 }
@@ -70,12 +70,12 @@ bool SectionPage_ShiftFirstRecordPtr_Successful()
     PerformStatus perform_result = section_page_shift_first_record_ptr(page, shift);
 
     assert(perform_result == OK);
-    assert(page->first_record_ptr == SECTION_SIZE - 1 + shift);
+    assert(page->first_record_ptr == SECTION_SIZE + shift);
 
     sectoff_t file_first_record_ptr;
     FSEEK_OR_FAIL(file, sizeof(page->free_space) + sizeof(page->next) + sizeof(page->last_item_ptr));
     FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
-    assert(file_first_record_ptr == SECTION_SIZE - 1 + shift);
+    assert(file_first_record_ptr == SECTION_SIZE + shift);
 
     return true;
 }

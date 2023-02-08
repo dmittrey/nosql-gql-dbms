@@ -14,7 +14,7 @@ typedef struct
 
 section_extent_t *section_extent_new();
 
-void section_extent_ctor(section_extent_t *, FILE *, fileoff_t);
+void section_extent_ctor(section_extent_t *, fileoff_t, FILE *);
 void section_extent_dtor(section_extent_t *);
 
 PerformStatus section_extent_sync(section_extent_t *);

@@ -14,3 +14,8 @@ void xml_document_dtor(xml_document_t *document)
 {
     free(document);
 }
+
+int xml_document_get_name_size(xml_document_t *document)
+{
+    return sizeof(char) * document->name->count;
+}
