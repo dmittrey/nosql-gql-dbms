@@ -11,7 +11,7 @@
 static PerformStatus section_extents_write_in_item(section_extents_t *, size_t, void *);
 static PerformStatus section_extents_write_in_record(section_extents_t *, size_t, void *, fileoff_t *);
 
-section_extents_t *section_documents_new()
+section_extents_t *section_extents_new()
 {
     return my_malloc(section_extents_t);
 }
@@ -32,7 +32,7 @@ PerformStatus section_extents_sync(section_extents_t *section)
 
 PerformStatus section_extents_write(section_extents_t *section, json_value_t *json, fileoff_t *parent_json_addr, fileoff_t *save_addr)
 {
-    if (section->header.free_space <= json_value_get_item_size(json) + json_value_get_record_size(json))
+    if (section->header.free_space >= json_value_get_item_size(json) + json_value_get_record_size(json))
     {
         fileoff_t json_val_ptr = 0;
 
@@ -101,7 +101,7 @@ static PerformStatus section_extents_write_in_record(section_extents_t *section,
 
     section_header_shift_first_record_ptr((section_header_t *)section, -1 * data_size);
     FSEEK_OR_FAIL(section->header.filp, section->header.first_record_ptr);
-    FWRITE_OR_FAIL(section->header.filp, data_size, data_ptr);
+    FWRITE_OR_FAIL(section->header.filp, data_size, data_ptr);// Bad memory access TODO see memory alloc
 
     *save_addr = section->header.first_record_ptr;
 
