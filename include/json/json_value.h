@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils.h"
+#include "table.h"
 
 #include "json/json_object.h"
 

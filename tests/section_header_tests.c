@@ -11,7 +11,7 @@ void SectionPage_DefaultCtor_Successful()
     FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
 
     section_header_t *page = section_header_new();
-    section_header_ctor(page, file);
+    section_header_ctor(page, 0, file);
 
     assert(page->free_space == (SECTION_SIZE - section_header_size(page)));
     assert(page->next == 0); // Next section is undefined
@@ -25,15 +25,15 @@ void SectionPage_DefaultCtor_Successful()
 void SectionPage_CtorWithFileStartNotFromZero_Successful()
 {
     FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
-    fseek(file, 5, SEEK_SET);
+    sectoff_t shift = 5;
 
     section_header_t *page = section_header_new();
-    ssection_header_ctor(page, file);
+    section_header_ctor(page, shift, file);
 
     assert(page->free_space == (SECTION_SIZE - section_header_size(page)));
     assert(page->next == 0); // Next section is undefined
-    assert(page->last_item_ptr == ftell(file) + section_header_size(page));
-    assert(page->first_record_ptr == ftell(file) + SECTION_SIZE);
+    assert(page->last_item_ptr == shift + section_header_size(page));
+    assert(page->first_record_ptr == shift + SECTION_SIZE);
 
     fclose(file);
 }
@@ -91,7 +91,7 @@ bool SectionPage_SyncAfterUpdateInnerState_Successful()
     page->first_record_ptr = 8;
     page->filp = file;
 
-    section_page_sync(page);
+    section_header_sync(page);
     // TODO Refactor to macro
     sectoff_t file_free_space;
     FREAD_OR_FAIL(&file_free_space, sizeof(sectoff_t), file);
@@ -118,7 +118,7 @@ void SectionPage_CtorWithUndefinedFile_Exception()
     FILE *file = NULL;
 
     section_header_t *page = section_header_new();
-    section_header_ctor(page, file);
+    section_header_ctor(page, 0, file);
 }
 
 int main()

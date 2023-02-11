@@ -22,12 +22,12 @@ void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *fi
 }
 void section_extents_dtor(section_extents_t *section)
 {
-    section_page_dtor((section_header_t *)section);
+    section_header_dtor((section_header_t *)section);
 }
 
 PerformStatus section_extents_sync(section_extents_t *section)
 {
-    return section_page_sync((section_header_t *)section);
+    return section_header_sync((section_header_t *)section);
 }
 
 PerformStatus section_extents_write(section_extents_t *section, json_value_t *json, fileoff_t *parent_json_addr, fileoff_t *save_addr)
@@ -40,7 +40,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
         if (json->type == TYPE_STRING)
         {
-            section_extents_write_in_record(section, string_get_size(json->value.string_val), json->value.string_val.val, &json_val_ptr);
+            section_extents_write_in_record(section, string_get_size(json->value.string_val), (void *)json->value.string_val.val, &json_val_ptr);
         }
         else
         {
@@ -57,11 +57,11 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
         {
             sectoff_t attr_key_ptr = 0;
             sectoff_t attr_val_ptr = 0;
-            
+
             kv *cur_attribute = json->object.attributes[i];
 
             // Write attr key, save ptr and size into entity
-            section_extents_write_in_record(section, string_get_size(cur_attribute->key), cur_attribute->key.val, &attr_key_ptr);
+            section_extents_write_in_record(section, string_get_size(cur_attribute->key), (void *)cur_attribute->key.val, &attr_key_ptr);
             uint64_t attr_key_size = cur_attribute->key.count;
 
             // Write attr value, save ptr(We can fetch size via type)
@@ -78,9 +78,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
     return FAILED;
 }
-PerformStatus section_documents_read(section_extents_t *section, json_value_t *json)
-{
-}
+PerformStatus section_documents_read(section_extents_t *section, json_value_t *json);
 PerformStatus section_documents_update(section_extents_t *, json_value_t *);
 PerformStatus section_documents_delete(section_extents_t *, json_value_t *);
 
@@ -90,9 +88,11 @@ static PerformStatus section_extents_write_in_item(section_extents_t *section, s
 
     FSEEK_OR_FAIL(section->header.filp, section->header.last_item_ptr);
     FWRITE_OR_FAIL(section->header.filp, data_size, data_ptr);
-    section_page_shift_last_item_ptr((section_header_t *)section, data_size);
+    section_header_shift_last_item_ptr((section_header_t *)section, data_size);
 
     FSEEK_OR_FAIL(section->header.filp, prev_ptr);
+
+    return OK;
 }
 
 static PerformStatus section_extents_write_in_record(section_extents_t *section, size_t data_size, void *data_ptr, fileoff_t *save_addr)
@@ -106,4 +106,6 @@ static PerformStatus section_extents_write_in_record(section_extents_t *section,
     *save_addr = section->header.first_record_ptr;
 
     FSEEK_OR_FAIL(section->header.filp, prev_ptr);
+
+    return OK;
 }

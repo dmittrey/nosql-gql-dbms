@@ -20,6 +20,7 @@
 PerformStatus section_header_sync(section_header_t *header)
 {
     long prev_ptr = ftell(header->filp);
+    FSEEK_OR_FAIL(header->filp, header->section_offset);
 
     FWRITE_OR_FAIL(&header->free_space, sizeof(header->free_space), header->filp);
     FWRITE_OR_FAIL(&header->next, sizeof(header->next), header->filp);
@@ -45,10 +46,10 @@ void section_header_ctor(section_header_t *header, fileoff_t offset, FILE *filp)
 {
     assert(filp != NULL);
 
-    header->free_space = SECTION_SIZE - section_page_size(header);
+    header->free_space = SECTION_SIZE - section_header_size(header);
     header->next = 0; // If we have 0 then we don't have next section
-    header->last_item_ptr = ftell(filp) + section_page_size(header);
-    header->first_record_ptr = ftell(filp) + SECTION_SIZE;
+    header->last_item_ptr = offset + section_header_size(header);
+    header->first_record_ptr = offset + SECTION_SIZE;
     header->section_offset = offset;
     header->filp = filp;
 

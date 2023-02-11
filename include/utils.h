@@ -26,10 +26,7 @@ typedef struct
     int count;
 } string_t;
 
-inline size_t string_get_size(string_t str)
-{
-    return str.count * sizeof(char);
-}
+size_t string_get_size(string_t str);
 
 typedef enum
 {
