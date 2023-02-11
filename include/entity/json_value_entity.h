@@ -10,20 +10,15 @@ typedef struct
 {
     uint64_t attr_count;
     uint64_t type;
-    uint64_t val_size;
     sectoff_t val_ptr;
-    kv_entity attributes[0];
+    fileoff_t parent;
+    fileoff_t next;
+    kv_entity *attributes;
 } json_value_entity;
 
-typedef struct
-{
-    json_object_t object; // Указатель на массив атрибутов
-    union
-    {
-        int32_t int32_val;
-        float float_val;
-        string_t string_val;
-        bool bool_val;
-    } value;
-    json_value_type type; // Тип значения
-} json_value_t_entity;
+json_value_entity *json_value_entity_new();
+
+void json_value_entity_ctor(json_value_entity *, json_value_t *);
+void json_value_entity_dtor(json_value_entity *);
+
+size_t json_value_entity_get_size(json_value_entity *);

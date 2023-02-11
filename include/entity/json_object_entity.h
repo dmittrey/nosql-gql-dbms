@@ -12,10 +12,10 @@ typedef struct
 } kv_entity;
 
 /*
-JSON obj serialization:
+kv_entity serialization:
 
-| Nodes body  |          |                |               |               |     |
-| ----------- | -------- | -------------- |-------------- |-------------- | --- |
-| Content     | attr_cnt | attr1_key_size | attr1_key_ptr | attr1_val_ptr | ... |
-| Size(bytes) | 8        | 8              | 8             | 8             |     |
+| Extents body |                |                |               |     |
+| ------------ | -------------- | -------------- | ------------- | --- |
+| Content      | attr1_key_size | attr1_key_ptr  | attr1_val_ptr | ... |
+| Size(bytes)  | 8              | 8              | 8             |     |
 */
