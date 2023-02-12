@@ -72,7 +72,7 @@ PerformStatus section_header_shift_last_item_ptr(section_header_t *header, secto
 
 PerformStatus section_header_shift_first_record_ptr(section_header_t *header, sectoff_t shift)
 {
-    header->free_space -= shift;
+    header->free_space += shift;
     header->first_record_ptr += shift;
 
     section_header_sync(header);

@@ -12,11 +12,9 @@ void json_value_entity_ctor(json_value_entity *json_entity, json_value_t *json)
     json_entity->val_ptr = 0;
     json_entity->parent = 0;
     json_entity->next = 0;
-    json_entity->attributes = my_malloc_array(kv_entity, json_entity->attr_count);
 }
 void json_value_entity_dtor(json_value_entity *json_entity)
 {
-    free(json_entity->attributes);
     free(json_entity);
 }
 

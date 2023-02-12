@@ -6,8 +6,6 @@
 
 #include "entity/json_value_entity.h"
 
-#define ITEM_SIZE 8
-
 static PerformStatus section_extents_write_in_item(section_extents_t *, size_t, void *);
 static PerformStatus section_extents_write_in_record(section_extents_t *, size_t, void *, fileoff_t *);
 
@@ -22,7 +20,15 @@ void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *fi
 }
 void section_extents_dtor(section_extents_t *section)
 {
+    static const char zeros[SECTION_SIZE];
+
+    size_t prev = ftell(section->header.filp);
+
+    fseek(section->header.filp, section->header.section_offset, SEEK_SET);
+    fwrite(&zeros, sizeof(char), SECTION_SIZE, section->header.filp);
     section_header_dtor((section_header_t *)section);
+
+    fseek(section->header.filp, prev, SEEK_SET);
 }
 
 PerformStatus section_extents_sync(section_extents_t *section)
@@ -42,16 +48,19 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
         {
             section_extents_write_in_record(section, string_get_size(json->value.string_val), (void *)json->value.string_val.val, &json_val_ptr);
         }
-        else
+        else if (json->type != TYPE_OBJECT)
         {
             section_extents_write_in_record(section, sizeof(json->value), &json->value, &json_val_ptr);
         }
 
-        section_extents_write_in_item(section, ITEM_SIZE, &json->object.attributes_count);
-        section_extents_write_in_item(section, ITEM_SIZE, &json->type);
-        section_extents_write_in_item(section, ITEM_SIZE, &json_val_ptr);
-        section_extents_write_in_item(section, ITEM_SIZE, parent_json_addr);
-        section_extents_write_in_item(section, ITEM_SIZE, 0); // Hold gap for next json addr
+        section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json->object.attributes_count);
+        section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json->type);
+        section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json_val_ptr);
+        section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, parent_json_addr);
+        section_header_shift_last_item_ptr((section_header_t *)section, SECTION_EXTENTS_ITEM_SIZE); // Hold gap for next json addr
+
+        sectoff_t parent_node_last_item_ptr = section->header.last_item_ptr;
+        sectoff_t child_node_last_item_ptr = section->header.last_item_ptr + json->object.attributes_count * 3 * SECTION_EXTENTS_ITEM_SIZE;
 
         for (size_t i = 0; i < json->object.attributes_count; i++)
         {
@@ -62,15 +71,20 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
             // Write attr key, save ptr and size into entity
             section_extents_write_in_record(section, string_get_size(cur_attribute->key), (void *)cur_attribute->key.val, &attr_key_ptr);
-            uint64_t attr_key_size = cur_attribute->key.count;
 
             // Write attr value, save ptr(We can fetch size via type)
+            section->header.last_item_ptr = child_node_last_item_ptr;
+            section->header.free_space = section->header.first_record_ptr - child_node_last_item_ptr;
             section_extents_write(section, json->object.attributes[i]->value, save_addr, &attr_val_ptr);
+            child_node_last_item_ptr = section->header.last_item_ptr;
+            section->header.free_space = section->header.first_record_ptr - child_node_last_item_ptr;
 
             // Save items of attribute(key_size, key_ptr, val_ptr)
-            section_extents_write_in_item(section, ITEM_SIZE, &cur_attribute->key.count);
-            section_extents_write_in_item(section, ITEM_SIZE, &attr_key_ptr);
-            section_extents_write_in_item(section, ITEM_SIZE, &attr_val_ptr);
+            section->header.last_item_ptr = parent_node_last_item_ptr;
+            section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &cur_attribute->key.count);
+            section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &attr_key_ptr);
+            section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &attr_val_ptr);
+            parent_node_last_item_ptr = section->header.last_item_ptr;
         }
 
         return OK;
@@ -87,7 +101,7 @@ static PerformStatus section_extents_write_in_item(section_extents_t *section, s
     long prev_ptr = ftell(section->header.filp);
 
     FSEEK_OR_FAIL(section->header.filp, section->header.last_item_ptr);
-    FWRITE_OR_FAIL(section->header.filp, data_size, data_ptr);
+    FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp);
     section_header_shift_last_item_ptr((section_header_t *)section, data_size);
 
     FSEEK_OR_FAIL(section->header.filp, prev_ptr);
@@ -101,7 +115,7 @@ static PerformStatus section_extents_write_in_record(section_extents_t *section,
 
     section_header_shift_first_record_ptr((section_header_t *)section, -1 * data_size);
     FSEEK_OR_FAIL(section->header.filp, section->header.first_record_ptr);
-    FWRITE_OR_FAIL(section->header.filp, data_size, data_ptr);// Bad memory access TODO see memory alloc
+    FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp);// Bad memory access TODO see memory alloc
 
     *save_addr = section->header.first_record_ptr;
 

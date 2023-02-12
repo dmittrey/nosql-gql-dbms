@@ -7,6 +7,8 @@
 
 #include "section/section_header.h"
 
+#define SECTION_EXTENTS_ITEM_SIZE 8
+
 typedef struct
 {
     section_header_t header;

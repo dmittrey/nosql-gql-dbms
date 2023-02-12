@@ -13,7 +13,6 @@ typedef struct
     sectoff_t val_ptr;
     fileoff_t parent;
     fileoff_t next;
-    kv_entity *attributes;
 } json_value_entity;
 
 json_value_entity *json_value_entity_new();

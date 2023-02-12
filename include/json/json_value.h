@@ -29,6 +29,7 @@ typedef struct
 
 json_value_t *json_value_new();
 
+void json_value_ctor(json_value_t *, json_value_type, uint64_t);
 void json_value_dtor(json_value_t *);
 
 sectoff_t json_value_get_item_size(json_value_t *);

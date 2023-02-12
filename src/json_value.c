@@ -10,6 +10,13 @@ json_value_t *json_value_new()
     return my_malloc(json_value_t);
 }
 
+void json_value_ctor(json_value_t *json, json_value_type type, uint64_t attributes_count)
+{
+    json->object.attributes_count = attributes_count;
+    json->object.attributes = my_malloc_array(kv *, attributes_count);
+    json->type = type;
+}
+
 void json_value_dtor(json_value_t *json)
 {
     for (size_t i = 0; i < json->object.attributes_count; i++)
