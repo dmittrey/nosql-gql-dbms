@@ -102,7 +102,46 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
     return FAILED;
 }
-PerformStatus section_documents_read(section_extents_t *section, json_value_t *json);
+PerformStatus section_extents_read(section_extents_t * section, sectoff_t offset, json_value_t *json)
+{
+    size_t prev = ftell(section->header.filp);
+
+    // Read json entity
+    json_value_entity *json_entity = my_malloc(json_value_entity);
+    FSEEK_OR_FAIL(section->header.filp, offset);
+    FREAD_OR_FAIL(&json_entity->attr_count, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
+    FREAD_OR_FAIL(&json_entity->type, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
+    FREAD_OR_FAIL(&json_entity->val_size, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
+    FREAD_OR_FAIL(&json_entity->val_ptr, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
+    FREAD_OR_FAIL(&json_entity->parent, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
+    FREAD_OR_FAIL(&json_entity->next, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
+
+    // Read json attributes entities
+    // attr_entity *attribute_entities = my_malloc_array(attr_entity, json_entity->attr_count);
+    // for (size_t i = 0; i < json_entity->attr_count; i++)
+    // {
+    //     FREAD_OR_FAIL(&attribute_entities[i], sizeof(attr_entity), section->header.filp);
+    // }
+
+    // Read json value
+    if (json_entity->type == TYPE_STRING)
+    {
+        json->value.string_val.val = my_malloc_array(char, json_entity->val_size);
+        json->value.string_val.count = json_entity->val_size;
+        FSEEK_OR_FAIL(section->header.filp, json_entity->val_ptr);
+        FREAD_OR_FAIL(json->value.string_val.val, json->value.string_val.count, section->header.filp);
+    }
+    else
+    {
+        FREAD_OR_FAIL(&json->value, json_entity->val_size, section->header.filp);
+    }
+
+    json->object.attributes_count = json_entity->attr_count;
+    json->type = json_entity->type;
+
+    return OK;
+}
+
 PerformStatus section_documents_update(section_extents_t *, json_value_t *);
 PerformStatus section_documents_delete(section_extents_t *, json_value_t *);
 
@@ -125,7 +164,7 @@ static PerformStatus section_extents_write_in_record(section_extents_t *section,
 
     section_header_shift_first_record_ptr((section_header_t *)section, -1 * data_size);
     FSEEK_OR_FAIL(section->header.filp, section->header.first_record_ptr);
-    FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp);// Bad memory access TODO see memory alloc
+    FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp); // Bad memory access TODO see memory alloc
 
     *save_addr = section->header.first_record_ptr;
 

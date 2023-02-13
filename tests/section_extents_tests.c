@@ -340,6 +340,45 @@ PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed()
     return OK;
 }
 
+PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
+{
+    FILE *file = fopen(test_file_name, "r+");
+
+    section_extents_t *extents = section_extents_new();
+    section_extents_ctor(extents, 0, file);
+
+    json_value_t *json_1 = json_value_new();
+    json_value_ctor(json_1, TYPE_STRING, 0);
+    json_1->value.string_val = string_ctor("Иван");
+
+    json_value_t *json_2 = json_value_new();
+    json_value_ctor(json_2, TYPE_STRING, 0);
+    json_2->value.string_val = string_ctor("Иванов");
+
+    fileoff_t save_json_1_addr = 0;
+    fileoff_t save_json_2_addr = 0;
+    fileoff_t parent_json_addr = 0;
+
+    if (section_extents_write(extents, json_1, &parent_json_addr, &save_json_1_addr)) {
+        return FAILED;
+    }
+
+    if (section_extents_write(extents, json_2, &parent_json_addr, &save_json_2_addr)) {
+        return FAILED;
+    }
+
+    json_value_t *readed_json_1 = my_malloc(json_value_t);
+    section_extents_read(extents, save_json_1_addr, readed_json_1);
+
+    json_value_t *readed_json_2 = my_malloc(json_value_t);
+    section_extents_read(extents, save_json_2_addr, readed_json_2);
+
+    section_extents_dtor(extents);
+    fclose(file);
+
+    return OK;
+}
+
 int main()
 {
     SectionExtents_DefaultCtor_InvokeHeaderCtor();
@@ -350,4 +389,5 @@ int main()
     assert(SectionExtents_WriteBoolJsonValue_Successful() == OK);
     assert(SectionExtents_WriteObjectJsonValue_Successful() == OK);
     assert(SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed() == FAILED);
+    assert(SectionExtents_ReadStringJsonValue_ReturnsValidJson() == OK);
 }

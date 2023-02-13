@@ -8,11 +8,11 @@
 #define my_malloc_array(T, count) ((T *)malloc(sizeof(T) * count))
 
 #define FWRITE_OR_FAIL(DATA_PTR, DATA_SIZE, FILP)  \
-    if (fwrite(DATA_PTR, DATA_SIZE, 1, FILP) != 1) \
+    if (fwrite((void*)DATA_PTR, DATA_SIZE, 1, FILP) != 1) \
     return FAILED
 
 #define FREAD_OR_FAIL(DATA_PTR, DATA_SIZE, FILP)  \
-    if (fread(DATA_PTR, DATA_SIZE, 1, FILP) != 1) \
+    if (fread((void*)DATA_PTR, DATA_SIZE, 1, FILP) != 1) \
     return FAILED
 
 #define FSEEK_OR_FAIL(FILE, OFFSET)         \
