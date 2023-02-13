@@ -18,7 +18,7 @@ typedef enum
 typedef struct
 {
     json_object_t object; // Указатель на массив атрибутов Nullable
-    json_object_t *arr_objects;
+    // json_object_t *arr_objects;
     union
     {
         int32_t int32_val;

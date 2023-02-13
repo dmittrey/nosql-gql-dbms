@@ -102,7 +102,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
     return FAILED;
 }
-PerformStatus section_extents_read(section_extents_t * section, sectoff_t offset, json_value_t *json)
+PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset, json_value_t *json)
 {
     size_t prev = ftell(section->header.filp);
 
@@ -117,11 +117,26 @@ PerformStatus section_extents_read(section_extents_t * section, sectoff_t offset
     FREAD_OR_FAIL(&json_entity->next, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
 
     // Read json attributes entities
-    // attr_entity *attribute_entities = my_malloc_array(attr_entity, json_entity->attr_count);
-    // for (size_t i = 0; i < json_entity->attr_count; i++)
-    // {
-    //     FREAD_OR_FAIL(&attribute_entities[i], sizeof(attr_entity), section->header.filp);
-    // }
+    json->object.attributes = my_malloc_array(kv *, json_entity->attr_count);
+
+    attr_entity *attribute_entity = my_malloc(attr_entity);
+    json_value_t *attribute_value = my_malloc(json_value_t);
+    kv *kv_ = my_malloc(kv);
+
+    for (size_t i = 0; i < json_entity->attr_count; i++)
+    {
+        FREAD_OR_FAIL(attribute_entity, sizeof(attr_entity), section->header.filp);
+
+        char attribute_key[attribute_entity->key_size];
+        FSEEK_OR_FAIL(section->header.filp, attribute_entity->key_ptr);
+        FREAD_OR_FAIL(&attribute_key, attribute_entity->key_size, section->header.filp);
+
+        section_extents_read(section, attribute_entity->value_ptr, &attribute_value);
+
+        kv_->key = string_ctor(attribute_key);
+        kv_->value = attribute_value;
+        json->object.attributes[i] = kv_;
+    }
 
     // Read json value
     if (json_entity->type == TYPE_STRING)
