@@ -46,7 +46,6 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
         if (json->type == TYPE_STRING)
         {
-            // 8165 -> 8153 
             section_extents_write_in_record(section, string_get_size(json->value.string_val), (void *)json->value.string_val.val, &json_val_ptr);
         }
         else if (json->type != TYPE_OBJECT)
@@ -56,6 +55,16 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
         section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json->object.attributes_count);
         section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json->type);
+        if (json->type == TYPE_STRING)
+        {
+            size_t size = string_get_size(json->value.string_val);
+            section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &size);
+        }
+        else
+        {
+            size_t size = sizeof(json->value);
+            section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &size);
+        }
         section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json_val_ptr);
         section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, parent_json_addr);
         section_header_shift_last_item_ptr((section_header_t *)section, SECTION_EXTENTS_ITEM_SIZE); // Hold gap for next json addr

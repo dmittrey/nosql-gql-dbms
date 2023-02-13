@@ -10,8 +10,9 @@ typedef struct
 {
     uint64_t attr_count;
     uint64_t type;
+    uint64_t val_size;
     sectoff_t val_ptr;
-    fileoff_t parent;
+    fileoff_t parent;  
     fileoff_t next;
 } json_value_entity;
 
