@@ -11,12 +11,14 @@ typedef enum
     TYPE_FLOAT,
     TYPE_STRING,
     TYPE_BOOL,
-    TYPE_OBJECT
+    TYPE_OBJECT,
+    TYPE_ARRAY
 } json_value_type;
 
 typedef struct
 {
     json_object_t object; // Указатель на массив атрибутов Nullable
+    json_object_t *arr_objects;
     union
     {
         int32_t int32_val;

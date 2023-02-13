@@ -9,7 +9,7 @@ typedef struct
     uint64_t key_size;   // Размер строки ключа
     sectoff_t key_ptr;   // Указатель на строку в секции
     fileoff_t value_ptr; // Указатель на запись в базе
-} kv_entity;
+} attr_entity;
 
 /*
 kv_entity serialization:

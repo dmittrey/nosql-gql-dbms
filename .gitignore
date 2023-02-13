@@ -42,6 +42,9 @@
 *.idb
 *.pdb
 
+# Test file
+test.bin
+
 # Kernel Module Compile Results
 *.mod*
 *.cmd

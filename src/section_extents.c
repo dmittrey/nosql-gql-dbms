@@ -46,6 +46,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
         if (json->type == TYPE_STRING)
         {
+            // 8165 -> 8153 
             section_extents_write_in_record(section, string_get_size(json->value.string_val), (void *)json->value.string_val.val, &json_val_ptr);
         }
         else if (json->type != TYPE_OBJECT)

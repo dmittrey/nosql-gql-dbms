@@ -25,5 +25,5 @@ size_t json_value_entity_get_size(json_value_entity *json)
            sizeof(json->val_ptr) +
            sizeof(json->parent) +
            sizeof(json->next) +
-           json->attr_count * sizeof(kv_entity);
+           json->attr_count * sizeof(attr_entity);
 }
