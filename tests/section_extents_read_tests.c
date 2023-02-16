@@ -38,10 +38,16 @@ static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
 
     json_value_t *readed_json_1 = my_malloc(json_value_t);
     section_extents_read(extents, save_json_1_addr, readed_json_1);
+    assert(readed_json_1->type == TYPE_STRING);
+    assert(readed_json_1->value.string_val.count == 8);
+    assert(strcmp(readed_json_1->value.string_val.val, json_1->value.string_val.val) == 0);
     free(readed_json_1);
 
     json_value_t *readed_json_2 = my_malloc(json_value_t);
     section_extents_read(extents, save_json_2_addr, readed_json_2);
+    assert(readed_json_2->type == TYPE_STRING);
+    assert(readed_json_2->value.string_val.count == 12);
+    assert(strcmp(readed_json_2->value.string_val.val, json_2->value.string_val.val) == 0);
     free(readed_json_2);
 
     json_value_dtor(json_1);
