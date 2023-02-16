@@ -7,6 +7,90 @@
 
 static const char *test_file_name = "/Users/dmitry/Desktop/low-level-programming/test.bin";
 
+static PerformStatus SectionExtents_ReadInt32JsonValue_ReturnsValidJson()
+{
+    FILE *file = fopen(test_file_name, "r+");
+
+    section_extents_t *extents = section_extents_new();
+    section_extents_ctor(extents, 0, file);
+
+    json_value_t *json = json_value_new();
+    json_value_ctor(json, TYPE_INT32, 0);
+    json->value.int32_val = 5;
+
+    fileoff_t save_json_addr = 0;
+    fileoff_t parent_json_addr = 0;
+
+    if (section_extents_write(extents, json, &parent_json_addr, &save_json_addr))
+    {
+        return FAILED;
+    }
+
+    json_value_t *readed_json = my_malloc(json_value_t);
+    section_extents_read(extents, save_json_addr, readed_json);
+    assert(readed_json->type == TYPE_INT32);
+    assert(readed_json->value.int32_val == 5);
+    free(readed_json);
+
+    return OK;
+}
+
+static PerformStatus SectionExtents_ReadFloatJsonValue_ReturnsValidJson()
+{
+    FILE *file = fopen(test_file_name, "r+");
+
+    section_extents_t *extents = section_extents_new();
+    section_extents_ctor(extents, 0, file);
+
+    json_value_t *json = json_value_new();
+    json_value_ctor(json, TYPE_FLOAT, 0);
+    json->value.float_val = 5.5;
+
+    fileoff_t save_json_addr = 0;
+    fileoff_t parent_json_addr = 0;
+
+    if (section_extents_write(extents, json, &parent_json_addr, &save_json_addr))
+    {
+        return FAILED;
+    }
+
+    json_value_t *readed_json = my_malloc(json_value_t);
+    section_extents_read(extents, save_json_addr, readed_json);
+    assert(readed_json->type == TYPE_FLOAT);
+    assert(readed_json->value.float_val == 5.5);
+    free(readed_json);
+
+    return OK;
+}
+
+static PerformStatus SectionExtents_ReadBoolJsonValue_ReturnsValidJson()
+{
+    FILE *file = fopen(test_file_name, "r+");
+
+    section_extents_t *extents = section_extents_new();
+    section_extents_ctor(extents, 0, file);
+
+    json_value_t *json = json_value_new();
+    json_value_ctor(json, TYPE_BOOL, 0);
+    json->value.bool_val = true;
+
+    fileoff_t save_json_addr = 0;
+    fileoff_t parent_json_addr = 0;
+
+    if (section_extents_write(extents, json, &parent_json_addr, &save_json_addr))
+    {
+        return FAILED;
+    }
+
+    json_value_t *readed_json = my_malloc(json_value_t);
+    section_extents_read(extents, save_json_addr, readed_json);
+    assert(readed_json->type == TYPE_BOOL);
+    assert(readed_json->value.bool_val == true);
+    free(readed_json);
+
+    return OK;
+}
+
 static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
 {
     FILE *file = fopen(test_file_name, "r+");
@@ -113,4 +197,7 @@ void test_extents_read()
 {
     assert(SectionExtents_ReadStringJsonValue_ReturnsValidJson() == OK);
     assert(SectionExtents_ReadObjectJsonValue_ReturnsValidJson() == OK);
+    assert(SectionExtents_ReadInt32JsonValue_ReturnsValidJson() == OK);
+    assert(SectionExtents_ReadFloatJsonValue_ReturnsValidJson() == OK);
+    assert(SectionExtents_ReadBoolJsonValue_ReturnsValidJson() == OK);
 }
