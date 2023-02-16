@@ -153,11 +153,20 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     return OK;
 }
 
-PerformStatus section_documents_update(section_extents_t *, json_value_t *);
+PerformStatus section_documents_update(section_extents_t *, json_value_t *)
+{
+
+}
+
 PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
 {
-    // Move item ptr 
-    // Move record ptr
+    json_value_entity entity;
+    RANDOM_ACCESS_FREAD_OR_FAIL(&entity, SECTION_EXTENTS_ITEM_SIZE, offset, section->header.filp);
+
+    section_header_shift_last_item_ptr((section_header_t*) section, offset);
+    section_header_shift_first_record_ptr((section_header_t*) section, entity.val_ptr + entity.val_size);
+
+    return OK;
 }
 
 static PerformStatus section_extents_write_in_item(section_extents_t *section, size_t data_size, void *data_ptr)
