@@ -70,7 +70,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
         section_header_shift_last_item_ptr((section_header_t *)section, SECTION_EXTENTS_ITEM_SIZE); // Hold gap for next json addr
 
         sectoff_t parent_node_last_item_ptr = section->header.last_item_ptr;
-        sectoff_t child_node_last_item_ptr = section->header.last_item_ptr + json->object.attributes_count * 3 * SECTION_EXTENTS_ITEM_SIZE;
+        sectoff_t child_node_last_item_ptr = section->header.last_item_ptr + json->object.attributes_count * sizeof(attr_entity);
 
         for (size_t i = 0; i < json->object.attributes_count; i++)
         {
@@ -84,10 +84,8 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
             // Write attr value, save ptr(We can fetch size via type)
             section->header.last_item_ptr = child_node_last_item_ptr;
-            section->header.free_space = section->header.first_record_ptr - child_node_last_item_ptr;
             section_extents_write(section, json->object.attributes[i]->value, save_addr, &attr_val_ptr);
             child_node_last_item_ptr = section->header.last_item_ptr;
-            section->header.free_space = section->header.first_record_ptr - child_node_last_item_ptr;
 
             // Save items of attribute(key_size, key_ptr, val_ptr)
             section->header.last_item_ptr = parent_node_last_item_ptr;
@@ -97,6 +95,8 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
             parent_node_last_item_ptr = section->header.last_item_ptr;
         }
 
+        section->header.last_item_ptr = child_node_last_item_ptr;
+        section_extents_sync(section);
         return OK;
     }
 
