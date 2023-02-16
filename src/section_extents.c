@@ -77,7 +77,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
             sectoff_t attr_key_ptr = 0;
             sectoff_t attr_val_ptr = 0;
 
-            kv *cur_attribute = json->object.attributes[i];
+            struct kv *cur_attribute = json->object.attributes[i];
 
             // Write attr key, save ptr and size into entity
             section_extents_write_in_record(section, string_get_size(cur_attribute->key), (void *)cur_attribute->key.val, &attr_key_ptr);
@@ -104,35 +104,30 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 }
 PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset, json_value_t *json)
 {
+    // Allocate buffers
+    json_value_entity *json_entity = my_malloc(json_value_entity);
+
+    json->object.attributes = my_malloc_array(struct kv *, json_entity->attr_count);
+
+    attr_entity *attribute_entity = my_malloc(attr_entity);
+
+    // Save prev filp
     size_t prev = ftell(section->header.filp);
 
     // Read json entity
-    json_value_entity *json_entity = my_malloc(json_value_entity);
-    FSEEK_OR_FAIL(section->header.filp, offset);
-    FREAD_OR_FAIL(&json_entity->attr_count, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
-    FREAD_OR_FAIL(&json_entity->type, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
-    FREAD_OR_FAIL(&json_entity->val_size, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
-    FREAD_OR_FAIL(&json_entity->val_ptr, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
-    FREAD_OR_FAIL(&json_entity->parent, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
-    FREAD_OR_FAIL(&json_entity->next, SECTION_EXTENTS_ITEM_SIZE, section->header.filp);
-
-    // Read json attributes entities
-    json->object.attributes = my_malloc_array(kv *, json_entity->attr_count);
-
-    attr_entity *attribute_entity = my_malloc(attr_entity);
-    json_value_t *attribute_value = my_malloc(json_value_t);
-    kv *kv_ = my_malloc(kv);
+    RANDOM_ACCESS_FREAD_OR_FAIL(json_entity, sizeof(json_value_entity), offset, section->header.filp);
 
     for (size_t i = 0; i < json_entity->attr_count; i++)
     {
-        FREAD_OR_FAIL(attribute_entity, sizeof(attr_entity), section->header.filp);
+        RANDOM_ACCESS_FREAD_OR_FAIL(attribute_entity, sizeof(attr_entity), offset + sizeof(json_value_entity) + i * sizeof(attr_entity), section->header.filp);
 
-        char attribute_key[attribute_entity->key_size];
-        FSEEK_OR_FAIL(section->header.filp, attribute_entity->key_ptr);
-        FREAD_OR_FAIL(&attribute_key, attribute_entity->key_size, section->header.filp);
+        char *attribute_key = my_malloc_array(char, attribute_entity->key_size);
+        RANDOM_ACCESS_FREAD_OR_FAIL(attribute_key, attribute_entity->key_size, attribute_entity->key_ptr, section->header.filp);
 
-        section_extents_read(section, attribute_entity->value_ptr, &attribute_value);
+        json_value_t *attribute_value = my_malloc(json_value_t);
+        section_extents_read(section, attribute_entity->value_ptr, attribute_value);
 
+        struct kv *kv_ = my_malloc(struct kv);
         kv_->key = string_ctor(attribute_key);
         kv_->value = attribute_value;
         json->object.attributes[i] = kv_;
@@ -143,22 +138,27 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     {
         json->value.string_val.val = my_malloc_array(char, json_entity->val_size);
         json->value.string_val.count = json_entity->val_size;
-        FSEEK_OR_FAIL(section->header.filp, json_entity->val_ptr);
-        FREAD_OR_FAIL(json->value.string_val.val, json->value.string_val.count, section->header.filp);
+        RANDOM_ACCESS_FREAD_OR_FAIL(json->value.string_val.val, json->value.string_val.count, json_entity->val_ptr, section->header.filp);
     }
     else
     {
-        FREAD_OR_FAIL(&json->value, json_entity->val_size, section->header.filp);
+        RANDOM_ACCESS_FREAD_OR_FAIL(&json->value, json_entity->val_size, json_entity->val_ptr, section->header.filp);
     }
 
     json->object.attributes_count = json_entity->attr_count;
     json->type = json_entity->type;
 
+    FSEEK_OR_FAIL(section->header.filp, prev);
+
     return OK;
 }
 
 PerformStatus section_documents_update(section_extents_t *, json_value_t *);
-PerformStatus section_documents_delete(section_extents_t *, json_value_t *);
+PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
+{
+    // Move item ptr 
+    // Move record ptr
+}
 
 static PerformStatus section_extents_write_in_item(section_extents_t *section, size_t data_size, void *data_ptr)
 {

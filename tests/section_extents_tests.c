@@ -237,12 +237,12 @@ PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     json_value_ctor(second_json, TYPE_STRING, 0);
     second_json->value.string_val = string_ctor("Иванов");
 
-    kv *kv_1 = my_malloc(kv);
+    struct kv *kv_1 = my_malloc(struct kv);
     kv_1->key = string_ctor("firstName");
     kv_1->value = first_json;
     json_obj->object.attributes[0] = kv_1;
 
-    kv *kv_2 = my_malloc(kv);
+    struct kv *kv_2 = my_malloc(struct kv);
     kv_2->key = string_ctor("secondName");
     kv_2->value = second_json;
     json_obj->object.attributes[1] = kv_2;
@@ -251,7 +251,7 @@ PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     fileoff_t parent_json_addr = 0;
 
     section_extents_write(extents, json_obj, &parent_json_addr, &save_json_addr);
-    assert(save_json_addr == section_header_size(extents->header));
+    assert(save_json_addr == section_header_size(extents->header)); // 8160 - 7905
 
     json_value_entity json_entity;
     attr_entity json_attr_1_entity;
@@ -286,6 +286,8 @@ PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     FSEEK_OR_FAIL(file, json_attr_2_value.val_ptr);
     FREAD_OR_FAIL(json_attr_2_value_string, json_attr_2_value.val_size, file);
 
+    //size_t sz = SECTION_SIZE - section_header_size() - 3 * sizeof(json_value_entity) - 2 * sizeof(attr_entity) - string_get_size(kv_1->key) - string_get_size(kv_2->key) - string_get_size(kv_1->value->value.string_val) - string_get_size(kv_2->value->value.string_val);
+
     // Test json obj
     assert(json_entity.attr_count == json_obj->object.attributes_count);
     assert(json_entity.type == json_obj->type);
@@ -318,10 +320,6 @@ PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     fclose(file);
 
     return OK;
-}
-
-bool SectionExtents_WriteArrayJsonValue_Successful()
-{
 }
 
 PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed()
@@ -383,12 +381,12 @@ PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
 
     json_value_t *readed_json_1 = my_malloc(json_value_t);
     section_extents_read(extents, save_json_1_addr, readed_json_1);
+    free(readed_json_1);
 
     json_value_t *readed_json_2 = my_malloc(json_value_t);
     section_extents_read(extents, save_json_2_addr, readed_json_2);
-
-    free(readed_json_1);
     free(readed_json_2);
+
     json_value_dtor(json_1);
     json_value_dtor(json_2);
     section_extents_dtor(extents);
@@ -415,12 +413,12 @@ PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     json_value_ctor(second_json, TYPE_STRING, 0);
     second_json->value.string_val = string_ctor("Иванов");
 
-    kv *kv_1 = my_malloc(kv);
+    struct kv *kv_1 = my_malloc(struct kv);
     kv_1->key = string_ctor("firstName");
     kv_1->value = first_json;
     json_obj->object.attributes[0] = kv_1;
 
-    kv *kv_2 = my_malloc(kv);
+    struct kv *kv_2 = my_malloc(struct kv);
     kv_2->key = string_ctor("secondName");
     kv_2->value = second_json;
     json_obj->object.attributes[1] = kv_2;
@@ -433,19 +431,31 @@ PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     json_value_t *readed_json_1 = my_malloc(json_value_t);
     section_extents_read(extents, save_json_addr, readed_json_1);
 
+    assert(readed_json_1->type == TYPE_OBJECT);
+    assert(readed_json_1->object.attributes_count == 2);
+
+    assert(readed_json_1->object.attributes[0]->key.count == 9);
+    assert(strcmp(readed_json_1->object.attributes[0]->key.val, "firstName") == 0);
+
+    assert(readed_json_1->object.attributes[1]->key.count == 10);
+    assert(strcmp(readed_json_1->object.attributes[1]->key.val, "secondName") == 0);
+
+    assert(strcmp(readed_json_1->object.attributes[0]->value->value.string_val.val, "Иван") == 0);
+    assert(strcmp(readed_json_1->object.attributes[1]->value->value.string_val.val, "Иванов") == 0);
+
     return OK;
 }
 
 int main()
 {
-    // SectionExtents_DefaultCtor_InvokeHeaderCtor();
-    // assert(SectionExtents_InvokeSync_InvokeHeaderSync() == OK);
+    SectionExtents_DefaultCtor_InvokeHeaderCtor();
+    assert(SectionExtents_InvokeSync_InvokeHeaderSync() == OK);
     assert(SectionExtents_WriteInt32JsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteFloatJsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteStringJsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteBoolJsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteObjectJsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed() == FAILED);
-    // assert(SectionExtents_ReadStringJsonValue_ReturnsValidJson() == OK);
+    assert(SectionExtents_WriteFloatJsonValue_Successful() == OK);
+    assert(SectionExtents_WriteStringJsonValue_Successful() == OK);
+    assert(SectionExtents_WriteBoolJsonValue_Successful() == OK);
+    assert(SectionExtents_WriteObjectJsonValue_Successful() == OK);
+    assert(SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed() == FAILED);
+    assert(SectionExtents_ReadStringJsonValue_ReturnsValidJson() == OK);
     assert(SectionExtents_ReadObjectJsonValue_ReturnsValidJson() == OK);
 }

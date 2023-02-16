@@ -13,7 +13,7 @@ json_value_t *json_value_new()
 void json_value_ctor(json_value_t *json, json_value_type type, uint64_t attributes_count)
 {
     json->object.attributes_count = attributes_count;
-    json->object.attributes = my_malloc_array(kv *, attributes_count);
+    json->object.attributes = my_malloc_array(struct kv *, attributes_count);
     json->type = type;
 }
 
@@ -48,4 +48,35 @@ sectoff_t json_value_get_record_size(json_value_t *json)
     }
 
     return record_size;
+}
+
+void json_value_print(json_value_t *json) {
+    switch (json->type)
+    {
+    case TYPE_STRING:
+        printf("%s ", json->value.string_val.val);
+        break;
+    case TYPE_INT32:
+        printf("%d ", json->value.int32_val);
+        break;
+    case TYPE_FLOAT:
+        printf("%.6f ", json->value.float_val);
+        break;
+    case TYPE_BOOL:
+        printf("%d ", json->value.bool_val);
+        break;
+    default:
+        break;
+    }
+    
+    if (json->object.attributes_count == 0) {
+        return;
+    }
+
+    printf("{");
+    for (size_t i = 0; i < json->object.attributes_count; i++) {
+        printf("\n\"%s\" : ", json->object.attributes[i]->key.val);
+        json_value_print(json->object.attributes[i]->value);
+    }
+    printf("\n}");
 }

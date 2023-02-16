@@ -2,8 +2,6 @@
 
 #include "table.h"
 
-#include "json/json_object.h"
-
 typedef struct
 {
     uint64_t key_size;   // Размер строки ключа

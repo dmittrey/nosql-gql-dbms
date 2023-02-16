@@ -3,8 +3,6 @@
 #include "utils.h"
 #include "table.h"
 
-#include "json/json_object.h"
-
 typedef enum
 {
     TYPE_INT32 = 0,
@@ -15,9 +13,15 @@ typedef enum
     TYPE_ARRAY
 } json_value_type;
 
+struct kv;
+
 typedef struct
 {
-    json_object_t object; // Указатель на массив атрибутов Nullable
+    struct
+    {
+        uint64_t attributes_count;
+        struct kv **attributes;
+    } object; // Указатель на массив атрибутов Nullable
     // json_object_t *arr_objects;
     union
     {
@@ -29,6 +33,12 @@ typedef struct
     json_value_type type; // Тип значения
 } json_value_t;
 
+struct kv
+{
+    string_t key;
+    json_value_t *value;
+};
+
 json_value_t *json_value_new();
 
 void json_value_ctor(json_value_t *, json_value_type, uint64_t);
@@ -37,7 +47,4 @@ void json_value_dtor(json_value_t *);
 sectoff_t json_value_get_item_size(json_value_t *);
 sectoff_t json_value_get_record_size(json_value_t *);
 
-int32_t json_value_get_int32(json_value_t *);
-float json_value_get_float(json_value_t *);
-string_t json_value_get_string(json_value_t *);
-bool json_value_get_bool(json_value_t *);
+void json_value_print(json_value_t *);
