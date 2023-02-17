@@ -25,17 +25,17 @@ dirs:
 	@mkdir -p $(INC_DIR)
 	@mkdir -p $(DOC_DIR)
 
-build: $(OBJS) | dirs
-	gcc -g $^ -o ${BLD_DIR}/${EXEC}.out
+kek: $(OBJS) | dirs
+	clang -g $^ -o ${BLD_DIR}/${EXEC}.out
 
-test: $(OBJS) $(TEST_OBJS)
-	gcc -g $^ -o ${BLD_DIR}/${EXEC_TEST}.out
+build: $(OBJS) $(TEST_OBJS)
+	clang -g $^ -o ${BLD_DIR}/${EXEC_TEST}.out
 
 $(BIN_DIR)/%.o: $(TEST_DIR)/%.c 
-	gcc -g -I $(INC_DIR) -c $< -o $@
+	clang -g -I $(INC_DIR) -c $< -o $@
 	
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.c 
-	gcc -g -I $(INC_DIR) -c $< -o $@
+	clang -g -I $(INC_DIR) -c $< -o $@
 
 clean:
 	rm -rf $(BLD_DIR) 
