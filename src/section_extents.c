@@ -110,7 +110,7 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     // Allocate buffers
     json_value_entity *json_entity = my_malloc(json_value_entity);
 
-    json->object.attributes = my_malloc_array(struct json_kv_t *, json_entity->attr_count);
+    json->object.attributes = my_malloc_array(struct json_kv_t *, json->object.attributes_count);
 
     attr_entity *attribute_entity = my_malloc(attr_entity);
 
