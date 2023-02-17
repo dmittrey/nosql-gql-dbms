@@ -17,13 +17,3 @@ void json_value_entity_dtor(json_value_entity *json_entity)
 {
     free(json_entity);
 }
-
-size_t json_value_entity_get_size(json_value_entity *json)
-{
-    return sizeof(json->attr_count) +
-           sizeof(json->type) +
-           sizeof(json->val_ptr) +
-           sizeof(json->parent) +
-           sizeof(json->next) +
-           json->attr_count * sizeof(attr_entity);
-}

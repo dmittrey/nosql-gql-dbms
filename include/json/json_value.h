@@ -22,7 +22,6 @@ typedef struct
         uint64_t attributes_count;
         struct kv **attributes;
     } object; // Указатель на массив атрибутов Nullable
-    // json_object_t *arr_objects;
     union
     {
         int32_t int32_val;
@@ -44,7 +43,6 @@ json_value_t *json_value_new();
 void json_value_ctor(json_value_t *, json_value_type, uint64_t);
 void json_value_dtor(json_value_t *);
 
-sectoff_t json_value_get_item_size(json_value_t *);
-sectoff_t json_value_get_record_size(json_value_t *);
-
 void json_value_print(json_value_t *);
+
+size_t json_value_get_serialization_size(json_value_t *);

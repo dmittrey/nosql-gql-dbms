@@ -27,8 +27,3 @@ PerformStatus section_header_shift_first_record_ptr(section_header_t *, sectoff_
 PerformStatus section_header_sync(section_header_t *);
 
 sectoff_t section_header_size();
-
-SECTION_HEADER_FIELD_SETTER_DECLARE(sectoff_t, free_space);
-SECTION_HEADER_FIELD_SETTER_DECLARE(sectoff_t, next);
-SECTION_HEADER_FIELD_SETTER_DECLARE(sectoff_t, last_item_ptr);
-SECTION_HEADER_FIELD_SETTER_DECLARE(sectoff_t, first_record_ptr);

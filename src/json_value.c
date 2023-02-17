@@ -1,9 +1,7 @@
 #include "table.h"
 
 #include "json/json_value.h"
-
-#define ATTRIBUTE_ITEM_SIZE 24
-#define VALUE_ITEM_SIZE 16
+#include "entity/json_value_entity.h"
 
 json_value_t *json_value_new()
 {
@@ -21,36 +19,16 @@ void json_value_dtor(json_value_t *json)
 {
     for (size_t i = 0; i < json->object.attributes_count; i++)
     {
-        free(json->object.attributes[i]);
         json_value_dtor(json->object.attributes[i]->value);
+        free(json->object.attributes[i]);
     }
     free(json->object.attributes);
 
     free(json);
 }
 
-sectoff_t json_value_get_item_size(json_value_t *json)
+void json_value_print(json_value_t *json)
 {
-    return (json->object.attributes_count * ATTRIBUTE_ITEM_SIZE) + sizeof(json->type) + VALUE_ITEM_SIZE;
-}
-
-sectoff_t json_value_get_record_size(json_value_t *json)
-{
-    sectoff_t record_size = 0;
-
-    for (size_t i = 0; i < json->object.attributes_count; i++)
-    {
-        record_size += string_get_size(json->object.attributes[i]->key);
-    }
-    if (json->type == TYPE_STRING)
-    {
-        record_size += string_get_size(json->value.string_val);
-    }
-
-    return record_size;
-}
-
-void json_value_print(json_value_t *json) {
     switch (json->type)
     {
     case TYPE_STRING:
@@ -68,15 +46,41 @@ void json_value_print(json_value_t *json) {
     default:
         break;
     }
-    
-    if (json->object.attributes_count == 0) {
+
+    if (json->object.attributes_count == 0)
+    {
         return;
     }
 
     printf("{");
-    for (size_t i = 0; i < json->object.attributes_count; i++) {
+    for (size_t i = 0; i < json->object.attributes_count; i++)
+    {
         printf("\n\"%s\" : ", json->object.attributes[i]->key.val);
         json_value_print(json->object.attributes[i]->value);
     }
     printf("\n}");
+}
+
+size_t json_value_get_serialization_size(json_value_t *json)
+{
+    size_t size = sizeof(json_value_entity);
+
+    if (json->type == TYPE_STRING)
+    {
+        size += string_get_size(json->value.string_val);
+    }
+    else if (json->type != TYPE_OBJECT)
+    {
+        size += sizeof(json->value);
+    }
+
+    size += json->object.attributes_count * sizeof(attr_entity);
+
+    for (size_t i = 0; i < json->object.attributes_count; i++)
+    {
+        size += string_get_size(json->object.attributes[i]->key);
+        size += json_value_get_serialization_size(json->object.attributes[i]->value);
+    }
+
+    return size;
 }

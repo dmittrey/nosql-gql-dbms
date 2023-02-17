@@ -38,7 +38,7 @@ PerformStatus section_extents_sync(section_extents_t *section)
 
 PerformStatus section_extents_write(section_extents_t *section, json_value_t *json, fileoff_t *parent_json_addr, fileoff_t *save_addr)
 {
-    if (section->header.free_space >= json_value_get_item_size(json) + json_value_get_record_size(json))
+    if (section->header.free_space >= json_value_get_serialization_size(json))
     {
         fileoff_t json_val_ptr = 0;
 
@@ -153,9 +153,38 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     return OK;
 }
 
-PerformStatus section_documents_update(section_extents_t *, json_value_t *)
+/*
+    Нужно проверить, хватит ли места поменять запись
+        - Прочитать старую
+        - Оценить длину сериализации
+        - Оценить длину сериализации новой
+        - Если получится то перезаписать запись
+*/
+PerformStatus section_documents_update(section_extents_t *section, sectoff_t offset, json_value_t *new_json)
 {
+    size_t new_json_size = json_value_get_serialization_size(new_json);
 
+    fileoff_t save_json_addr = 0;
+    fileoff_t parent_json_addr = 0;
+
+    json_value_t *readed_json = my_malloc(json_value_t);
+    section_extents_read(section, save_json_addr, readed_json);
+
+    size_t old_json_size = json_value_get_serialization_size(readed_json);
+
+    if (section->header.free_space + old_json_size - new_json_size >= 0)
+    {
+        fileoff_t parent_json_addr = 0;
+        fileoff_t save_addr = 0;
+
+        if (section_extents_write(section, new_json, &parent_json_addr, &save_addr))
+        {
+            return FAILED;
+        }
+    }
+
+    free(readed_json);
+    return OK;
 }
 
 PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
@@ -163,8 +192,8 @@ PerformStatus section_documents_delete(section_extents_t *section, sectoff_t off
     json_value_entity entity;
     RANDOM_ACCESS_FREAD_OR_FAIL(&entity, SECTION_EXTENTS_ITEM_SIZE, offset, section->header.filp);
 
-    section_header_shift_last_item_ptr((section_header_t*) section, offset);
-    section_header_shift_first_record_ptr((section_header_t*) section, entity.val_ptr + entity.val_size);
+    section_header_shift_last_item_ptr((section_header_t *)section, offset);
+    section_header_shift_first_record_ptr((section_header_t *)section, entity.val_ptr + entity.val_size);
 
     return OK;
 }
