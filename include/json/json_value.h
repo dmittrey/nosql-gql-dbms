@@ -13,14 +13,14 @@ typedef enum
     TYPE_ARRAY
 } json_value_type;
 
-struct kv;
+struct json_value_t;
 
 typedef struct
 {
     struct
     {
         uint64_t attributes_count;
-        struct kv **attributes;
+        struct json_kv_t **attributes;
     } object; // Указатель на массив атрибутов Nullable
     union
     {
@@ -32,12 +32,6 @@ typedef struct
     json_value_type type; // Тип значения
 } json_value_t;
 
-struct kv
-{
-    string_t key;
-    json_value_t *value;
-};
-
 json_value_t *json_value_new();
 
 void json_value_ctor(json_value_t *, json_value_type, uint64_t);
@@ -46,3 +40,14 @@ void json_value_dtor(json_value_t *);
 void json_value_print(json_value_t *);
 
 size_t json_value_get_serialization_size(json_value_t *);
+
+struct json_kv_t
+{
+    string_t key;
+    json_value_t *value;
+};
+
+struct json_kv_t *json_kv_new();
+
+void json_kv_ctor(struct json_kv_t *);
+void json_kv_dtor(struct json_kv_t *);

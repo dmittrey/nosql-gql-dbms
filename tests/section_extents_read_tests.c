@@ -26,11 +26,15 @@ static PerformStatus SectionExtents_ReadInt32JsonValue_ReturnsValidJson()
         return FAILED;
     }
 
-    json_value_t *readed_json = my_malloc(json_value_t);
+    json_value_t *readed_json = json_value_new();
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_INT32);
     assert(readed_json->value.int32_val == 5);
-    free(readed_json);
+
+    json_value_dtor(readed_json);
+    json_value_dtor(json);
+    section_extents_dtor(extents);
+    fclose(file);
 
     return OK;
 }
@@ -54,11 +58,15 @@ static PerformStatus SectionExtents_ReadFloatJsonValue_ReturnsValidJson()
         return FAILED;
     }
 
-    json_value_t *readed_json = my_malloc(json_value_t);
+    json_value_t *readed_json = json_value_new();
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_FLOAT);
     assert(readed_json->value.float_val == 5.5);
-    free(readed_json);
+    
+    json_value_dtor(readed_json);
+    json_value_dtor(json);
+    section_extents_dtor(extents);
+    fclose(file);
 
     return OK;
 }
@@ -82,11 +90,15 @@ static PerformStatus SectionExtents_ReadBoolJsonValue_ReturnsValidJson()
         return FAILED;
     }
 
-    json_value_t *readed_json = my_malloc(json_value_t);
+    json_value_t *readed_json = json_value_new();
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_BOOL);
     assert(readed_json->value.bool_val == true);
-    free(readed_json);
+    
+    json_value_dtor(readed_json);
+    json_value_dtor(json);
+    section_extents_dtor(extents);
+    fclose(file);
 
     return OK;
 }
@@ -120,19 +132,19 @@ static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
         return FAILED;
     }
 
-    json_value_t *readed_json_1 = my_malloc(json_value_t);
+    json_value_t *readed_json_1 = json_value_new();
     section_extents_read(extents, save_json_1_addr, readed_json_1);
     assert(readed_json_1->type == TYPE_STRING);
     assert(readed_json_1->value.string_val.count == 8);
     assert(strcmp(readed_json_1->value.string_val.val, json_1->value.string_val.val) == 0);
-    free(readed_json_1);
+    json_value_dtor(readed_json_1);
 
-    json_value_t *readed_json_2 = my_malloc(json_value_t);
+    json_value_t *readed_json_2 = json_value_new();
     section_extents_read(extents, save_json_2_addr, readed_json_2);
     assert(readed_json_2->type == TYPE_STRING);
     assert(readed_json_2->value.string_val.count == 12);
     assert(strcmp(readed_json_2->value.string_val.val, json_2->value.string_val.val) == 0);
-    free(readed_json_2);
+    json_value_dtor(readed_json_2);
 
     json_value_dtor(json_1);
     json_value_dtor(json_2);
@@ -160,12 +172,12 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     json_value_ctor(second_json, TYPE_STRING, 0);
     second_json->value.string_val = string_ctor("Иванов");
 
-    struct kv *kv_1 = my_malloc(struct kv);
+    struct json_kv_t *kv_1 = my_malloc(struct json_kv_t);
     kv_1->key = string_ctor("firstName");
     kv_1->value = first_json;
     json_obj->object.attributes[0] = kv_1;
 
-    struct kv *kv_2 = my_malloc(struct kv);
+    struct json_kv_t *kv_2 = my_malloc(struct json_kv_t);
     kv_2->key = string_ctor("secondName");
     kv_2->value = second_json;
     json_obj->object.attributes[1] = kv_2;
@@ -175,7 +187,7 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
 
     section_extents_write(extents, json_obj, &parent_json_addr, &save_json_addr);
 
-    json_value_t *readed_json_1 = my_malloc(json_value_t);
+    json_value_t *readed_json_1 = json_value_new();
     section_extents_read(extents, save_json_addr, readed_json_1);
 
     assert(readed_json_1->type == TYPE_OBJECT);
@@ -190,14 +202,19 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     assert(strcmp(readed_json_1->object.attributes[0]->value->value.string_val.val, "Иван") == 0);
     assert(strcmp(readed_json_1->object.attributes[1]->value->value.string_val.val, "Иванов") == 0);
 
+    json_value_dtor(json_obj);
+    json_value_dtor(readed_json_1);
+    section_extents_dtor(extents);
+    fclose(file);
+
     return OK;
 }
 
 void test_extents_read()
 {
     assert(SectionExtents_ReadStringJsonValue_ReturnsValidJson() == OK);
-    assert(SectionExtents_ReadObjectJsonValue_ReturnsValidJson() == OK);
     assert(SectionExtents_ReadInt32JsonValue_ReturnsValidJson() == OK);
     assert(SectionExtents_ReadFloatJsonValue_ReturnsValidJson() == OK);
     assert(SectionExtents_ReadBoolJsonValue_ReturnsValidJson() == OK);
+    assert(SectionExtents_ReadObjectJsonValue_ReturnsValidJson() == OK);
 }

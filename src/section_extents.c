@@ -38,7 +38,9 @@ PerformStatus section_extents_sync(section_extents_t *section)
 
 PerformStatus section_extents_write(section_extents_t *section, json_value_t *json, fileoff_t *parent_json_addr, fileoff_t *save_addr)
 {
-    if (section->header.free_space >= json_value_get_serialization_size(json))
+    size_t json_size = json_value_get_serialization_size(json);
+
+    if (section->header.free_space >= json_size)
     {
         fileoff_t json_val_ptr = 0;
 
@@ -68,6 +70,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
         section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json_val_ptr);
         section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, parent_json_addr);
         section_header_shift_last_item_ptr((section_header_t *)section, SECTION_EXTENTS_ITEM_SIZE); // Hold gap for next json addr
+        section_extents_write_in_item(section, SECTION_EXTENTS_ITEM_SIZE, &json_size);
 
         sectoff_t parent_node_last_item_ptr = section->header.last_item_ptr;
         sectoff_t child_node_last_item_ptr = section->header.last_item_ptr + json->object.attributes_count * sizeof(attr_entity);
@@ -77,7 +80,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
             sectoff_t attr_key_ptr = 0;
             sectoff_t attr_val_ptr = 0;
 
-            struct kv *cur_attribute = json->object.attributes[i];
+            struct json_kv_t *cur_attribute = json->object.attributes[i];
 
             // Write attr key, save ptr and size into entity
             section_extents_write_in_record(section, string_get_size(cur_attribute->key), (void *)cur_attribute->key.val, &attr_key_ptr);
@@ -107,7 +110,7 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     // Allocate buffers
     json_value_entity *json_entity = my_malloc(json_value_entity);
 
-    json->object.attributes = my_malloc_array(struct kv *, json_entity->attr_count);
+    json->object.attributes = my_malloc_array(struct json_kv_t *, json_entity->attr_count);
 
     attr_entity *attribute_entity = my_malloc(attr_entity);
 
@@ -127,10 +130,10 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
         json_value_t *attribute_value = my_malloc(json_value_t);
         section_extents_read(section, attribute_entity->value_ptr, attribute_value);
 
-        struct kv *kv_ = my_malloc(struct kv);
-        kv_->key = string_ctor(attribute_key);
-        kv_->value = attribute_value;
-        json->object.attributes[i] = kv_;
+        struct json_kv_t *kv = my_malloc(struct json_kv_t);
+        kv->key = string_ctor(attribute_key);
+        kv->value = attribute_value;
+        json->object.attributes[i] = kv;
     }
 
     // Read json value

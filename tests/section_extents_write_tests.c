@@ -221,8 +221,8 @@ static PerformStatus SectionExtents_WriteStringJsonValue_Successful()
 
     assert(strcmp(json_value, json->value.string_val.val) == 0);
 
-    free(json_value);
     json_value_dtor(json);
+    free(json_value);
     section_extents_dtor(extents);
     fclose(file);
 
@@ -247,12 +247,12 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     json_value_ctor(second_json, TYPE_STRING, 0);
     second_json->value.string_val = string_ctor("Иванов");
 
-    struct kv *kv_1 = my_malloc(struct kv);
+    struct json_kv_t *kv_1 = my_malloc(struct json_kv_t);
     kv_1->key = string_ctor("firstName");
     kv_1->value = first_json;
     json_obj->object.attributes[0] = kv_1;
 
-    struct kv *kv_2 = my_malloc(struct kv);
+    struct json_kv_t *kv_2 = my_malloc(struct json_kv_t);
     kv_2->key = string_ctor("secondName");
     kv_2->value = second_json;
     json_obj->object.attributes[1] = kv_2;
@@ -316,7 +316,7 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     FSEEK_OR_FAIL(file, json_attr_2_value.val_ptr);
     FREAD_OR_FAIL(json_attr_2_value_string, json_attr_2_value.val_size, file);
 
-    // size_t sz = SECTION_SIZE - section_header_size() - 3 * sizeof(json_value_entity) - 2 * sizeof(attr_entity) - string_get_size(kv_1->key) - string_get_size(kv_2->key) - string_get_size(kv_1->value->value.string_val) - string_get_size(kv_2->value->value.string_val);
+
 
     // Test json obj
     assert(json_entity.attr_count == json_obj->object.attributes_count);
@@ -382,12 +382,12 @@ static PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Faile
 
 void test_extents_write()
 {
-    // SectionExtents_DefaultCtor_InvokeHeaderCtor();
-    // assert(SectionExtents_InvokeSync_InvokeHeaderSync() == OK);
-    // assert(SectionExtents_WriteInt32sonValue_Successful() == OK);
-    // assert(SectionExtents_WriteFloatsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteStringJsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteBoolsonValue_Successful() == OK);
+    SectionExtents_DefaultCtor_InvokeHeaderCtor();
+    assert(SectionExtents_InvokeSync_InvokeHeaderSync() == OK);
+    assert(SectionExtents_WriteInt32sonValue_Successful() == OK);
+    assert(SectionExtents_WriteFloatsonValue_Successful() == OK);
+    assert(SectionExtents_WriteStringJsonValue_Successful() == OK);
+    assert(SectionExtents_WriteBoolsonValue_Successful() == OK);
     assert(SectionExtents_WriteObjectJsonValue_Successful() == OK);
-    // assert(SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed() == FAILED);
+    assert(SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed() == FAILED);
 }

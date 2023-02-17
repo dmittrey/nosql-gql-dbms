@@ -11,7 +11,7 @@ json_value_t *json_value_new()
 void json_value_ctor(json_value_t *json, json_value_type type, uint64_t attributes_count)
 {
     json->object.attributes_count = attributes_count;
-    json->object.attributes = my_malloc_array(struct kv *, attributes_count);
+    json->object.attributes = my_malloc_array(struct json_kv_t *, attributes_count);
     json->type = type;
 }
 
