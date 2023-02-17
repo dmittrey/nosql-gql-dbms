@@ -6,11 +6,11 @@
 #include "entity/json_value_entity.h"
 #include "entity/section_extents_entity.h"
 
-static const char *test_file_name = "/Users/dmitry/Desktop/low-level-programming/test.bin";
+static const char *test_file_name = "test.bin";
 
-static void SectionExtents_DefaultCtor_InvokeHeaderCtor()
+static PerformStatus SectionExtents_DefaultCtor_InvokeHeaderCtor()
 {
-    FILE *file = fopen(test_file_name, "r+");
+    FILE *file = fopen(test_file_name, "w+");
 
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);
@@ -22,6 +22,13 @@ static void SectionExtents_DefaultCtor_InvokeHeaderCtor()
 
     section_extents_dtor(extents);
     fclose(file);
+
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
+
+    return OK;
 }
 
 static PerformStatus SectionExtents_InvokeSync_InvokeHeaderSync()
@@ -48,6 +55,11 @@ static PerformStatus SectionExtents_InvokeSync_InvokeHeaderSync()
 
     section_extents_dtor(extents);
     fclose(file);
+
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
 
     return OK;
 }
@@ -92,6 +104,11 @@ static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
     section_extents_dtor(extents);
     fclose(file);
 
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
+
     return OK;
 }
 
@@ -135,6 +152,11 @@ static PerformStatus SectionExtents_WriteFloatsonValue_Successful()
     section_extents_dtor(extents);
     fclose(file);
 
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
+
     return OK;
 }
 
@@ -177,6 +199,11 @@ static PerformStatus SectionExtents_WriteBoolsonValue_Successful()
     json_value_dtor(json);
     section_extents_dtor(extents);
     fclose(file);
+
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
 
     return OK;
 }
@@ -225,6 +252,11 @@ static PerformStatus SectionExtents_WriteStringJsonValue_Successful()
     free(json_value);
     section_extents_dtor(extents);
     fclose(file);
+
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
 
     return OK;
 }
@@ -349,6 +381,11 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     section_extents_dtor(extents);
     fclose(file);
 
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
+
     return OK;
 }
 
@@ -377,12 +414,17 @@ static PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Faile
     section_extents_dtor(extents);
     fclose(file);
 
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
+
     return OK;
 }
 
 void test_extents_write()
 {
-    SectionExtents_DefaultCtor_InvokeHeaderCtor();
+    assert(SectionExtents_DefaultCtor_InvokeHeaderCtor() == OK);
     assert(SectionExtents_InvokeSync_InvokeHeaderSync() == OK);
     assert(SectionExtents_WriteInt32sonValue_Successful() == OK);
     assert(SectionExtents_WriteFloatsonValue_Successful() == OK);

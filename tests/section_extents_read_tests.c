@@ -5,11 +5,11 @@
 
 #include "entity/json_value_entity.h"
 
-static const char *test_file_name = "/Users/dmitry/Desktop/low-level-programming/test.bin";
+static const char *test_file_name = "test.bin";
 
 static PerformStatus SectionExtents_ReadInt32JsonValue_ReturnsValidJson()
 {
-    FILE *file = fopen(test_file_name, "r+");
+    FILE *file = fopen(test_file_name, "w+");
 
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);
@@ -36,12 +36,17 @@ static PerformStatus SectionExtents_ReadInt32JsonValue_ReturnsValidJson()
     section_extents_dtor(extents);
     fclose(file);
 
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
+
     return OK;
 }
 
 static PerformStatus SectionExtents_ReadFloatJsonValue_ReturnsValidJson()
 {
-    FILE *file = fopen(test_file_name, "r+");
+    FILE *file = fopen(test_file_name, "w+");
 
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);
@@ -62,18 +67,23 @@ static PerformStatus SectionExtents_ReadFloatJsonValue_ReturnsValidJson()
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_FLOAT);
     assert(readed_json->value.float_val == 5.5);
-    
+
     json_value_dtor(readed_json);
     json_value_dtor(json);
     section_extents_dtor(extents);
     fclose(file);
+
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
 
     return OK;
 }
 
 static PerformStatus SectionExtents_ReadBoolJsonValue_ReturnsValidJson()
 {
-    FILE *file = fopen(test_file_name, "r+");
+    FILE *file = fopen(test_file_name, "w+");
 
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);
@@ -94,18 +104,23 @@ static PerformStatus SectionExtents_ReadBoolJsonValue_ReturnsValidJson()
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_BOOL);
     assert(readed_json->value.bool_val == true);
-    
+
     json_value_dtor(readed_json);
     json_value_dtor(json);
     section_extents_dtor(extents);
     fclose(file);
+
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
 
     return OK;
 }
 
 static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
 {
-    FILE *file = fopen(test_file_name, "r+");
+    FILE *file = fopen(test_file_name, "w+");
 
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);
@@ -151,12 +166,17 @@ static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
     section_extents_dtor(extents);
     fclose(file);
 
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
+
     return OK;
 }
 
 static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
 {
-    FILE *file = fopen(test_file_name, "r+");
+    FILE *file = fopen(test_file_name, "w+");
 
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);
@@ -206,6 +226,11 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     json_value_dtor(readed_json_1);
     section_extents_dtor(extents);
     fclose(file);
+
+    if (remove(test_file_name))
+    {
+        return FAILED;
+    }
 
     return OK;
 }
