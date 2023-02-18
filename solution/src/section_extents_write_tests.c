@@ -66,7 +66,7 @@ static PerformStatus SectionExtents_InvokeSync_InvokeHeaderSync()
 
 static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
 {
-    FILE *file = fopen(test_file_name, "a+");
+    FILE *file = fopen(test_file_name, "w+");
 
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);

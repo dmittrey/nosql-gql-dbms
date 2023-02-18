@@ -39,6 +39,8 @@ PerformStatus section_extents_dtor(section_extents_t *section)
     }
 
     free(section);
+
+    return OK;
 }
 
 PerformStatus section_extents_sync(section_extents_t *section)

@@ -207,23 +207,25 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
 
     section_extents_write(extents, json_obj, &parent_json_addr, &save_json_addr);
 
-    json_value_t *readed_json_1 = json_value_new();
-    section_extents_read(extents, save_json_addr, readed_json_1);
+    json_value_t *readed_json = json_value_new();
+    section_extents_read(extents, save_json_addr, readed_json);
 
-    assert(readed_json_1->type == TYPE_OBJECT);
-    assert(readed_json_1->object.attributes_count == 2);
+    assert(readed_json->type == TYPE_OBJECT);
+    assert(readed_json->object.attributes_count == 2);
 
-    assert(readed_json_1->object.attributes[0]->key.count == 9);
-    assert(strcmp(readed_json_1->object.attributes[0]->key.val, "firstName") == 0);
+    assert(readed_json->object.attributes[0]->key.count == 9);
+    assert(strcmp(readed_json->object.attributes[0]->key.val, "firstName") == 0);
 
-    assert(readed_json_1->object.attributes[1]->key.count == 10);
-    assert(strcmp(readed_json_1->object.attributes[1]->key.val, "secondName") == 0);
+    struct json_kv_t* kv = readed_json->object.attributes[1];
 
-    assert(strcmp(readed_json_1->object.attributes[0]->value->value.string_val.val, "Иван") == 0);
-    assert(strcmp(readed_json_1->object.attributes[1]->value->value.string_val.val, "Иванов") == 0);
+    assert(readed_json->object.attributes[1]->key.count == 10);
+    assert(strcmp(readed_json->object.attributes[1]->key.val, "secondName") == 0);
+
+    assert(strcmp(readed_json->object.attributes[0]->value->value.string_val.val, "Иван") == 0);
+    assert(strcmp(readed_json->object.attributes[1]->value->value.string_val.val, "Иванов") == 0);
 
     json_value_dtor(json_obj);
-    json_value_dtor(readed_json_1);
+    json_value_dtor(readed_json);
     section_extents_dtor(extents);
     fclose(file);
 

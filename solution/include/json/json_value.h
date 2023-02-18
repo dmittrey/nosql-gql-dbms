@@ -29,7 +29,7 @@ typedef struct
         string_t string_val;
         bool bool_val;
     } value;
-    json_value_type type; // Тип значения
+    size_t type; // Тип значения
 } json_value_t;
 
 json_value_t *json_value_new();
