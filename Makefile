@@ -62,7 +62,7 @@ OBJDIR.main = $(OBJDIR)/$(SOLUTION_DIR)
 SOURCES.main += $(wildcard $(SRCDIR.main)/*.c) $(wildcard $(SRCDIR.main)/*/*.c)
 TARGET.main  := $(BUILDDIR)/$(NAME)
 
-CFLAGS.main += $(strip $(file < $(SOLUTION_DIR)/compile_flags.txt)) $(CFLAGS) -I$(INCDIR.main)
+CFLAGS.main += $(strip $(file < $(SOLUTION_DIR)/compile_flags.txt)) -g $(CFLAGS) -I$(INCDIR.main)
 
 ##### Configuration for `tester` target.
 
