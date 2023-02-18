@@ -97,7 +97,7 @@ static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
     assert(json_entity.parent == 500);
     assert(json_entity.next == 0);
 
-    RANDOM_ACCESS_FREAD_OR_FAIL(&json_value, sizeof(json->value), json_entity.val_ptr, file);
+    RANDOM_ACCESS_FREAD_OR_FAIL(&json_value, sizeof(int32_t), json_entity.val_ptr, file);
     assert(json_value == 5);
 
     json_value_dtor(json);
@@ -145,7 +145,7 @@ static PerformStatus SectionExtents_WriteFloatsonValue_Successful()
     assert(json_entity.parent == 500);
     assert(json_entity.next == 0);
 
-    RANDOM_ACCESS_FREAD_OR_FAIL(&json_value, sizeof(json->value), json_entity.val_ptr, file);
+    RANDOM_ACCESS_FREAD_OR_FAIL(&json_value, sizeof(float), json_entity.val_ptr, file);
     assert(json_value == 5.5);
 
     json_value_dtor(json);
@@ -193,7 +193,7 @@ static PerformStatus SectionExtents_WriteBoolsonValue_Successful()
     assert(json_entity.parent == 500);
     assert(json_entity.next == 0);
 
-    RANDOM_ACCESS_FREAD_OR_FAIL(&json_value, sizeof(json->value), json_entity.val_ptr, file);
+    RANDOM_ACCESS_FREAD_OR_FAIL(&json_value, sizeof(bool), json_entity.val_ptr, file);
     assert(json_value == true);
 
     json_value_dtor(json);
@@ -246,7 +246,7 @@ static PerformStatus SectionExtents_WriteStringJsonValue_Successful()
     assert(json_entity.parent == 0);
     assert(json_entity.next == 0);
 
-    assert(strcmp(json_value, json->value.string_val.val) == 0);
+    assert(strncmp(json_value, json->value.string_val.val, json->value.string_val.count) == 0);
 
     json_value_dtor(json);
     free(json_value);
@@ -368,14 +368,14 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     assert(json_attr_2_entity.value_ptr == section_header_size() + 2 * sizeof(json_value_entity) + json_entity.attr_count * sizeof(attr_entity));
 
     // Compare first attribute key
-    assert(strcmp(json_attr_1_key, kv_1->key.val) == 0);
+    assert(strncmp(json_attr_1_key, kv_1->key.val, kv_1->key.count) == 0);
     // Compare first attribute value
-    assert(strcmp(json_attr_1_value_string, first_json->value.string_val.val) == 0);
+    assert(strncmp(json_attr_1_value_string, first_json->value.string_val.val, first_json->value.string_val.count) == 0);
 
     // Compare second attribute key
-    assert(strcmp(json_attr_2_key, kv_2->key.val) == 0);
+    assert(strncmp(json_attr_2_key, kv_2->key.val, kv_2->key.count) == 0);
     // Compare second attribute value
-    assert(strcmp(json_attr_2_value_string, second_json->value.string_val.val) == 0);
+    assert(strncmp(json_attr_2_value_string, second_json->value.string_val.val, second_json->value.string_val.count) == 0);
 
     json_value_dtor(json_obj);
     section_extents_dtor(extents);
