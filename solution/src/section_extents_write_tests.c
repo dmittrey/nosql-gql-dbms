@@ -217,7 +217,7 @@ static PerformStatus SectionExtents_WriteStringJsonValue_Successful()
 
     json_value_t *json = json_value_new();
     json_value_ctor(json, TYPE_STRING, 0);
-    json->value.string_val = string_ctor("Hello world!");
+    json->value.string_val = string_ctor("Hello world!", 12);
 
     fileoff_t save_json_addr = 0;
     fileoff_t parent_json_addr = 0;
@@ -273,19 +273,19 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
 
     json_value_t *first_json = json_value_new();
     json_value_ctor(first_json, TYPE_STRING, 0);
-    first_json->value.string_val = string_ctor("Иван");
+    first_json->value.string_val = string_ctor("Иван", 4);
 
     json_value_t *second_json = json_value_new();
     json_value_ctor(second_json, TYPE_STRING, 0);
-    second_json->value.string_val = string_ctor("Иванов");
+    second_json->value.string_val = string_ctor("Иванов", 6);
 
     struct json_kv_t *kv_1 = my_malloc(struct json_kv_t);
-    kv_1->key = string_ctor("firstName");
+    kv_1->key = string_ctor("firstName", 9);
     kv_1->value = first_json;
     json_obj->object.attributes[0] = kv_1;
 
     struct json_kv_t *kv_2 = my_malloc(struct json_kv_t);
-    kv_2->key = string_ctor("secondName");
+    kv_2->key = string_ctor("secondName", 10);
     kv_2->value = second_json;
     json_obj->object.attributes[1] = kv_2;
 
@@ -400,7 +400,7 @@ static PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Faile
 
     json_value_t *json = json_value_new();
     json_value_ctor(json, TYPE_STRING, 0);
-    json->value.string_val = string_ctor("Иван");
+    json->value.string_val = string_ctor("Иван", 4);
 
     fileoff_t save_json_addr = 0;
     fileoff_t parent_json_addr = 0;

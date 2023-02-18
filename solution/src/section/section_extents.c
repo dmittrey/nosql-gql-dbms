@@ -139,11 +139,12 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
         char *attribute_key = my_malloc_array(char, attribute_entity->key_size);
         RANDOM_ACCESS_FREAD_OR_FAIL(attribute_key, attribute_entity->key_size, attribute_entity->key_ptr, section->header.filp);
 
-        json_value_t *attribute_value = my_malloc(json_value_t);
+        json_value_t *attribute_value = json_value_new();
+        json_value_ctor(attribute_value, TYPE_OBJECT, 0);
         section_extents_read(section, attribute_entity->value_ptr, attribute_value);
 
         struct json_kv_t *kv = my_malloc(struct json_kv_t);
-        kv->key = string_ctor(attribute_key);
+        kv->key = string_ctor(attribute_key, attribute_entity->key_size);
         kv->value = attribute_value;
         json->object.attributes[i] = kv;
     }

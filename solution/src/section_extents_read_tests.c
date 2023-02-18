@@ -27,6 +27,7 @@ static PerformStatus SectionExtents_ReadInt32JsonValue_ReturnsValidJson()
     }
 
     json_value_t *readed_json = json_value_new();
+    json_value_ctor(readed_json, TYPE_STRING, 0);
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_INT32);
     assert(readed_json->value.int32_val == 5);
@@ -64,6 +65,7 @@ static PerformStatus SectionExtents_ReadFloatJsonValue_ReturnsValidJson()
     }
 
     json_value_t *readed_json = json_value_new();
+    json_value_ctor(readed_json, TYPE_STRING, 0);
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_FLOAT);
     assert(readed_json->value.float_val == 5.5);
@@ -101,6 +103,7 @@ static PerformStatus SectionExtents_ReadBoolJsonValue_ReturnsValidJson()
     }
 
     json_value_t *readed_json = json_value_new();
+    json_value_ctor(readed_json, TYPE_STRING, 0);
     section_extents_read(extents, save_json_addr, readed_json);
     assert(readed_json->type == TYPE_BOOL);
     assert(readed_json->value.bool_val == true);
@@ -127,11 +130,11 @@ static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
 
     json_value_t *json_1 = json_value_new();
     json_value_ctor(json_1, TYPE_STRING, 0);
-    json_1->value.string_val = string_ctor("Иван");
+    json_1->value.string_val = string_ctor("Иван", 4);
 
     json_value_t *json_2 = json_value_new();
     json_value_ctor(json_2, TYPE_STRING, 0);
-    json_2->value.string_val = string_ctor("Иванов");
+    json_2->value.string_val = string_ctor("Иванов", 12);
 
     fileoff_t save_json_1_addr = 0;
     fileoff_t save_json_2_addr = 0;
@@ -148,17 +151,19 @@ static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
     }
 
     json_value_t *readed_json_1 = json_value_new();
+    json_value_ctor(readed_json_1, TYPE_STRING, 0);
     section_extents_read(extents, save_json_1_addr, readed_json_1);
     assert(readed_json_1->type == TYPE_STRING);
     assert(readed_json_1->value.string_val.count == 8);
-    assert(strcmp(readed_json_1->value.string_val.val, json_1->value.string_val.val) == 0);
+    assert(strncmp(readed_json_1->value.string_val.val, json_1->value.string_val.val, json_1->value.string_val.count) == 0);
     json_value_dtor(readed_json_1);
 
     json_value_t *readed_json_2 = json_value_new();
+    json_value_ctor(readed_json_2, TYPE_STRING, 0);
     section_extents_read(extents, save_json_2_addr, readed_json_2);
     assert(readed_json_2->type == TYPE_STRING);
     assert(readed_json_2->value.string_val.count == 12);
-    assert(strcmp(readed_json_2->value.string_val.val, json_2->value.string_val.val) == 0);
+    assert(strncmp(readed_json_2->value.string_val.val, json_2->value.string_val.val, json_2->value.string_val.count) == 0);
     json_value_dtor(readed_json_2);
 
     json_value_dtor(json_1);
@@ -186,19 +191,19 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
 
     json_value_t *first_json = json_value_new();
     json_value_ctor(first_json, TYPE_STRING, 0);
-    first_json->value.string_val = string_ctor("Иван");
+    first_json->value.string_val = string_ctor("Иван", 4);
 
     json_value_t *second_json = json_value_new();
     json_value_ctor(second_json, TYPE_STRING, 0);
-    second_json->value.string_val = string_ctor("Иванов");
+    second_json->value.string_val = string_ctor("Иванов", 12);
 
     struct json_kv_t *kv_1 = my_malloc(struct json_kv_t);
-    kv_1->key = string_ctor("firstName");
+    kv_1->key = string_ctor("firstName", 9);
     kv_1->value = first_json;
     json_obj->object.attributes[0] = kv_1;
 
     struct json_kv_t *kv_2 = my_malloc(struct json_kv_t);
-    kv_2->key = string_ctor("secondName");
+    kv_2->key = string_ctor("secondName", 10);
     kv_2->value = second_json;
     json_obj->object.attributes[1] = kv_2;
 
@@ -208,6 +213,7 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     section_extents_write(extents, json_obj, &parent_json_addr, &save_json_addr);
 
     json_value_t *readed_json = json_value_new();
+    json_value_ctor(readed_json, TYPE_STRING, 0);
     section_extents_read(extents, save_json_addr, readed_json);
 
     assert(readed_json->type == TYPE_OBJECT);
@@ -216,7 +222,7 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     assert(readed_json->object.attributes[0]->key.count == 9);
     assert(strcmp(readed_json->object.attributes[0]->key.val, "firstName") == 0);
 
-    struct json_kv_t* kv = readed_json->object.attributes[1];
+    struct json_kv_t *kv = readed_json->object.attributes[1];
 
     assert(readed_json->object.attributes[1]->key.count == 10);
     assert(strcmp(readed_json->object.attributes[1]->key.val, "secondName") == 0);

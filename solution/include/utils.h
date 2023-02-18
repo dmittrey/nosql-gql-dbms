@@ -39,7 +39,7 @@ typedef struct
     uint64_t count;
 } string_t;
 
-string_t string_ctor(const char *);
+string_t string_ctor(const char *, size_t);
 size_t string_get_size(string_t str);
 
 typedef enum
