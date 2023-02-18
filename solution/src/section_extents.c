@@ -18,17 +18,27 @@ void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *fi
 {
     section_header_ctor((section_header_t *)section, offset, filp);
 }
-void section_extents_dtor(section_extents_t *section)
+PerformStatus section_extents_dtor(section_extents_t *section)
 {
     static const char zeros[SECTION_SIZE];
 
     size_t prev = ftell(section->header.filp);
 
-    fseek(section->header.filp, section->header.section_offset, SEEK_SET);
-    fwrite(&zeros, sizeof(char), SECTION_SIZE, section->header.filp);
-    section_header_dtor((section_header_t *)section);
+    if (fseek(section->header.filp, section->header.section_offset, SEEK_SET))
+    {
+        return FAILED;
+    }
+    if (fwrite(&zeros, sizeof(char), SECTION_SIZE, section->header.filp))
+    {
+        return FAILED;
+    }
 
-    fseek(section->header.filp, prev, SEEK_SET);
+    if (fseek(section->header.filp, prev, SEEK_SET))
+    {
+        return FAILED;
+    }
+
+    free(section);
 }
 
 PerformStatus section_extents_sync(section_extents_t *section)

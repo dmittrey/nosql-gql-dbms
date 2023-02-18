@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #define my_malloc(T) ((T *)malloc(sizeof(T)))
 #define my_malloc_array(T, count) ((T *)malloc(sizeof(T) * count))
