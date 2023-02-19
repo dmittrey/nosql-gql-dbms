@@ -21,8 +21,8 @@
     return FAILED
 
 #define RANDOM_ACCESS_FWRITE_OR_FAIL(DATA_PTR, DATA_SIZE, OFFSET, FILP) \
-    if (fseek(FILP, OFFSET, SEEK_SET) != 0)                            \
-        return FAILED;                                                 \
+    if (fseek(FILP, OFFSET, SEEK_SET) != 0)                             \
+        return FAILED;                                                  \
     if (fwrite((void *)DATA_PTR, DATA_SIZE, 1, FILP) != 1)              \
     return FAILED
 
@@ -35,12 +35,15 @@
 // Own type of string to simplify handling
 typedef struct
 {
-    const char *val;
+    char *val;
     uint64_t count;
 } string_t;
 
-string_t string_ctor(const char *, size_t);
-size_t string_get_size(string_t str);
+void string_new(string_t *);
+void string_ctor(string_t * const, const char * const, const size_t);
+void string_dtor(string_t *);
+
+size_t string_get_size(const string_t str);
 
 typedef enum
 {

@@ -20,7 +20,8 @@ static PerformStatus SectionExtents_DefaultCtor_InvokeHeaderCtor()
     assert(extents->header.last_item_ptr == section_header_size(extents->header));
     assert(extents->header.first_record_ptr == SECTION_SIZE);
 
-    section_extents_dtor(extents);
+    // section_extents_dtor(extents);   // No make sense
+    free(extents);                      // Make sense
     fclose(file);
 
     if (remove(test_file_name))
@@ -347,8 +348,6 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     char *json_attr_2_value_string = my_malloc_array(char, json_attr_2_value.val_size);
     FSEEK_OR_FAIL(file, json_attr_2_value.val_ptr);
     FREAD_OR_FAIL(json_attr_2_value_string, json_attr_2_value.val_size, file);
-
-
 
     // Test json obj
     assert(json_entity.attr_count == json_obj->object.attributes_count);
