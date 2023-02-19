@@ -220,15 +220,15 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     assert(readed_json->object.attributes_count == 2);
 
     assert(readed_json->object.attributes[0]->key.count == 9);
-    assert(strcmp(readed_json->object.attributes[0]->key.val, "firstName") == 0);
+    assert(strncmp(readed_json->object.attributes[0]->key.val, "firstName", readed_json->object.attributes[0]->key.count) == 0);
 
     struct json_kv_t *kv = readed_json->object.attributes[1];
 
     assert(readed_json->object.attributes[1]->key.count == 10);
-    assert(strcmp(readed_json->object.attributes[1]->key.val, "secondName") == 0);
+    assert(strncmp(readed_json->object.attributes[1]->key.val, "secondName", readed_json->object.attributes[1]->key.count) == 0);
 
-    assert(strcmp(readed_json->object.attributes[0]->value->value.string_val.val, "Иван") == 0);
-    assert(strcmp(readed_json->object.attributes[1]->value->value.string_val.val, "Иванов") == 0);
+    assert(strncmp(readed_json->object.attributes[0]->value->value.string_val.val, "Иван", readed_json->object.attributes[0]->value->value.string_val.count) == 0);
+    assert(strncmp(readed_json->object.attributes[1]->value->value.string_val.val, "Иванов", readed_json->object.attributes[1]->value->value.string_val.count) == 0);
 
     json_value_dtor(json_obj);
     json_value_dtor(readed_json);
