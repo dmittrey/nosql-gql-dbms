@@ -411,10 +411,7 @@ static PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Faile
     fileoff_t save_json_addr = 0;
     fileoff_t parent_json_addr = 0;
 
-    if (section_extents_write(extents, json, &parent_json_addr, &save_json_addr))
-    {
-        return FAILED;
-    }
+    PerformStatus write_status = section_extents_write(extents, json, &parent_json_addr, &save_json_addr);
 
     json_value_dtor(json);
     section_extents_dtor(extents);
@@ -425,7 +422,7 @@ static PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Faile
         return FAILED;
     }
 
-    return OK;
+    return write_status;
 }
 
 void test_extents_write()

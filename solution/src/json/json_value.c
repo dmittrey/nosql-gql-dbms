@@ -20,9 +20,14 @@ void json_value_dtor(json_value_t *json)
     for (size_t i = 0; i < json->object.attributes_count; i++)
     {
         json_value_dtor(json->object.attributes[i]->value);
-        free(json->object.attributes[i]);
+        string_dtor(&json->object.attributes[i]->key);
     }
     free(json->object.attributes);
+
+    if (json->type == TYPE_STRING) 
+    {
+        string_dtor(&json->value.string_val);
+    }
 
     free(json);
 }
