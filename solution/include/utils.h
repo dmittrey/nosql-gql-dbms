@@ -39,7 +39,7 @@ typedef struct
     uint64_t count;
 } string_t;
 
-void string_new(string_t *);
+string_t* string_new();
 void string_ctor(string_t * const, const char * const, const size_t);
 void string_dtor(string_t *);
 

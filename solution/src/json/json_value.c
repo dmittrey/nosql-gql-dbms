@@ -21,6 +21,7 @@ void json_value_dtor(json_value_t *json)
     {
         json_value_dtor(json->object.attributes[i]->value);
         string_dtor(&json->object.attributes[i]->key);
+        free(json->object.attributes[i]);
     }
     free(json->object.attributes);
 

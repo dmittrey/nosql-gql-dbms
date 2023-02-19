@@ -131,13 +131,11 @@ static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
     json_value_t *json_1 = json_value_new();
     json_value_ctor(json_1, TYPE_STRING, 0);
 
-    string_new(&json_1->value.string_val);
     string_ctor(&json_1->value.string_val, "Иван", 8);
 
     json_value_t *json_2 = json_value_new();
     json_value_ctor(json_2, TYPE_STRING, 0);
 
-    string_new(&json_2->value.string_val);
     string_ctor(&json_2->value.string_val, "Иванов", 12);
 
     fileoff_t save_json_1_addr = 0;
@@ -196,23 +194,19 @@ static PerformStatus SectionExtents_ReadObjectJsonValue_ReturnsValidJson()
     json_value_t *first_json = json_value_new();
     json_value_ctor(first_json, TYPE_STRING, 0);
 
-    string_new(&first_json->value.string_val);
     string_ctor(&first_json->value.string_val, "Иван", 8);
 
     json_value_t *second_json = json_value_new();
     json_value_ctor(second_json, TYPE_STRING, 0);
 
-    string_new(&second_json->value.string_val );
     string_ctor(&second_json->value.string_val , "Иванов", 12);
 
     struct json_kv_t *kv_1 = my_malloc(struct json_kv_t);
-    string_new(&kv_1->key);
     string_ctor(&kv_1->key , "firstName", 9);
     kv_1->value = first_json;
     json_obj->object.attributes[0] = kv_1;
 
     struct json_kv_t *kv_2 = my_malloc(struct json_kv_t);
-    string_new(&kv_2->key);
     string_ctor(&kv_2->key , "secondName", 10);
     kv_2->value = second_json;
     json_obj->object.attributes[1] = kv_2;
