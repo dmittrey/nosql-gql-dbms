@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "utils.h"
 #include "table.h"
 
@@ -20,25 +22,15 @@ void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *fi
 }
 PerformStatus section_extents_dtor(section_extents_t *section)
 {
-    static const char zeros[SECTION_SIZE];
+    void *zeros = my_malloc_array(char, SECTION_SIZE);
+    memset(zeros, '0', SECTION_SIZE);
 
     size_t prev = ftell(section->header.filp);
 
-    if (fseek(section->header.filp, section->header.section_offset, SEEK_SET))
-    {
-        return FAILED;
-    }
-    if (fwrite(&zeros, sizeof(char), SECTION_SIZE, section->header.filp))
-    {
-        return FAILED;
-    }
-
-    if (fseek(section->header.filp, prev, SEEK_SET))
-    {
-        return FAILED;
-    }
-
+    RANDOM_ACCESS_FWRITE_OR_FAIL(zeros, SECTION_SIZE, section->header.section_offset, section->header.filp);
     section_header_dtor((section_header_t *)section);
+
+    FSEEK_OR_FAIL(section->header.filp, prev);
 
     return OK;
 }
@@ -145,7 +137,7 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
 
         struct json_kv_t *kv = my_malloc(struct json_kv_t);
         string_new(&kv->key);
-        string_ctor(&kv->key , attribute_key, attribute_entity->key_size);
+        string_ctor(&kv->key, attribute_key, attribute_entity->key_size);
         kv->value = attribute_value;
         json->object.attributes[i] = kv;
 
