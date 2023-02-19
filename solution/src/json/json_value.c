@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "table.h"
 
 #include "json/json_value.h"
@@ -5,7 +7,7 @@
 
 json_value_t *json_value_new()
 {
-    return my_malloc(json_value_t);
+    return memset(my_malloc(json_value_t), 0, sizeof(json_value_t));
 }
 
 void json_value_ctor(json_value_t *json, json_value_type type, uint64_t attributes_count)

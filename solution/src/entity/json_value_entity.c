@@ -1,8 +1,10 @@
+#include <string.h>
+
 #include "entity/json_value_entity.h"
 
 json_value_entity *json_value_entity_new()
 {
-    return my_malloc(json_value_entity);
+    return memset(my_malloc(json_value_entity), 0, sizeof(json_value_entity));
 }
 
 void json_value_entity_ctor(json_value_entity *json_entity, json_value_t *json)

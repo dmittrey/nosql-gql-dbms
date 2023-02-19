@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 #include "utils.h"
 #include "table.h"
@@ -39,7 +40,7 @@ sectoff_t section_header_size(section_header_t *header)
 
 section_header_t *section_header_new()
 {
-    return my_malloc(section_header_t);
+    return memset(my_malloc(section_header_t), 0, sizeof(section_header_t));
 }
 
 void section_header_ctor(section_header_t *header, fileoff_t offset, FILE *filp)

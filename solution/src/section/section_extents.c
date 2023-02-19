@@ -13,7 +13,7 @@ static PerformStatus section_extents_write_in_record(section_extents_t *, size_t
 
 section_extents_t *section_extents_new()
 {
-    return my_malloc(section_extents_t);
+    return memset(my_malloc(section_extents_t), 0, sizeof(section_extents_t));
 }
 
 void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *filp)
