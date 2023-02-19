@@ -11,7 +11,10 @@ json_value_t *json_value_new()
 void json_value_ctor(json_value_t *json, json_value_type type, uint64_t attributes_count)
 {
     json->object.attributes_count = attributes_count;
-    json->object.attributes = my_malloc_array(struct json_kv_t *, attributes_count);
+    if (json->object.attributes_count != 0)
+    {
+        json->object.attributes = my_malloc_array(struct json_kv_t *, attributes_count);
+    }
     json->type = type;
 }
 
@@ -23,9 +26,13 @@ void json_value_dtor(json_value_t *json)
         string_dtor(&json->object.attributes[i]->key);
         free(json->object.attributes[i]);
     }
-    free(json->object.attributes);
 
-    if (json->type == TYPE_STRING) 
+    if (json->object.attributes_count != 0)
+    {
+        free(json->object.attributes);
+    }
+
+    if (json->type == TYPE_STRING)
     {
         string_dtor(&json->value.string_val);
     }

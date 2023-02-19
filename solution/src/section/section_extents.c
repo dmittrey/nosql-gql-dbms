@@ -123,7 +123,7 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     // Read json entity
     RANDOM_ACCESS_FREAD_OR_FAIL(json_entity, sizeof(json_value_entity), offset, section->header.filp);
 
-    json->object.attributes = ((struct json_kv_t **)malloc(sizeof(struct json_kv_t *) * json_entity->attr_count));
+    json_value_ctor(json, json_entity->type, json_entity->attr_count);
 
     for (size_t i = 0; i < json_entity->attr_count; i++)
     {
@@ -155,9 +155,6 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     {
         RANDOM_ACCESS_FREAD_OR_FAIL(&json->value, json_entity->val_size, json_entity->val_ptr, section->header.filp);
     }
-
-    json->object.attributes_count = json_entity->attr_count;
-    json->type = json_entity->type;
 
     FSEEK_OR_FAIL(section->header.filp, prev);
 

@@ -377,6 +377,12 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     // Compare second attribute value
     assert(strncmp(json_attr_2_value_string, second_json->value.string_val.val, second_json->value.string_val.count) == 0);
 
+    free(json_attr_1_key);
+    free(json_attr_2_key);
+    
+    free(json_attr_1_value_string);
+    free(json_attr_2_value_string);
+
     json_value_dtor(json_obj);
     section_extents_dtor(extents);
     fclose(file);
