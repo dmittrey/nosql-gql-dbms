@@ -22,14 +22,14 @@ void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *fi
 }
 PerformStatus section_extents_dtor(section_extents_t *section)
 {
-    size_t prev = ftell(section->header.filp);
+    // size_t prev = ftell(section->header.filp);
 
-    void *zeros = my_malloc_array(char, SECTION_SIZE);
-    memset(zeros, '0', SECTION_SIZE);
-    RANDOM_ACCESS_FWRITE_OR_FAIL(zeros, SECTION_SIZE, section->header.section_offset, section->header.filp);
-    free(zeros);
+    // void *zeros = my_malloc_array(char, SECTION_SIZE);
+    // memset(zeros, '0', SECTION_SIZE);
+    // RANDOM_ACCESS_FWRITE_OR_FAIL(zeros, SECTION_SIZE, section->header.section_offset, section->header.filp);
+    // free(zeros);
 
-    FSEEK_OR_FAIL(section->header.filp, prev);
+    // FSEEK_OR_FAIL(section->header.filp, prev);
 
     section_header_dtor((section_header_t *)section);
 
