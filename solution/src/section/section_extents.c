@@ -9,13 +9,9 @@
 static PerformStatus section_extents_write_in_item(section_extents_t *, size_t, void *);
 static PerformStatus section_extents_write_in_record(section_extents_t *, size_t, void *, fileoff_t *);
 
-section_extents_t *section_extents_new()
-{
-    return my_malloc(section_extents_t);
-}
-
 void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *filp)
 {
+    section = my_malloc(section_extents_t);
     section_header_ctor((section_header_t *)section, offset, filp);
 }
 PerformStatus section_extents_dtor(section_extents_t *section)
@@ -165,6 +161,8 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
     json->type = json_entity->type;
 
     FSEEK_OR_FAIL(section->header.filp, prev);
+
+    free(json_entity);
 
     return OK;
 }
