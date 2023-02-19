@@ -130,7 +130,7 @@ static PerformStatus SectionExtents_ReadStringJsonValue_ReturnsValidJson()
 
     json_value_t *json_1 = json_value_new();
     json_value_ctor(json_1, TYPE_STRING, 0);
-    json_1->value.string_val = string_ctor("Иван", 4);
+    json_1->value.string_val = string_ctor("Иван", 8);
 
     json_value_t *json_2 = json_value_new();
     json_value_ctor(json_2, TYPE_STRING, 0);
