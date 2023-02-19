@@ -7,12 +7,12 @@ void string_new(string_t *string)
     string = my_malloc(string_t);
 }
 
-void string_ctor(string_t *const string, const char *const value, const size_t count)
+void string_ctor(string_t *const string, const char *const value, const size_t string_count)
 {
-    char *value = my_malloc_array(char, count);
+    char *string_val = my_malloc_array(char, string_count);
 
-    string->val = strncpy(value, string, count);
-    string->count = count;
+    string->val = strncpy(string_val, value, string_count);
+    string->count = string_count;
 }
 
 void string_dtor(string_t *string)

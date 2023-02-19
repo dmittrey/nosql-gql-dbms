@@ -144,7 +144,8 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
         section_extents_read(section, attribute_entity->value_ptr, attribute_value);
 
         struct json_kv_t *kv = my_malloc(struct json_kv_t);
-        kv->key = string_ctor(attribute_key, attribute_entity->key_size);
+        string_new(&kv->key);
+        string_ctor(&kv->key , attribute_key, attribute_entity->key_size);
         kv->value = attribute_value;
         json->object.attributes[i] = kv;
 
