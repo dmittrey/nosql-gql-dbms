@@ -34,12 +34,12 @@ typedef struct
 
 json_value_t *json_value_new();
 
-void json_value_ctor(json_value_t *, json_value_type, uint64_t);
+void json_value_ctor(json_value_t * const, const json_value_type, const uint64_t);
 void json_value_dtor(json_value_t *);
 
-void json_value_print(json_value_t *);
+void json_value_print(const json_value_t * const);
 
-size_t json_value_get_serialization_size(json_value_t *);
+size_t json_value_get_serialization_size(const json_value_t * const);
 
 struct json_kv_t
 {
@@ -49,5 +49,5 @@ struct json_kv_t
 
 struct json_kv_t *json_kv_new();
 
-void json_kv_ctor(struct json_kv_t *);
+void json_kv_ctor(struct json_kv_t * const, const string_t, json_value_t*);
 void json_kv_dtor(struct json_kv_t *);

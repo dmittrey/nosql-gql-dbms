@@ -15,9 +15,9 @@ static PerformStatus SectionExtents_DefaultCtor_InvokeHeaderCtor()
     section_extents_t *extents = section_extents_new();
     section_extents_ctor(extents, 0, file);
 
-    assert(extents->header.free_space == (SECTION_SIZE - section_header_size(extents->header)));
+    assert(extents->header.free_space == (SECTION_SIZE - section_header_size()));
     assert(extents->header.next == 0); // Next section is undefined
-    assert(extents->header.last_item_ptr == section_header_size(extents->header));
+    assert(extents->header.last_item_ptr == section_header_size());
     assert(extents->header.first_record_ptr == SECTION_SIZE);
 
     // section_extents_dtor(extents);   // No make sense
@@ -80,7 +80,7 @@ static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
     fileoff_t parent_json_addr = 500;
 
     section_extents_write(extents, json, &parent_json_addr, &save_json_addr);
-    assert(save_json_addr == section_header_size(extents->header));
+    assert(save_json_addr == section_header_size());
 
     section_header_entity header;
     RANDOM_ACCESS_FREAD_OR_FAIL(&header, sizeof(section_header_entity), 0, file);
@@ -128,7 +128,7 @@ static PerformStatus SectionExtents_WriteFloatsonValue_Successful()
     fileoff_t parent_json_addr = 500;
 
     section_extents_write(extents, json, &parent_json_addr, &save_json_addr);
-    assert(save_json_addr == section_header_size(extents->header));
+    assert(save_json_addr == section_header_size());
 
     section_header_entity header;
     RANDOM_ACCESS_FREAD_OR_FAIL(&header, sizeof(section_header_entity), 0, file);
@@ -176,7 +176,7 @@ static PerformStatus SectionExtents_WriteBoolsonValue_Successful()
     fileoff_t parent_json_addr = 500;
 
     section_extents_write(extents, json, &parent_json_addr, &save_json_addr);
-    assert(save_json_addr == section_header_size(extents->header));
+    assert(save_json_addr == section_header_size());
 
     section_header_entity header;
     RANDOM_ACCESS_FREAD_OR_FAIL(&header, sizeof(section_header_entity), 0, file);
@@ -225,7 +225,7 @@ static PerformStatus SectionExtents_WriteStringJsonValue_Successful()
     fileoff_t parent_json_addr = 0;
 
     section_extents_write(extents, json, &parent_json_addr, &save_json_addr);
-    assert(save_json_addr == section_header_size(extents->header));
+    assert(save_json_addr == section_header_size());
 
     section_header_entity header;
     RANDOM_ACCESS_FREAD_OR_FAIL(&header, sizeof(section_header_entity), 0, file);
@@ -295,7 +295,7 @@ static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
     fileoff_t parent_json_addr = 0;
 
     section_extents_write(extents, json_obj, &parent_json_addr, &save_json_addr);
-    assert(save_json_addr == section_header_size(extents->header));
+    assert(save_json_addr == section_header_size());
 
     section_header_entity header;
     RANDOM_ACCESS_FREAD_OR_FAIL(&header, sizeof(section_header_entity), 0, file);

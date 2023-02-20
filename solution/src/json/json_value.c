@@ -10,7 +10,7 @@ json_value_t *json_value_new()
     return memset(my_malloc(json_value_t), 0, sizeof(json_value_t));
 }
 
-void json_value_ctor(json_value_t *json, json_value_type type, uint64_t attributes_count)
+void json_value_ctor(json_value_t * const json, const json_value_type type, const uint64_t attributes_count)
 {
     json->object.attributes_count = attributes_count;
     if (json->object.attributes_count != 0)
@@ -24,9 +24,7 @@ void json_value_dtor(json_value_t *json)
 {
     for (size_t i = 0; i < json->object.attributes_count; i++)
     {
-        json_value_dtor(json->object.attributes[i]->value);
-        string_dtor(&json->object.attributes[i]->key);
-        free(json->object.attributes[i]);
+        json_kv_dtor(json->object.attributes[i]);
     }
 
     if (json->object.attributes_count != 0)
@@ -42,7 +40,7 @@ void json_value_dtor(json_value_t *json)
     free(json);
 }
 
-void json_value_print(json_value_t *json)
+void json_value_print(const json_value_t * const json)
 {
     switch (json->type)
     {
@@ -76,7 +74,7 @@ void json_value_print(json_value_t *json)
     printf("\n}");
 }
 
-size_t json_value_get_serialization_size(json_value_t *json)
+size_t json_value_get_serialization_size(const json_value_t * const json)
 {
     size_t size = sizeof(json_value_entity);
 
@@ -98,4 +96,21 @@ size_t json_value_get_serialization_size(json_value_t *json)
     }
 
     return size;
+}
+
+struct json_kv_t *json_kv_new()
+{
+    return my_malloc(struct json_kv_t);
+}
+
+void json_kv_ctor(struct json_kv_t * const json_kv, const string_t string, json_value_t *json_val)
+{
+    json_kv->key = string;
+    json_kv->value = json_val;
+}
+
+void json_kv_dtor(struct json_kv_t *json_kv) {
+    string_dtor(&json_kv->key);
+    json_value_dtor(json_kv->value);
+    free(json_kv);
 }

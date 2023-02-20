@@ -13,9 +13,9 @@ void SectionHeader_DefaultCtor_Successful()
     section_header_t *header = section_header_new();
     section_header_ctor(header, 0, file);
 
-    assert(header->free_space == (SECTION_SIZE - section_header_size(header)));
+    assert(header->free_space == (SECTION_SIZE - section_header_size()));
     assert(header->next == 0); // Next section is undefined
-    assert(header->last_item_ptr == section_header_size(header));
+    assert(header->last_item_ptr == section_header_size());
     assert(header->first_record_ptr == SECTION_SIZE);
 
     fclose(file);
@@ -30,9 +30,9 @@ void SectionHeader_CtorWithFileStartNotFromZero_Successful()
     section_header_t *header = section_header_new();
     section_header_ctor(header, shift, file);
 
-    assert(header->free_space == (SECTION_SIZE - section_header_size(header)));
+    assert(header->free_space == (SECTION_SIZE - section_header_size()));
     assert(header->next == 0); // Next section is undefined
-    assert(header->last_item_ptr == shift + section_header_size(header));
+    assert(header->last_item_ptr == shift + section_header_size());
     assert(header->first_record_ptr == shift + SECTION_SIZE);
 
     fclose(file);
@@ -49,12 +49,12 @@ bool SectionHeader_ShiftLastItemPtr_Successful()
     PerformStatus perform_result = section_header_shift_last_item_ptr(header, shift);
 
     assert(perform_result == OK);
-    assert(header->last_item_ptr == section_header_size(header) + shift);
+    assert(header->last_item_ptr == section_header_size() + shift);
 
     sectoff_t file_last_item_ptr;
     FSEEK_OR_FAIL(file, sizeof(header->free_space) + sizeof(header->next));
     FREAD_OR_FAIL(&file_last_item_ptr, sizeof(sectoff_t), file);
-    assert(file_last_item_ptr == section_header_size(header) + shift);
+    assert(file_last_item_ptr == section_header_size() + shift);
 
     return true;
 }

@@ -8,15 +8,15 @@
 
 #include "entity/json_value_entity.h"
 
-static PerformStatus section_extents_write_in_item(section_extents_t *, size_t, void *);
-static PerformStatus section_extents_write_in_record(section_extents_t *, size_t, void *, fileoff_t *);
+static PerformStatus section_extents_write_in_item(section_extents_t *const, const size_t, const void *const);
+static PerformStatus section_extents_write_in_record(section_extents_t *const, const size_t, const void *const, fileoff_t *const);
 
 section_extents_t *section_extents_new()
 {
     return memset(my_malloc(section_extents_t), 0, sizeof(section_extents_t));
 }
 
-void section_extents_ctor(section_extents_t *section, fileoff_t offset, FILE *filp)
+void section_extents_ctor(section_extents_t *const section, const fileoff_t offset, FILE *const filp)
 {
     section_header_ctor((section_header_t *)section, offset, filp);
 }
@@ -41,7 +41,7 @@ PerformStatus section_extents_sync(section_extents_t *section)
     return section_header_sync((section_header_t *)section);
 }
 
-PerformStatus section_extents_write(section_extents_t *section, json_value_t *json, fileoff_t *parent_json_addr, fileoff_t *save_addr)
+PerformStatus section_extents_write(section_extents_t *const section, const json_value_t *const json, const fileoff_t *const parent_json_addr, fileoff_t *const save_json_addr)
 {
     size_t json_size = json_value_get_serialization_size(json);
 
@@ -49,7 +49,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
     {
         fileoff_t json_val_ptr = 0;
 
-        *save_addr = section->header.last_item_ptr;
+        *save_json_addr = section->header.last_item_ptr;
 
         if (json->type == TYPE_STRING)
         {
@@ -92,7 +92,7 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
             // Write attr value, save ptr(We can fetch size via type)
             section->header.last_item_ptr = child_node_last_item_ptr;
-            section_extents_write(section, json->object.attributes[i]->value, save_addr, &attr_val_ptr);
+            section_extents_write(section, json->object.attributes[i]->value, save_json_addr, &attr_val_ptr);
             child_node_last_item_ptr = section->header.last_item_ptr;
 
             // Save items of attribute(key_size, key_ptr, val_ptr)
@@ -110,7 +110,8 @@ PerformStatus section_extents_write(section_extents_t *section, json_value_t *js
 
     return FAILED;
 }
-PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset, json_value_t *json)
+
+PerformStatus section_extents_read(const section_extents_t *const section, const sectoff_t offset, json_value_t *const json)
 {
     // Allocate buffers
     json_value_entity *json_entity = my_malloc(json_value_entity);
@@ -171,7 +172,8 @@ PerformStatus section_extents_read(section_extents_t *section, sectoff_t offset,
         - Оценить длину сериализации новой
         - Если получится то перезаписать запись
 */
-PerformStatus section_documents_update(section_extents_t *section, sectoff_t offset, json_value_t *new_json)
+
+PerformStatus section_extents_update(section_extents_t *const section, const sectoff_t offset, const json_value_t *const new_json)
 {
     size_t new_json_size = json_value_get_serialization_size(new_json);
 
@@ -209,7 +211,7 @@ PerformStatus section_documents_delete(section_extents_t *section, sectoff_t off
     return OK;
 }
 
-static PerformStatus section_extents_write_in_item(section_extents_t *section, size_t data_size, void *data_ptr)
+static PerformStatus section_extents_write_in_item(section_extents_t *const section, const size_t data_size, const void *const data_ptr)
 {
     long prev_ptr = ftell(section->header.filp);
 
@@ -222,7 +224,7 @@ static PerformStatus section_extents_write_in_item(section_extents_t *section, s
     return OK;
 }
 
-static PerformStatus section_extents_write_in_record(section_extents_t *section, size_t data_size, void *data_ptr, fileoff_t *save_addr)
+static PerformStatus section_extents_write_in_record(section_extents_t *const section, const size_t data_size, const void *const data_ptr, fileoff_t *const save_addr)
 {
     long prev_ptr = ftell(section->header.filp);
 
