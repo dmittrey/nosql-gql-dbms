@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-#define SECTION_SIZE 8192 // 8192 - 8176 = 
+#define SECTION_SIZE 8192 
 
-typedef int64_t fileoff_t;
-typedef int64_t sectoff_t;
+typedef size_t fileoff_t;
+typedef size_t sectoff_t;

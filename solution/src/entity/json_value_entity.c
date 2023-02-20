@@ -9,11 +9,14 @@ json_value_entity *json_value_entity_new()
 
 void json_value_entity_ctor(json_value_entity *json_entity, json_value_t *json)
 {
-    json_entity->attr_count = json->object.attributes_count;
+    json_entity->key_ptr = NULL;
+    json_entity->key_size = json->key.count;
+    json_entity->val_ptr = NULL;
+    json_entity->val_size = json_value_get_val_size(json);
+    json_entity->dad_ptr = NULL;
+    json_entity->bro_ptr = NULL;
+    json_entity->son_ptr = NULL;
     json_entity->type = json->type;
-    json_entity->val_ptr = 0;
-    json_entity->parent = 0;
-    json_entity->next = 0;
 }
 void json_value_entity_dtor(json_value_entity *json_entity)
 {

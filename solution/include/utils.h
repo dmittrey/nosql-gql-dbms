@@ -36,7 +36,7 @@
 typedef struct
 {
     char *val;
-    uint64_t count;
+    size_t count;
 } string_t;
 
 string_t* string_new();

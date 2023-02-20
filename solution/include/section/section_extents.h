@@ -21,7 +21,7 @@ PerformStatus section_extents_dtor(section_extents_t *);
 
 PerformStatus section_extents_sync(section_extents_t *const);
 
-PerformStatus section_extents_write(section_extents_t *const, const json_value_t *const, const fileoff_t *const parent_json_addr, fileoff_t *const save_json_addr);
+PerformStatus section_extents_write(section_extents_t *const, const json_value_t *const, const fileoff_t, const fileoff_t, fileoff_t *const);
 PerformStatus section_extents_read(const section_extents_t *const, const sectoff_t, json_value_t *const);
 PerformStatus section_extents_update(section_extents_t *const, const sectoff_t, const json_value_t *const);
 PerformStatus section_extents_delete(const section_extents_t *const, const sectoff_t);

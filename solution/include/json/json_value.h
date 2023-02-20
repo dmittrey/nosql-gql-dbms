@@ -13,15 +13,8 @@ typedef enum
     TYPE_ARRAY
 } json_value_type;
 
-struct json_value_t;
-
-typedef struct
-{
-    struct
-    {
-        uint64_t attributes_count;
-        struct json_kv_t **attributes;
-    } object; // Указатель на массив атрибутов Nullable
+typedef struct json_value_t {
+    string_t key;
     union
     {
         int32_t int32_val;
@@ -29,25 +22,23 @@ typedef struct
         string_t string_val;
         bool bool_val;
     } value;
-    size_t type; // Тип значения
+    struct json_value_t *dad;
+    struct json_value_t *bro; // next json with same parent
+    struct json_value_t *son;
+    uint64_t type; // Тип значения
 } json_value_t;
 
 json_value_t *json_value_new();
 
-void json_value_ctor(json_value_t * const, const json_value_type, const uint64_t);
+void json_value_ctor(json_value_t * const, const json_value_type, const char * const, const size_t);
 void json_value_dtor(json_value_t *);
+
+void *json_value_get_val_ptr(const json_value_t * const);
+size_t json_value_get_val_size(const json_value_t * const);
+
+void json_add_bro(json_value_t * const json, const json_value_t * const bro);
+void json_add_son(json_value_t * const json, const json_value_t * const son);
 
 void json_value_print(const json_value_t * const);
 
-size_t json_value_get_serialization_size(const json_value_t * const);
-
-struct json_kv_t
-{
-    string_t key;
-    json_value_t *value;
-};
-
-struct json_kv_t *json_kv_new();
-
-void json_kv_ctor(struct json_kv_t * const, const string_t, json_value_t*);
-void json_kv_dtor(struct json_kv_t *);
+// size_t json_value_get_serialization_size(const json_value_t * const);
