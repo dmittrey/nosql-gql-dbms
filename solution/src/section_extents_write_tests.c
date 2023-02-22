@@ -65,7 +65,7 @@ static PerformStatus SectionExtents_InvokeSync_InvokeHeaderSync()
     return OK;
 }
 
-static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
+static PerformStatus SectionExtents_WriteInt32JsonValue_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -88,8 +88,8 @@ static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
 
     json_value_entity_t json_entity;
     RANDOM_ACCESS_FREAD_OR_FAIL(&json_entity, sizeof(json_entity), save_json_addr, file);
-    assert(json_entity.key_ptr = SECTION_SIZE - string_get_size(json->key));
-    assert(json_entity.key_size = string_get_size(json->key));
+    assert(json_entity.key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity.key_size == string_get_size(json->key));
     assert(json_entity.val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity.val_size == sizeof(json->value));
     assert(json_entity.dad_ptr == 500);
@@ -102,7 +102,7 @@ static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
     free(key_val);
 
     int32_t val_val;
-    RANDOM_ACCESS_FREAD_OR_FAIL(&val_val, json_entity.val_size, json_entity.val_ptr, file);
+    RANDOM_ACCESS_FREAD_OR_FAIL(&val_val, sizeof(int32_t), json_entity.val_ptr, file);
     assert(val_val == json->value.int32_val);
 
     json_value_dtor(json);
@@ -117,7 +117,7 @@ static PerformStatus SectionExtents_WriteInt32sonValue_Successful()
     return write_status;
 }
 
-static PerformStatus SectionExtents_WriteFloatsonValue_Successful()
+static PerformStatus SectionExtents_WriteFloatJsonValue_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -140,8 +140,8 @@ static PerformStatus SectionExtents_WriteFloatsonValue_Successful()
 
     json_value_entity_t json_entity;
     RANDOM_ACCESS_FREAD_OR_FAIL(&json_entity, sizeof(json_value_entity_t), save_json_addr, file);
-    assert(json_entity.key_ptr = SECTION_SIZE - string_get_size(json->key));
-    assert(json_entity.key_size = string_get_size(json->key));
+    assert(json_entity.key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity.key_size == string_get_size(json->key));
     assert(json_entity.val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity.val_size == sizeof(json->value));
     assert(json_entity.dad_ptr == 500);
@@ -154,7 +154,7 @@ static PerformStatus SectionExtents_WriteFloatsonValue_Successful()
     free(key_val);
 
     float val_val;
-    RANDOM_ACCESS_FREAD_OR_FAIL(&val_val, json_entity.val_size, json_entity.val_ptr, file);
+    RANDOM_ACCESS_FREAD_OR_FAIL(&val_val, sizeof(float), json_entity.val_ptr, file);
     assert(val_val == json->value.float_val);
 
     json_value_dtor(json);
@@ -169,7 +169,7 @@ static PerformStatus SectionExtents_WriteFloatsonValue_Successful()
     return write_status;
 }
 
-static PerformStatus SectionExtents_WriteBoolsonValue_Successful()
+static PerformStatus SectionExtents_WriteBoolJsonValue_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -192,8 +192,8 @@ static PerformStatus SectionExtents_WriteBoolsonValue_Successful()
 
     json_value_entity_t json_entity;
     RANDOM_ACCESS_FREAD_OR_FAIL(&json_entity, sizeof(json_value_entity_t), save_json_addr, file);
-    assert(json_entity.key_ptr = SECTION_SIZE - string_get_size(json->key));
-    assert(json_entity.key_size = string_get_size(json->key));
+    assert(json_entity.key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity.key_size == string_get_size(json->key));
     assert(json_entity.val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity.val_size == sizeof(json->value));
     assert(json_entity.dad_ptr == 500);
@@ -206,7 +206,7 @@ static PerformStatus SectionExtents_WriteBoolsonValue_Successful()
     free(key_val);
 
     bool val_val;
-    RANDOM_ACCESS_FREAD_OR_FAIL(&val_val, json_entity.val_size, json_entity.val_ptr, file);
+    RANDOM_ACCESS_FREAD_OR_FAIL(&val_val, sizeof(bool), json_entity.val_ptr, file);
     assert(val_val == json->value.bool_val);
 
     json_value_dtor(json);
@@ -247,8 +247,8 @@ static PerformStatus SectionExtents_WriteStringJsonValue_Successful()
 
     json_value_entity_t json_entity;
     RANDOM_ACCESS_FREAD_OR_FAIL(&json_entity, sizeof(json_entity), save_json_addr, file);
-    assert(json_entity.key_ptr = SECTION_SIZE - string_get_size(json->key));
-    assert(json_entity.key_size = string_get_size(json->key));
+    assert(json_entity.key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity.key_size == string_get_size(json->key));
     assert(json_entity.val_ptr == SECTION_SIZE - string_get_size(json->key) - string_get_size(json->value.string_val));
     assert(json_entity.val_size == string_get_size(json->value.string_val));
     assert(json_entity.dad_ptr == 500);
@@ -358,9 +358,9 @@ void test_extents_write()
 
     assert(SectionExtents_InvokeSync_InvokeHeaderSync() == OK);
 
-    assert(SectionExtents_WriteInt32sonValue_Successful() == OK);
-    assert(SectionExtents_WriteFloatsonValue_Successful() == OK);
-    assert(SectionExtents_WriteBoolsonValue_Successful() == OK);
+    assert(SectionExtents_WriteInt32JsonValue_Successful() == OK);
+    assert(SectionExtents_WriteFloatJsonValue_Successful() == OK);
+    assert(SectionExtents_WriteBoolJsonValue_Successful() == OK);
     assert(SectionExtents_WriteStringJsonValue_Successful() == OK);
     assert(SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed() == FAILED);
 

@@ -40,6 +40,11 @@ void json_value_dtor(json_value_t *json)
     }
 
     // Free json
+    string_dtor(&json->key);
+    if (json->type == TYPE_STRING)
+    {
+        string_dtor(&json->value.string_val);
+    }
     free(json);
 }
 

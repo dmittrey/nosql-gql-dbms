@@ -10,6 +10,7 @@
 
 static PerformStatus section_extents_write_in_item(section_extents_t *const, const size_t, const void *const);
 static PerformStatus section_extents_write_in_record(section_extents_t *const, const size_t, const void *const, fileoff_t *const);
+static PerformStatus section_extents_read_json(const section_extents_t *const section, const sectoff_t offset, json_value_entity_t *const json_entity, json_value_t *const json);
 
 section_extents_t *section_extents_new()
 {
@@ -43,28 +44,54 @@ PerformStatus section_extents_sync(section_extents_t *section)
 
 PerformStatus section_extents_write(section_extents_t *const section, const json_value_t *const json, const fileoff_t parent_addr, const fileoff_t bro_addr, const fileoff_t son_addr, fileoff_t *const save_json_addr)
 {
-    json_value_entity_t *entity = json_value_entity_new();
-    json_value_entity_ctor(entity, json, parent_addr, bro_addr, son_addr);
+    json_value_entity_t entity;
+    json_value_entity_ctor(&entity, json, parent_addr, bro_addr, son_addr);
 
-    if (section->header.free_space >= json_value_entity_get_physical_size(entity))
+    if (section->header.free_space >= json_value_entity_get_physical_size(&entity))
     {
         *save_json_addr = section->header.last_item_ptr;
 
-        section_extents_write_in_record(section, sizeof(char) * json->key.count, json->key.val, &entity->key_ptr);
-        section_extents_write_in_record(section, json_value_get_val_size(json), json_value_get_val_ptr(json), &entity->val_ptr);
+        section_extents_write_in_record(section, sizeof(char) * json->key.count, json->key.val, &entity.key_ptr);
+        section_extents_write_in_record(section, json_value_get_val_size(json), json_value_get_val_ptr(json), &entity.val_ptr);
 
-        section_extents_write_in_item(section, sizeof(json_value_entity_t), entity);
+        section_extents_write_in_item(section, sizeof(json_value_entity_t), &entity);
+
+        json_value_entity_dtor(&entity);
 
         return OK;
     }
     else
     {
+        json_value_entity_dtor(&entity);
+
         return FAILED;
     }
 }
 
 PerformStatus section_extents_read(const section_extents_t *const section, const sectoff_t offset, json_value_t *const json)
 {
+    json_value_entity_t *entity = json_value_entity_new();
+    section_extents_read_json(section, offset, entity, json);
+
+    if (entity->bro_ptr != 0)
+    {
+        json_value_t *bro_json = json_value_new();
+        section_extents_read(section, entity->bro_ptr, bro_json);
+
+        json->bro = bro_json;
+    }
+
+    if (entity->son_ptr != 0)
+    {
+        json_value_t *son_json = json_value_new();
+        section_extents_read(section, entity->son_ptr, son_json);
+
+        json->son = son_json;
+        son_json->dad = json;
+    }
+
+    json_value_entity_dtor(entity);
+
     return OK;
 }
 
@@ -75,6 +102,56 @@ PerformStatus section_extents_update(section_extents_t *const section, const sec
 
 PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
 {
+    return OK;
+}
+
+static PerformStatus section_extents_read_json(const section_extents_t *const section, const sectoff_t offset, json_value_entity_t *const json_entity, json_value_t *const json)
+{
+    json_value_entity_t entity;
+    RANDOM_ACCESS_FREAD_OR_FAIL(&entity, sizeof(json_value_entity_t), offset, section->header.filp);
+
+    // Key parsing
+    char *key = my_malloc_array(char, entity.key_size);
+    RANDOM_ACCESS_FREAD_OR_FAIL(key, entity.key_size, entity.key_ptr, section->header.filp);
+
+    json_value_t *json = json_value_new();
+    json_value_ctor(json, TYPE_STRING, key, entity.key_size);
+
+    free(key);
+
+    // Value parsing
+    switch (json->type)
+    {
+    case TYPE_INT32:
+        int32_t val;
+        RANDOM_ACCESS_FREAD_OR_FAIL(&val, sizeof(int32_t), entity.val_ptr, section->header.filp);
+
+        json->value.int32_val = val;
+        break;
+    case TYPE_BOOL:
+        bool val;
+        RANDOM_ACCESS_FREAD_OR_FAIL(&val, sizeof(bool), entity.val_ptr, section->header.filp);
+
+        json->value.bool_val = val;
+        break;
+    case TYPE_FLOAT:
+        float val;
+        RANDOM_ACCESS_FREAD_OR_FAIL(&val, sizeof(float), entity.val_ptr, section->header.filp);
+
+        json->value.float_val = val;
+        break;
+    case TYPE_STRING:
+        char *val = my_malloc_array(char, entity.val_size);
+        RANDOM_ACCESS_FREAD_OR_FAIL(val, entity.val_size, entity.val_ptr, section->header.filp);
+
+        string_ctor(&json->value.string_val, val, entity.val_size);
+        break;
+    case TYPE_OBJECT:
+        break;
+    default:
+        assert(false);
+    }
+
     return OK;
 }
 
