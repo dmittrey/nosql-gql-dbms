@@ -26,7 +26,10 @@ void json_value_ctor(json_value_t *const json, const json_value_type type, const
 void json_value_dtor(json_value_t *json)
 {
     // Change dad's son ptr to json bro
-    json->dad->son = json->bro;
+    if (json->dad != NULL)
+    {
+        json->dad->son = json->bro;
+    }
 
     // Free all children
     struct json_value_t *cur_son = json->son;
@@ -40,7 +43,7 @@ void json_value_dtor(json_value_t *json)
     free(json);
 }
 
-void *json_value_get_val_ptr(const json_value_t * const json)
+void *json_value_get_val_ptr(const json_value_t *const json)
 {
     if (json->type == TYPE_OBJECT)
     {
@@ -52,27 +55,24 @@ void *json_value_get_val_ptr(const json_value_t * const json)
     }
     else
     {
-        return &json->value;
+        return (void *)&json->value;
     }
 }
 
 size_t json_value_get_val_size(const json_value_t *const json)
 {
-    if (json->type == TYPE_OBJECT)
+    switch (json->type)
     {
+    case TYPE_OBJECT:
         return 0;
-    }
-    else if (json->type == TYPE_STRING)
-    {
-        return sizeof(char) * json->value.string_val.count;
-    }
-    else
-    {
+    case TYPE_STRING:
+        return string_get_size(json->value.string_val);
+    default:
         return sizeof(json->value);
     }
 }
 
-void json_add_bro(json_value_t *const json, const json_value_t *const bro)
+void json_value_add_bro(json_value_t *const json, json_value_t *bro)
 {
     struct json_value_t *cur_json = json;
     while (cur_json->bro != NULL)
@@ -82,7 +82,7 @@ void json_add_bro(json_value_t *const json, const json_value_t *const bro)
 
     cur_json->bro = bro;
 }
-void json_add_son(json_value_t *const json, const json_value_t *const son)
+void json_value_add_son(json_value_t *const json, json_value_t *son)
 {
     if (json->son == NULL)
     {
@@ -132,27 +132,3 @@ void json_value_print(const json_value_t *const json)
         break;
     }
 }
-
-// size_t json_value_get_serialization_size(const json_value_t *const json)
-// {
-//     size_t size = sizeof(json_value_entity);
-
-//     if (json->type == TYPE_STRING)
-//     {
-//         size += string_get_size(json->value.string_val);
-//     }
-//     else if (json->type != TYPE_OBJECT)
-//     {
-//         size += sizeof(json->value);
-//     }
-
-//     size += json->object.attributes_count * sizeof(attr_entity);
-
-//     for (size_t i = 0; i < json->object.attributes_count; i++)
-//     {
-//         size += string_get_size(json->object.attributes[i]->key);
-//         size += json_value_get_serialization_size(json->object.attributes[i]->value);
-//     }
-
-//     return size;
-// }

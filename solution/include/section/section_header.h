@@ -3,9 +3,6 @@
 #include "utils.h"
 #include "table.h"
 
-#define SECTION_HEADER_FIELD_SETTER_DECLARE(FIELD_TYPE, FIELD_NAME) \
-    PerformStatus section_header_set_##FIELD_NAME(section_header_t *page, FIELD_TYPE FIELD_NAME)
-
 typedef struct
 {
     sectoff_t free_space;

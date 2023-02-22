@@ -32,15 +32,18 @@
     if (fread((void *)DATA_PTR, DATA_SIZE, 1, FILP) != 1)              \
     return FAILED
 
-// Own type of string to simplify handling
+#define DO_OR_FAIL(FUNC) \
+    if (FUNC == FAILED)  \
+    return FAILED
+
 typedef struct
 {
     char *val;
     size_t count;
 } string_t;
 
-string_t* string_new();
-void string_ctor(string_t * const, const char * const, const size_t);
+string_t *string_new();
+void string_ctor(string_t *const, const char *const, const size_t);
 void string_dtor(string_t *);
 
 size_t string_get_size(const string_t str);

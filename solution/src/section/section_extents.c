@@ -41,60 +41,26 @@ PerformStatus section_extents_sync(section_extents_t *section)
     return section_header_sync((section_header_t *)section);
 }
 
-PerformStatus section_extents_write(section_extents_t *const section, const json_value_t *const json, const fileoff_t parent_json_addr, const fileoff_t bro_json_addr, fileoff_t *const save_json_addr)
+PerformStatus section_extents_write(section_extents_t *const section, const json_value_t *const json, const fileoff_t parent_addr, const fileoff_t bro_addr, const fileoff_t son_addr, fileoff_t *const save_json_addr)
 {
-    // size_t json_size = json_value_get_serialization_size(json);
+    json_value_entity_t *entity = json_value_entity_new();
+    json_value_entity_ctor(entity, json, parent_addr, bro_addr, son_addr);
 
-    // if (section->header.free_space >= json_size)
-    // {
-    fileoff_t json_val_ptr = 0;
-    fileoff_t json_key_ptr = 0;
-
-    fileoff_t save_addr = section->header.last_item_ptr;
-
-    json_value_entity *entity = json_value_entity_new();
-    json_value_entity_ctor(entity, json);
-    entity->dad_ptr = parent_json_addr;
-    entity->bro_ptr = bro_json_addr;
-
-    section_header_shift_last_item_ptr((section_header_t *)section, sizeof(json_value_entity));
-
-    section_extents_write_in_record(section, sizeof(char) * json->key.count, json->key.val, &json_key_ptr);
-    section_extents_write_in_record(section, json_value_get_val_size(json), json_value_get_val_ptr(json), &json_val_ptr);
-
-    if (json->type == TYPE_OBJECT)
+    if (section->header.free_space >= json_value_entity_get_physical_size(entity))
     {
-        fileoff_t son_save_addr = NULL;
+        *save_json_addr = section->header.last_item_ptr;
 
-        struct json_value_t *cur_son = json->son;
-        while (cur_son != NULL)
-        {
-            /*
-            Записывать будем в обратном порядке
-            3 -> 2 -> 1
-            parent -> 3
-            3 -> parent
-            */
-            if (cur_son->bro == NULL)
-            {
-                section_extents_write(section, cur_son, save_addr, son_save_addr, &son_save_addr);
-            }
-            else
-            {
-                section_extents_write(section, cur_son, NULL, son_save_addr, &son_save_addr);
-            }
-            cur_son = cur_son->bro;
-        }
+        section_extents_write_in_record(section, sizeof(char) * json->key.count, json->key.val, &entity->key_ptr);
+        section_extents_write_in_record(section, json_value_get_val_size(json), json_value_get_val_ptr(json), &entity->val_ptr);
 
-        entity->son_ptr = son_save_addr;
+        section_extents_write_in_item(section, sizeof(json_value_entity_t), entity);
+
+        return OK;
     }
-
-    RANDOM_ACCESS_FWRITE_OR_FAIL(entity, sizeof(json_value_entity), save_addr, section->header.filp);
-
-    *save_json_addr = save_addr;
-    // }
-
-    return OK;
+    else
+    {
+        return FAILED;
+    }
 }
 
 PerformStatus section_extents_read(const section_extents_t *const section, const sectoff_t offset, json_value_t *const json)

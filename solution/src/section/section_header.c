@@ -13,7 +13,7 @@
 PerformStatus section_header_sync(section_header_t *const header)
 {
     long prev_ptr = ftell(header->filp);
-    RANDOM_ACCESS_FWRITE_OR_FAIL(&header, section_header_size(), header->section_offset, header->filp);
+    RANDOM_ACCESS_FWRITE_OR_FAIL(header, section_header_size(), header->section_offset, header->filp);
     FSEEK_OR_FAIL(header->filp, prev_ptr);
 
     return OK;
@@ -21,7 +21,7 @@ PerformStatus section_header_sync(section_header_t *const header)
 
 sectoff_t section_header_size()
 {
-    return sizeof(section_header_t) - sizeof(FILE *);
+    return sizeof(section_header_t) - sizeof(FILE *) - sizeof(fileoff_t); // - section_offset - filp
 }
 
 section_header_t *section_header_new()
