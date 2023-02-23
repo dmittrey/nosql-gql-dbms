@@ -122,8 +122,20 @@ PerformStatus section_extents_update(section_extents_t *const section, const sec
     return OK;
 }
 
+/*
+    Если нода является последней записанной записью, мы можем подвинуть указатели, чтобы не образовывались пропуски
+*/
 PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
 {
+    if (offset + sizeof(json_value_entity_t) == section->header.last_item_ptr)
+    {
+        json_value_entity_t entity;
+        RANDOM_ACCESS_FREAD_OR_FAIL(&entity, sizeof(json_value_entity_t), offset, section->header.filp);
+
+        section_header_shift_last_item_ptr(&section->header, -1 * sizeof(json_value_entity_t));
+        section_header_shift_first_record_ptr(&section->header, entity.key_size + entity.val_size);
+    }
+
     return OK;
 }
 

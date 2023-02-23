@@ -47,7 +47,7 @@ void section_header_dtor(section_header_t *header)
     free(header);
 }
 
-PerformStatus section_header_shift_last_item_ptr(section_header_t *const header, const sectoff_t shift)
+PerformStatus section_header_shift_last_item_ptr(section_header_t *const header, const int64_t shift)
 {
     header->free_space -= shift;
     header->last_item_ptr += shift;
@@ -57,7 +57,7 @@ PerformStatus section_header_shift_last_item_ptr(section_header_t *const header,
     return OK;
 }
 
-PerformStatus section_header_shift_first_record_ptr(section_header_t *const header, const sectoff_t shift)
+PerformStatus section_header_shift_first_record_ptr(section_header_t *const header, const int64_t shift)
 {
     header->free_space += shift;
     header->first_record_ptr += shift;
