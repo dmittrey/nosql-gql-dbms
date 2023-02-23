@@ -55,14 +55,10 @@ PerformStatus section_extents_write(section_extents_t *const section, const json
 
         section_extents_write_in_item(section, sizeof(json_value_entity_t), &entity);
 
-        json_value_entity_dtor(&entity);
-
         return OK;
     }
     else
     {
-        json_value_entity_dtor(&entity);
-
         return FAILED;
     }
 }
