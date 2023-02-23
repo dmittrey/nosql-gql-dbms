@@ -10,7 +10,6 @@
 
 static PerformStatus section_extents_write_in_item(section_extents_t *const, const size_t, const void *const);
 static PerformStatus section_extents_write_in_record(section_extents_t *const, const size_t, const void *const, fileoff_t *const);
-static PerformStatus section_extents_read_json(const section_extents_t *const section, const sectoff_t offset, json_value_entity_t *const json_entity, json_value_t *const json);
 
 section_extents_t *section_extents_new()
 {
@@ -70,43 +69,6 @@ PerformStatus section_extents_write(section_extents_t *const section, const json
 
 PerformStatus section_extents_read(const section_extents_t *const section, const sectoff_t offset, json_value_t *const json)
 {
-    json_value_entity_t *entity = json_value_entity_new();
-    section_extents_read_json(section, offset, entity, json);
-
-    if (entity->bro_ptr != 0)
-    {
-        json_value_t *bro_json = json_value_new();
-        section_extents_read(section, entity->bro_ptr, bro_json);
-
-        json->bro = bro_json;
-    }
-
-    if (entity->son_ptr != 0)
-    {
-        json_value_t *son_json = json_value_new();
-        section_extents_read(section, entity->son_ptr, son_json);
-
-        json->son = son_json;
-        son_json->dad = json;
-    }
-
-    json_value_entity_dtor(entity);
-
-    return OK;
-}
-
-PerformStatus section_extents_update(section_extents_t *const section, const sectoff_t offset, const json_value_t *const new_json)
-{
-    return OK;
-}
-
-PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
-{
-    return OK;
-}
-
-static PerformStatus section_extents_read_json(const section_extents_t *const section, const sectoff_t offset, json_value_entity_t *const json_entity, json_value_t *const json)
-{
     json_value_entity_t entity;
     RANDOM_ACCESS_FREAD_OR_FAIL(&entity, sizeof(json_value_entity_t), offset, section->header.filp);
 
@@ -152,6 +114,16 @@ static PerformStatus section_extents_read_json(const section_extents_t *const se
         assert(false);
     }
 
+    return OK;
+}
+
+PerformStatus section_extents_update(section_extents_t *const section, const sectoff_t offset, const json_value_t *const new_json)
+{
+    return OK;
+}
+
+PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
+{
     return OK;
 }
 
