@@ -3,7 +3,8 @@
 #include "utils.h"
 #include "table.h"
 
-typedef struct {
+typedef struct
+{
     sectoff_t free_space;
     fileoff_t next_ptr;
     sectoff_t last_item_ptr;

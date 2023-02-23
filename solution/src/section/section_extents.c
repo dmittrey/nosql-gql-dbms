@@ -22,15 +22,6 @@ void section_extents_ctor(section_extents_t *const section, const fileoff_t offs
 }
 PerformStatus section_extents_dtor(section_extents_t *section)
 {
-    // size_t prev = ftell(section->header.filp);
-
-    // void *zeros = my_malloc_array(char, SECTION_SIZE);
-    // memset(zeros, '0', SECTION_SIZE);
-    // RANDOM_ACCESS_FWRITE_OR_FAIL(zeros, SECTION_SIZE, section->header.section_offset, section->header.filp);
-    // free(zeros);
-
-    // FSEEK_OR_FAIL(section->header.filp, prev);
-
     section_header_dtor((section_header_t *)section);
 
     return OK;
@@ -82,19 +73,22 @@ PerformStatus section_extents_read(const section_extents_t *const section, const
         RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(int32_t), entity.val_ptr, section->header.filp);
 
         json->value.int32_val = *val;
-    } else if (json->type == TYPE_BOOL)
+    }
+    else if (json->type == TYPE_BOOL)
     {
         bool *val = my_malloc(bool);
         RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(bool), entity.val_ptr, section->header.filp);
 
         json->value.int32_val = *val;
-    } else if (json->type == TYPE_FLOAT)
+    }
+    else if (json->type == TYPE_FLOAT)
     {
-        float* val = my_malloc(float);
+        float *val = my_malloc(float);
         RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(float), entity.val_ptr, section->header.filp);
 
         json->value.int32_val = *val;
-    } else if (json->type == TYPE_STRING)
+    }
+    else if (json->type == TYPE_STRING)
     {
         char *val = my_malloc_array(char, entity.val_size);
         RANDOM_ACCESS_FREAD_OR_FAIL(val, entity.val_size, entity.val_ptr, section->header.filp);

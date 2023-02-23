@@ -121,11 +121,11 @@ void SectionHeader_CtorWithUndefinedFile_Exception()
     section_header_ctor(header, 0, file);
 }
 
-// int main()
-// {
-//     SectionPage_DefaultCtor_Successful();
-//     SectionPage_CtorWithFileStartNotFromZero_Successful();
-//     SectionPage_ShiftLastItemPtr_Successful();
-//     SectionPage_ShiftFirstRecordPtr_Successful();
-//     SectionPage_SyncAfterUpdateInnerState_Successful();
-// }
+int test_header()
+{
+    SectionPage_DefaultCtor_Successful();
+    SectionPage_CtorWithFileStartNotFromZero_Successful();
+    SectionPage_ShiftLastItemPtr_Successful();
+    SectionPage_ShiftFirstRecordPtr_Successful();
+    SectionPage_SyncAfterUpdateInnerState_Successful();
+}

@@ -7,9 +7,6 @@
 
 #include "section/section_header.h"
 
-/**
- * Write inner information into file
- */
 PerformStatus section_header_sync(section_header_t *const header)
 {
     long prev_ptr = ftell(header->filp);

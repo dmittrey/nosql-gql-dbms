@@ -307,14 +307,6 @@ static PerformStatus SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Faile
     return write_status;
 }
 
-/*
-"parent" : {
-    "bool"  : false,
-    "int32" : 5,
-    "float" : 5.5,
-    "string": "hello"
-}
-*/
 static PerformStatus SectionExtents_WriteObjectJsonValue_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
