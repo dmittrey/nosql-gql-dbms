@@ -18,8 +18,8 @@ section_header_t *section_header_new();
 void section_header_ctor(section_header_t * const, const fileoff_t, FILE * const);
 void section_header_dtor(section_header_t *);
 
-PerformStatus section_header_shift_last_item_ptr(section_header_t * const, const sectoff_t);
-PerformStatus section_header_shift_first_record_ptr(section_header_t * const, const sectoff_t);
+PerformStatus section_header_shift_last_item_ptr(section_header_t *const, const int64_t);
+PerformStatus section_header_shift_first_record_ptr(section_header_t *const, const int64_t);
 
 PerformStatus section_header_sync(section_header_t * const);
 

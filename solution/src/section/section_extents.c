@@ -76,50 +76,84 @@ PerformStatus section_extents_read(const section_extents_t *const section, const
     char *key = my_malloc_array(char, entity.key_size);
     RANDOM_ACCESS_FREAD_OR_FAIL(key, entity.key_size, entity.key_ptr, section->header.filp);
 
-    json_value_t *json = json_value_new();
     json_value_ctor(json, TYPE_STRING, key, entity.key_size);
 
     free(key);
 
-    // Value parsing
-    switch (json->type)
+    if (json->type == TYPE_INT32)
     {
-    case TYPE_INT32:
-        int32_t val;
-        RANDOM_ACCESS_FREAD_OR_FAIL(&val, sizeof(int32_t), entity.val_ptr, section->header.filp);
+        int32_t *val = my_malloc(int32_t);
+        RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(int32_t), entity.val_ptr, section->header.filp);
 
-        json->value.int32_val = val;
-        break;
-    case TYPE_BOOL:
-        bool val;
-        RANDOM_ACCESS_FREAD_OR_FAIL(&val, sizeof(bool), entity.val_ptr, section->header.filp);
+        json->value.int32_val = *val;
+    } else if (json->type == TYPE_BOOL)
+    {
+        bool *val = my_malloc(bool);
+        RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(bool), entity.val_ptr, section->header.filp);
 
-        json->value.bool_val = val;
-        break;
-    case TYPE_FLOAT:
-        float val;
-        RANDOM_ACCESS_FREAD_OR_FAIL(&val, sizeof(float), entity.val_ptr, section->header.filp);
+        json->value.int32_val = *val;
+    } else if (json->type == TYPE_FLOAT)
+    {
+        float* val = my_malloc(float);
+        RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(float), entity.val_ptr, section->header.filp);
 
-        json->value.float_val = val;
-        break;
-    case TYPE_STRING:
+        json->value.int32_val = *val;
+    } else if (json->type == TYPE_STRING)
+    {
         char *val = my_malloc_array(char, entity.val_size);
         RANDOM_ACCESS_FREAD_OR_FAIL(val, entity.val_size, entity.val_ptr, section->header.filp);
 
         string_ctor(&json->value.string_val, val, entity.val_size);
-        break;
-    case TYPE_OBJECT:
-        break;
-    default:
-        assert(false);
     }
 
     return OK;
 }
 
+/*
+Если старая запись находится на границе, можем проверить вместимость по свободному месту в секции
+
+Иначе проверим вместимость по размеру старой записи(сумма размеров ключа и значения)
+*/
 PerformStatus section_extents_update(section_extents_t *const section, const sectoff_t offset, const json_value_t *const new_json)
 {
-    return OK;
+    json_value_entity_t old_entity;
+    RANDOM_ACCESS_FREAD_OR_FAIL(&old_entity, sizeof(json_value_entity_t), offset, section->header.filp);
+
+    json_value_entity_t new_entity;
+    json_value_entity_ctor(&new_entity, new_json, old_entity.dad_ptr, old_entity.bro_ptr, old_entity.son_ptr);
+
+    if (offset + sizeof(json_value_entity_t) == section->header.last_item_ptr)
+    {
+        if (section->header.free_space + json_value_entity_get_physical_size(&old_entity) - json_value_entity_get_physical_size(&new_entity) >= 0)
+        {
+            fileoff_t save_addr;
+            section_header_shift_last_item_ptr(&section->header, old_entity.key_size + old_entity.val_size);
+            section_extents_write(section, new_json, new_entity.dad_ptr, new_entity.bro_ptr, new_entity.son_ptr, &save_addr);
+
+            return OK;
+        }
+    }
+    else
+    {
+        if (json_value_entity_get_physical_size(&old_entity) >= json_value_entity_get_physical_size(&new_entity))
+        {
+            sectoff_t prev_last_item_ptr = section->header.last_item_ptr;
+            sectoff_t prev_first_record_ptr = section->header.first_record_ptr;
+
+            section->header.last_item_ptr = offset;
+            section->header.first_record_ptr = old_entity.key_ptr + old_entity.key_size;
+
+            fileoff_t save_addr;
+            section_extents_write(section, new_json, new_entity.dad_ptr, new_entity.bro_ptr, new_entity.son_ptr, &save_addr);
+
+            section->header.last_item_ptr = prev_last_item_ptr;
+            section->header.first_record_ptr = prev_first_record_ptr;
+
+            return OK;
+        }
+    }
+
+    return FAILED;
 }
 
 /*
