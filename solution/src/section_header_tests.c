@@ -3,96 +3,101 @@
 #include "utils.h"
 #include "table.h"
 
-#include "section/section_header.h"
+#include "memory/section/header.h"
+#include "physical/section/header.h"
 
 // Создание с существующим файлом и нулевым отступом
-void SectionHeader_DefaultCtor_Successful()
+status_t SectionHeader_DefaultCtor_Successful()
 {
     FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
 
-    section_header_t *header = section_header_new();
-    section_header_ctor(header, 0, file);
+    sect_head_t *header = sect_head_new();
+    status_t ctor_status = sect_head_ctor(header, 0, file);
 
-    assert(header->free_space == (SECTION_SIZE - section_header_size()));
-    assert(header->next == 0); // Next section is undefined
-    assert(header->last_item_ptr == section_header_size());
-    assert(header->first_record_ptr == SECTION_SIZE);
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
+    assert(header->next_ptr == 0); // Next section is undefined
+    assert(header->lst_itm_ptr == sizeof(sect_head_entity_t));
+    assert(header->fst_rec_ptr == SECTION_SIZE);
 
     fclose(file);
+
+    return ctor_status;
 }
 
 // Создание с существующим файлом и ненулевым отступом
-void SectionHeader_CtorWithFileStartNotFromZero_Successful()
+status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
 {
     FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
     sectoff_t shift = 5;
 
-    section_header_t *header = section_header_new();
-    section_header_ctor(header, shift, file);
+    sect_head_t *header = sect_head_new();
+    status_t ctor_status = sect_head_ctor(header, shift, file);
 
-    assert(header->free_space == (SECTION_SIZE - section_header_size()));
-    assert(header->next == 0); // Next section is undefined
-    assert(header->last_item_ptr == shift + section_header_size());
-    assert(header->first_record_ptr == shift + SECTION_SIZE);
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
+    assert(header->next_ptr == 0); // Next section is undefined
+    assert(header->lst_itm_ptr == shift + sizeof(sect_head_entity_t));
+    assert(header->fst_rec_ptr == shift + SECTION_SIZE);
 
     fclose(file);
+
+    return ctor_status;
 }
 
-bool SectionHeader_ShiftLastItemPtr_Successful()
+status_t SectionHeader_ShiftLastItemPtr_Successful()
 {
     FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
     sectoff_t shift = 5;
 
-    section_header_t *header = section_header_new();
-    section_header_ctor(header, 0, file);
+    sect_head_t *header = sect_head_new();
+    sect_head_ctor(header, 0, file);
 
-    PerformStatus perform_result = section_header_shift_last_item_ptr(header, shift);
+    status_t perform_result = sect_head_shift_lst_itm_ptr(header, shift);
 
     assert(perform_result == OK);
-    assert(header->last_item_ptr == section_header_size() + shift);
+    assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + shift);
 
     sectoff_t file_last_item_ptr;
-    FSEEK_OR_FAIL(file, sizeof(header->free_space) + sizeof(header->next));
+    FSEEK_OR_FAIL(file, sizeof(header->free_space) + sizeof(header->next_ptr));
     FREAD_OR_FAIL(&file_last_item_ptr, sizeof(sectoff_t), file);
-    assert(file_last_item_ptr == section_header_size() + shift);
+    assert(file_last_item_ptr == sizeof(sect_head_entity_t) + shift);
 
-    return true;
+    return OK;
 }
 
-bool SectionHeader_ShiftFirstRecordPtr_Successful()
+status_t SectionHeader_ShiftFirstRecordPtr_Successful()
 {
     FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
     sectoff_t shift = -5;
 
-    section_header_t *header = section_header_new();
-    section_header_ctor(header, 0, file);
+    sect_head_t *header = sect_head_new();
+    sect_head_ctor(header, 0, file);
 
-    PerformStatus perform_result = section_header_shift_first_record_ptr(header, shift);
+    status_t perform_result = sect_head_shift_fst_rec_ptr(header, shift);
 
     assert(perform_result == OK);
-    assert(header->first_record_ptr == SECTION_SIZE + shift);
+    assert(header->fst_rec_ptr == SECTION_SIZE + shift);
 
     sectoff_t file_first_record_ptr;
-    FSEEK_OR_FAIL(file, sizeof(header->free_space) + sizeof(header->next) + sizeof(header->last_item_ptr));
+    FSEEK_OR_FAIL(file, sizeof(header->free_space) + sizeof(header->next_ptr) + sizeof(header->lst_itm_ptr));
     FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
     assert(file_first_record_ptr == SECTION_SIZE + shift);
 
-    return true;
+    return OK;
 }
 
-bool SectionHeader_SyncAfterUpdateInnerState_Successful()
+status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
 {
     FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
-    section_header_t *header = section_header_new();
+    sect_head_t *header = sect_head_new();
 
     header->free_space = 5;
-    header->next = 6;
-    header->last_item_ptr = 7;
-    header->first_record_ptr = 8;
+    header->next_ptr = 6;
+    header->lst_itm_ptr = 7;
+    header->fst_rec_ptr = 8;
     header->filp = file;
 
-    section_header_sync(header);
-    // TODO Refactor to macro
+    sect_head_sync(header);
+
     sectoff_t file_free_space;
     FREAD_OR_FAIL(&file_free_space, sizeof(sectoff_t), file);
     assert(file_free_space == 5);
@@ -109,23 +114,23 @@ bool SectionHeader_SyncAfterUpdateInnerState_Successful()
     FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
     assert(file_first_record_ptr == 8);
 
-    return true;
+    return OK;
 }
 
 // Создание с несуществующим файлом
-void SectionHeader_CtorWithUndefinedFile_Exception()
+status_t SectionHeader_CtorWithUndefinedFile_Exception()
 {
     FILE *file = NULL;
 
-    section_header_t *header = section_header_new();
-    section_header_ctor(header, 0, file);
+    sect_head_t *header = sect_head_new();
+    return sect_head_ctor(header, 0, file);
 }
 
-int test_header()
+void test_header()
 {
-    SectionPage_DefaultCtor_Successful();
-    SectionPage_CtorWithFileStartNotFromZero_Successful();
-    SectionPage_ShiftLastItemPtr_Successful();
-    SectionPage_ShiftFirstRecordPtr_Successful();
-    SectionPage_SyncAfterUpdateInnerState_Successful();
+    assert(SectionHeader_DefaultCtor_Successful() == OK);
+    assert(SectionHeader_CtorWithFileStartNotFromZero_Successful() == OK);
+    assert(SectionHeader_ShiftLastItemPtr_Successful() == OK);
+    assert(SectionHeader_ShiftFirstRecordPtr_Successful() == OK);
+    assert(SectionHeader_SyncAfterUpdateInnerState_Successful() == OK);
 }

@@ -1,4 +1,11 @@
-#include "memory/file/file.h"
+#pragma once
+
+#include "memory/section/extents.h"
+
+typedef struct
+{
+    sect_ext_t *extents;
+} file_t;
 
 file_t *file_new();
 

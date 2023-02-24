@@ -5,61 +5,52 @@
 #include "utils.h"
 #include "table.h"
 
-#include "section/section_header.h"
+#include "memory/section/header.h"
 
-PerformStatus section_header_sync(section_header_t *const header)
+#include "physical/section/header.h"
+
+sect_head_t *sect_head_new()
 {
-    long prev_ptr = ftell(header->filp);
-    RANDOM_ACCESS_FWRITE_OR_FAIL(header, section_header_size(), header->section_offset, header->filp);
-    FSEEK_OR_FAIL(header->filp, prev_ptr);
-
-    return OK;
+    return memset(my_malloc(sect_head_t), 0, sizeof(sect_head_t));
 }
 
-sectoff_t section_header_size()
+status_t sect_head_ctor(sect_head_t *const header, const fileoff_t offset, FILE *const filp)
 {
-    return sizeof(section_header_t) - sizeof(FILE *) - sizeof(fileoff_t); // - section_offset - filp
-}
-
-section_header_t *section_header_new()
-{
-    return memset(my_malloc(section_header_t), 0, sizeof(section_header_t));
-}
-
-void section_header_ctor(section_header_t *const header, const fileoff_t offset, FILE *const filp)
-{
-    assert(filp != NULL);
-
-    header->free_space = SECTION_SIZE - section_header_size();
-    header->next = 0; // If we have 0 then we don't have next section
-    header->last_item_ptr = offset + section_header_size();
-    header->first_record_ptr = offset + SECTION_SIZE;
-    header->section_offset = offset;
+    header->free_space = SECTION_SIZE - sizeof(sect_head_entity_t);
+    header->next_ptr = 0; // If we have 0 then we don't have next section
+    header->lst_itm_ptr = offset + sizeof(sect_head_entity_t);
+    header->fst_rec_ptr = offset + SECTION_SIZE;
+    header->sect_off = offset;
     header->filp = filp;
 
-    section_header_sync(header);
+    return sect_head_sync(header);
 }
-void section_header_dtor(section_header_t *header)
+
+void sect_head_dtor(sect_head_t *header)
 {
     free(header);
 }
 
-PerformStatus section_header_shift_last_item_ptr(section_header_t *const header, const int64_t shift)
+status_t sect_head_shift_lst_itm_ptr(sect_head_t *const header, const int64_t shift)
 {
     header->free_space -= shift;
-    header->last_item_ptr += shift;
+    header->lst_itm_ptr += shift;
 
-    section_header_sync(header);
-
-    return OK;
+    return sect_head_sync(header);
 }
 
-PerformStatus section_header_shift_first_record_ptr(section_header_t *const header, const int64_t shift)
+status_t sect_head_shift_fst_rec_ptr(sect_head_t *const header, const int64_t shift)
 {
     header->free_space += shift;
-    header->first_record_ptr += shift;
+    header->fst_rec_ptr += shift;
 
-    section_header_sync(header);
+    return sect_head_sync(header);
+}
+
+status_t sect_head_sync(sect_head_t *const header)
+{
+    SAVE_FILP(header->filp,
+              RA_FWRITE_OR_FAIL(header, sizeof(sect_head_entity_t), header->sect_off, header->filp));
 
     return OK;
 }

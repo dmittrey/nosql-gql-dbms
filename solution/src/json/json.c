@@ -2,19 +2,20 @@
 
 #include "table.h"
 
-#include "json/json_value.h"
-#include "entity/json_value_entity.h"
+#include "memory/json/json.h"
 
-json_value_t *json_value_new()
+#include "physical/json/entity.h"
+
+json_t *json_new()
 {
-    return memset(my_malloc(json_value_t), 0, sizeof(json_value_t));
+    return memset(my_malloc(json_t), 0, sizeof(json_t));
 }
 
-void json_value_ctor(json_value_t *const json, const json_value_type type, const char *const json_key, const size_t json_key_count)
+void json_ctor(json_t *const json, const json_type_t type, const char *const key_val, const size_t key_size)
 {
-    string_ctor(&json->key, json_key, json_key_count);
+    string_ctor(&json->key, key_val, key_size);
 
-    memset(&json->value, 0, sizeof(json->value));
+    memset(&json->value, 0, sizeof(sizeof(json_t)));
 
     json->dad = NULL;
     json->bro = NULL;
@@ -23,7 +24,7 @@ void json_value_ctor(json_value_t *const json, const json_value_type type, const
     json->type = type;
 }
 
-void json_value_dtor(json_value_t *json)
+void json_dtor(json_t *json)
 {
     // Change dad's son ptr to json bro
     if (json->dad != NULL)
@@ -32,7 +33,7 @@ void json_value_dtor(json_value_t *json)
     }
 
     // Free all children
-    struct json_value_t *cur_son = json->son;
+    json_t *cur_son = json->son;
     while (cur_son != NULL)
     {
         free(cur_son);
@@ -43,28 +44,25 @@ void json_value_dtor(json_value_t *json)
     string_dtor(&json->key);
     if (json->type == TYPE_STRING)
     {
-        string_dtor(&json->value.string_val);
+        string_dtor(json->value.string_val);
     }
     free(json);
 }
 
-void *json_value_get_val_ptr(const json_value_t *const json)
+void *json_val_ptr(const json_t *const json)
 {
-    if (json->type == TYPE_OBJECT)
+    switch (json->type)
     {
+    case TYPE_OBJECT:
         return NULL;
-    }
-    else if (json->type == TYPE_STRING)
-    {
-        return json->value.string_val.val;
-    }
-    else
-    {
+    case TYPE_STRING:
+        return json->value.string_val->val;
+    default:
         return (void *)&json->value;
     }
 }
 
-size_t json_value_get_val_size(const json_value_t *const json)
+size_t json_val_size(const json_t *const json)
 {
     switch (json->type)
     {
@@ -77,9 +75,9 @@ size_t json_value_get_val_size(const json_value_t *const json)
     }
 }
 
-void json_value_add_bro(json_value_t *const json, json_value_t *bro)
+void json_add_bro(json_t *const json, json_t *bro)
 {
-    struct json_value_t *cur_json = json;
+    json_t *cur_json = json;
     while (cur_json->bro != NULL)
     {
         cur_json = cur_json->bro;
@@ -87,7 +85,8 @@ void json_value_add_bro(json_value_t *const json, json_value_t *bro)
 
     cur_json->bro = bro;
 }
-void json_value_add_son(json_value_t *const json, json_value_t *son)
+
+void json_add_son(json_t *const json, json_t *son)
 {
     if (json->son == NULL)
     {
@@ -95,7 +94,7 @@ void json_value_add_son(json_value_t *const json, json_value_t *son)
     }
     else
     {
-        struct json_value_t *cur_son = json->son;
+        json_t *cur_son = json->son;
         while (cur_son->bro != NULL)
         {
             cur_son = cur_son->bro;
@@ -105,14 +104,14 @@ void json_value_add_son(json_value_t *const json, json_value_t *son)
     }
 }
 
-void json_value_print(const json_value_t *const json)
+void json_print(const json_t *const json)
 {
     printf("%s ", json->key.val);
 
     switch (json->type)
     {
     case TYPE_STRING:
-        printf("%s ", json->value.string_val.val);
+        printf("%s ", json->value.string_val->val);
         break;
     case TYPE_INT32:
         printf("%d ", json->value.int32_val);
@@ -126,10 +125,10 @@ void json_value_print(const json_value_t *const json)
     default:
         printf("{");
 
-        struct json_value_t *cur_son = json->son;
+        json_t *cur_son = json->son;
         while (cur_son != NULL)
         {
-            json_value_print(cur_son);
+            json_print(cur_son);
             cur_son = cur_son->bro;
         }
 

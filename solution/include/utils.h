@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "memory/string.h"
+
 #define my_malloc(T) ((T *)malloc(sizeof(T)))
 #define my_malloc_array(T, count) ((T *)malloc(sizeof(T) * count))
 
@@ -20,13 +22,13 @@
     if (fseek(FILE, OFFSET, SEEK_SET) != 0) \
     return FAILED
 
-#define RANDOM_ACCESS_FWRITE_OR_FAIL(DATA_PTR, DATA_SIZE, OFFSET, FILP) \
+#define RA_FWRITE_OR_FAIL(DATA_PTR, DATA_SIZE, OFFSET, FILP) \
     if (fseek(FILP, OFFSET, SEEK_SET) != 0)                             \
         return FAILED;                                                  \
     if (fwrite((void *)DATA_PTR, DATA_SIZE, 1, FILP) != 1)              \
     return FAILED
 
-#define RANDOM_ACCESS_FREAD_OR_FAIL(DATA_PTR, DATA_SIZE, OFFSET, FILP) \
+#define RA_FREAD_OR_FAIL(DATA_PTR, DATA_SIZE, OFFSET, FILP) \
     if (fseek(FILP, OFFSET, SEEK_SET) != 0)                            \
         return FAILED;                                                 \
     if (fread((void *)DATA_PTR, DATA_SIZE, 1, FILP) != 1)              \
@@ -36,20 +38,13 @@
     if (FUNC == FAILED)  \
     return FAILED
 
-typedef struct
-{
-    char *val;
-    size_t count;
-} string_t;
-
-string_t *string_new();
-void string_ctor(string_t *const, const char *const, const size_t);
-void string_dtor(string_t *);
-
-size_t string_get_size(const string_t str);
+#define SAVE_FILP(FILP, FUNC)    \
+    long prev_ptr = ftell(FILP); \
+    FUNC;                        \
+    FSEEK_OR_FAIL(FILP, prev_ptr);
 
 typedef enum
 {
     OK = 0,
     FAILED = 1
-} PerformStatus;
+} status_t;

@@ -3,98 +3,87 @@
 #include "utils.h"
 #include "table.h"
 
-#include "section/section_header.h"
-#include "section/section_extents.h"
+#include "memory/section/header.h"
+#include "memory/section/extents.h"
 
-#include "entity/json_value_entity.h"
+#include "physical/json/entity.h"
 
-static PerformStatus section_extents_write_in_item(section_extents_t *const, const size_t, const void *const);
-static PerformStatus section_extents_write_in_record(section_extents_t *const, const size_t, const void *const, fileoff_t *const);
+static status_t sect_ext_write_itm(sect_ext_t *const, const size_t, const void *const);
+static status_t sect_ext_write_rec(sect_ext_t *const, const size_t, const void *const, fileoff_t *const);
 
-section_extents_t *section_extents_new()
+sect_ext_t *sect_ext_new()
 {
-    return memset(my_malloc(section_extents_t), 0, sizeof(section_extents_t));
+    return memset(my_malloc(sect_ext_t), 0, sizeof(sect_ext_t));
 }
 
-void section_extents_ctor(section_extents_t *const section, const fileoff_t offset, FILE *const filp)
+status_t sect_ext_ctor(sect_ext_t *const section, const fileoff_t offset, FILE *const filp)
 {
-    section_header_ctor((section_header_t *)section, offset, filp);
+    return sect_head_ctor((sect_head_t *)section, offset, filp);
 }
-PerformStatus section_extents_dtor(section_extents_t *section)
+void sect_ext_dtor(sect_ext_t *section)
 {
-    section_header_dtor((section_header_t *)section);
+    sect_head_dtor((sect_head_t *)section);
+}
+
+status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, const fileoff_t dad_addr, const fileoff_t bro_addr, const fileoff_t son_addr, fileoff_t *const save_addr)
+{
+    entity_t entity;
+    entity_ctor(&entity, json, dad_addr, bro_addr, son_addr);
+
+    if (section->header.free_space < sizeof(entity_t))
+        return FAILED;
+
+    *save_addr = section->header.lst_itm_ptr;
+
+    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key.cnt, json->key.val, &entity.key_ptr));
+    DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity.val_ptr));
+
+    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), &entity));
 
     return OK;
 }
 
-PerformStatus section_extents_sync(section_extents_t *section)
+status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sect_addr, json_t *const o_json)
 {
-    return section_header_sync((section_header_t *)section);
-}
-
-PerformStatus section_extents_write(section_extents_t *const section, const json_value_t *const json, const fileoff_t parent_addr, const fileoff_t bro_addr, const fileoff_t son_addr, fileoff_t *const save_json_addr)
-{
-    json_value_entity_t entity;
-    json_value_entity_ctor(&entity, json, parent_addr, bro_addr, son_addr);
-
-    if (section->header.free_space >= json_value_entity_get_physical_size(&entity))
-    {
-        *save_json_addr = section->header.last_item_ptr;
-
-        section_extents_write_in_record(section, sizeof(char) * json->key.count, json->key.val, &entity.key_ptr);
-        section_extents_write_in_record(section, json_value_get_val_size(json), json_value_get_val_ptr(json), &entity.val_ptr);
-
-        section_extents_write_in_item(section, sizeof(json_value_entity_t), &entity);
-
-        return OK;
-    }
-    else
-    {
-        return FAILED;
-    }
-}
-
-PerformStatus section_extents_read(const section_extents_t *const section, const sectoff_t offset, json_value_t *const json)
-{
-    json_value_entity_t entity;
-    RANDOM_ACCESS_FREAD_OR_FAIL(&entity, sizeof(json_value_entity_t), offset, section->header.filp);
+    entity_t entity;
+    RA_FREAD_OR_FAIL(&entity, sizeof(entity_t), sect_addr, section->header.filp);
 
     // Key parsing
     char *key = my_malloc_array(char, entity.key_size);
-    RANDOM_ACCESS_FREAD_OR_FAIL(key, entity.key_size, entity.key_ptr, section->header.filp);
+    RA_FREAD_OR_FAIL(key, entity.key_size, entity.key_ptr, section->header.filp);
 
-    json_value_ctor(json, TYPE_STRING, key, entity.key_size);
+    json_ctor(o_json, entity.type, key, entity.key_size);
 
-    free(key);
-
-    if (json->type == TYPE_INT32)
+    if (o_json->type == TYPE_INT32)
     {
         int32_t *val = my_malloc(int32_t);
-        RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(int32_t), entity.val_ptr, section->header.filp);
+        RA_FREAD_OR_FAIL(val, sizeof(int32_t), entity.val_ptr, section->header.filp);
 
-        json->value.int32_val = *val;
+        o_json->value.int32_val = *val;
     }
-    else if (json->type == TYPE_BOOL)
+    if (o_json->type == TYPE_BOOL)
     {
         bool *val = my_malloc(bool);
-        RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(bool), entity.val_ptr, section->header.filp);
+        RA_FREAD_OR_FAIL(val, sizeof(bool), entity.val_ptr, section->header.filp);
 
-        json->value.int32_val = *val;
+        o_json->value.bool_val = *val;
     }
-    else if (json->type == TYPE_FLOAT)
+    if (o_json->type == TYPE_FLOAT)
     {
         float *val = my_malloc(float);
-        RANDOM_ACCESS_FREAD_OR_FAIL(val, sizeof(float), entity.val_ptr, section->header.filp);
+        RA_FREAD_OR_FAIL(val, sizeof(float), entity.val_ptr, section->header.filp);
 
-        json->value.int32_val = *val;
+        o_json->value.float_val = *val;
     }
-    else if (json->type == TYPE_STRING)
+    if (o_json->type == TYPE_STRING)
     {
         char *val = my_malloc_array(char, entity.val_size);
-        RANDOM_ACCESS_FREAD_OR_FAIL(val, entity.val_size, entity.val_ptr, section->header.filp);
+        RA_FREAD_OR_FAIL(val, entity.val_size, entity.val_ptr, section->header.filp);
 
-        string_ctor(&json->value.string_val, val, entity.val_size);
+        string_ctor(o_json->value.string_val, val, entity.val_size);
     }
+
+    free(key);
 
     return OK;
 }
@@ -104,44 +93,50 @@ PerformStatus section_extents_read(const section_extents_t *const section, const
 
 Иначе проверим вместимость по размеру старой записи(сумма размеров ключа и значения)
 */
-PerformStatus section_extents_update(section_extents_t *const section, const sectoff_t offset, const json_value_t *const new_json)
+status_t sect_ext_update(sect_ext_t *const section, const sectoff_t offset, const json_t *const new_json)
 {
-    json_value_entity_t old_entity;
-    RANDOM_ACCESS_FREAD_OR_FAIL(&old_entity, sizeof(json_value_entity_t), offset, section->header.filp);
+    entity_t *old_entity = entity_new();
+    RA_FREAD_OR_FAIL(old_entity, sizeof(entity_t), offset, section->header.filp);
 
-    json_value_entity_t new_entity;
-    json_value_entity_ctor(&new_entity, new_json, old_entity.dad_ptr, old_entity.bro_ptr, old_entity.son_ptr);
+    entity_t *new_entity = entity_new();
+    entity_ctor(new_entity, new_json, old_entity->dad_ptr, old_entity->bro_ptr, old_entity->son_ptr);
 
-    if (offset + sizeof(json_value_entity_t) == section->header.last_item_ptr)
+    if (offset + sizeof(entity_t) == section->header.lst_itm_ptr)
     {
-        if (section->header.free_space + json_value_entity_get_physical_size(&old_entity) - json_value_entity_get_physical_size(&new_entity) >= 0)
+        if (section->header.free_space + sizeof(entity_t) - sizeof(entity_t) >= 0)
         {
             fileoff_t save_addr;
-            section_header_shift_last_item_ptr(&section->header, old_entity.key_size + old_entity.val_size);
-            section_extents_write(section, new_json, new_entity.dad_ptr, new_entity.bro_ptr, new_entity.son_ptr, &save_addr);
+            DO_OR_FAIL(
+                sect_head_shift_lst_itm_ptr(&section->header, old_entity->key_size + old_entity->val_size));
+            DO_OR_FAIL(
+                sect_ext_write(section, new_json, new_entity->dad_ptr, new_entity->bro_ptr, new_entity->son_ptr, &save_addr));
 
             return OK;
         }
     }
     else
     {
-        if (json_value_entity_get_physical_size(&old_entity) >= json_value_entity_get_physical_size(&new_entity))
+        if (sizeof(entity_t) >= sizeof(entity_t))
         {
-            sectoff_t prev_last_item_ptr = section->header.last_item_ptr;
-            sectoff_t prev_first_record_ptr = section->header.first_record_ptr;
+            sectoff_t prev_last_item_ptr = section->header.lst_itm_ptr;
+            sectoff_t prev_first_record_ptr = section->header.fst_rec_ptr;
 
-            section->header.last_item_ptr = offset;
-            section->header.first_record_ptr = old_entity.key_ptr + old_entity.key_size;
+            section->header.lst_itm_ptr = offset;
+            section->header.fst_rec_ptr = old_entity->key_ptr + old_entity->key_size;
 
             fileoff_t save_addr;
-            section_extents_write(section, new_json, new_entity.dad_ptr, new_entity.bro_ptr, new_entity.son_ptr, &save_addr);
+            DO_OR_FAIL(
+                sect_ext_write(section, new_json, new_entity->dad_ptr, new_entity->bro_ptr, new_entity->son_ptr, &save_addr));
 
-            section->header.last_item_ptr = prev_last_item_ptr;
-            section->header.first_record_ptr = prev_first_record_ptr;
+            section->header.lst_itm_ptr = prev_last_item_ptr;
+            section->header.fst_rec_ptr = prev_first_record_ptr;
 
             return OK;
         }
     }
+
+    entity_dtor(new_entity);
+    entity_dtor(old_entity);
 
     return FAILED;
 }
@@ -149,41 +144,46 @@ PerformStatus section_extents_update(section_extents_t *const section, const sec
 /*
     Если нода является последней записанной записью, мы можем подвинуть указатели, чтобы не образовывались пропуски
 */
-PerformStatus section_documents_delete(section_extents_t *section, sectoff_t offset)
+status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t offset)
 {
-    if (offset + sizeof(json_value_entity_t) == section->header.last_item_ptr)
+    if (offset + sizeof(entity_t) == section->header.lst_itm_ptr)
     {
-        json_value_entity_t entity;
-        RANDOM_ACCESS_FREAD_OR_FAIL(&entity, sizeof(json_value_entity_t), offset, section->header.filp);
+        entity_t *entity = entity_new();
+        RA_FREAD_OR_FAIL(entity, sizeof(entity_t), offset, section->header.filp);
 
-        section_header_shift_last_item_ptr(&section->header, -1 * sizeof(json_value_entity_t));
-        section_header_shift_first_record_ptr(&section->header, entity.key_size + entity.val_size);
+        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * sizeof(entity_t)));
+        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity->key_size + entity->val_size));
+
+        entity_dtor(entity);
     }
 
     return OK;
 }
 
-static PerformStatus section_extents_write_in_item(section_extents_t *const section, const size_t data_size, const void *const data_ptr)
+static status_t sect_ext_write_itm(sect_ext_t *const section, const size_t data_size, const void *const data_ptr)
 {
-    long prev_ptr = ftell(section->header.filp);
-    RANDOM_ACCESS_FWRITE_OR_FAIL(data_ptr, data_size, section->header.last_item_ptr, section->header.filp);
-    section_header_shift_last_item_ptr((section_header_t *)section, data_size);
-    FSEEK_OR_FAIL(section->header.filp, prev_ptr);
+    SAVE_FILP(section->header.filp, {
+        RA_FWRITE_OR_FAIL(data_ptr, data_size, section->header.lst_itm_ptr, section->header.filp);
+        DO_OR_FAIL(sect_head_shift_lst_itm_ptr((sect_head_t *)section, data_size));
+    });
 
     return OK;
 }
 
-static PerformStatus section_extents_write_in_record(section_extents_t *const section, const size_t data_size, const void *const data_ptr, fileoff_t *const save_addr)
+static status_t sect_ext_write_rec(sect_ext_t *const section, const size_t data_size, const void *const data_ptr, fileoff_t *const save_addr)
 {
-    long prev_ptr = ftell(section->header.filp);
+    SAVE_FILP(section->header.filp, {
+        DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -data_size));
+        FSEEK_OR_FAIL(section->header.filp, section->header.fst_rec_ptr);
+        FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp); // Bad memory access TODO see memory alloc
 
-    section_header_shift_first_record_ptr((section_header_t *)section, -1 * data_size);
-    FSEEK_OR_FAIL(section->header.filp, section->header.first_record_ptr);
-    FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp); // Bad memory access TODO see memory alloc
-
-    *save_addr = section->header.first_record_ptr;
-
-    FSEEK_OR_FAIL(section->header.filp, prev_ptr);
+        *save_addr = section->header.fst_rec_ptr;
+    });
 
     return OK;
+}
+
+status_t sect_ext_sync(sect_ext_t *const section)
+{
+    return sect_head_sync(&section->header);
 }
