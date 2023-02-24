@@ -24,6 +24,8 @@ status_t SectionHeader_DefaultCtor_Successful()
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
+    sect_head_dtor(header);
+
     return ctor_status;
 }
 
@@ -43,6 +45,8 @@ status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
+
+    sect_head_dtor(header);
 
     return ctor_status;
 }
@@ -67,6 +71,8 @@ status_t SectionHeader_ShiftLastItemPtr_Successful()
 
     DO_OR_FAIL(remove(test_file_name));
 
+    sect_head_dtor(header);
+
     return OK;
 }
 
@@ -89,6 +95,8 @@ status_t SectionHeader_ShiftFirstRecordPtr_Successful()
     assert(file_first_record_ptr == SECTION_SIZE + shift);
 
     DO_OR_FAIL(remove(test_file_name));
+
+    sect_head_dtor(header);
 
     return OK;
 }
@@ -124,16 +132,9 @@ status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
 
     DO_OR_FAIL(remove(test_file_name));
 
+    sect_head_dtor(header);
+
     return OK;
-}
-
-// Создание с несуществующим файлом
-status_t SectionHeader_CtorWithUndefinedFile_Exception()
-{
-    FILE *file = NULL;
-
-    sect_head_t *header = sect_head_new();
-    return sect_head_ctor(header, 0, file);
 }
 
 void test_header()

@@ -27,22 +27,22 @@ void sect_ext_dtor(sect_ext_t *section)
 
 status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, const fileoff_t dad_addr, const fileoff_t bro_addr, const fileoff_t son_addr, fileoff_t *const save_addr)
 {
-    entity_t *entity = entity_new();
-    entity_ctor(entity, json, dad_addr, bro_addr, son_addr);
+    entity_t entity;
+    entity_ctor(&entity, json, dad_addr, bro_addr, son_addr);
 
     if (section->header.free_space < sizeof(entity_t))
         return FAILED;
 
     *save_addr = section->header.lst_itm_ptr;
 
-    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity->key_ptr));
+    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity.key_ptr));
 
-    if (entity->type != TYPE_OBJECT){
-        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity->val_ptr));
+    if (entity.type != TYPE_OBJECT){
+        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity.val_ptr));
     }
 
-    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), entity));
-
+    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), &entity));
+    
     return OK;
 }
 

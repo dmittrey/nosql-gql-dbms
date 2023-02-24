@@ -103,6 +103,9 @@ static status_t SectionExtents_WriteInt32JsonValue_Successful()
     assert(val_val == json->value.int32_val);
 
     json_dtor(json);
+    entity_dtor(json_entity);
+    sect_head_entity_dtor(header);
+    
     sect_ext_dtor(extents);
     fclose(file);
 
@@ -155,6 +158,9 @@ static status_t SectionExtents_WriteFloatJsonValue_Successful()
     assert(val_val == json->value.float_val);
 
     json_dtor(json);
+    entity_dtor(json_entity);
+    sect_head_entity_dtor(header);
+
     sect_ext_dtor(extents);
     fclose(file);
 
@@ -207,6 +213,9 @@ static status_t SectionExtents_WriteBoolJsonValue_Successful()
     assert(val_val == json->value.bool_val);
 
     json_dtor(json);
+    entity_dtor(json_entity);
+    sect_head_entity_dtor(header);
+
     sect_ext_dtor(extents);
     fclose(file);
 
@@ -263,6 +272,9 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
     free(val_val);
 
     json_dtor(json);
+    entity_dtor(json_entity);
+    sect_head_entity_dtor(header);
+
     sect_ext_dtor(extents);
     fclose(file);
 
@@ -331,6 +343,8 @@ static status_t SectionExtents_WriteObjectJsonValue_Successful()
     assert(object_json_entity->type == TYPE_OBJECT);
 
     json_dtor(object_json);
+    entity_dtor(object_json_entity);
+
     sect_ext_dtor(extents);
     fclose(file);
 
