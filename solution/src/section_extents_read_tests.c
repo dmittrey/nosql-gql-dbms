@@ -47,21 +47,151 @@ static status_t SectionExtents_ReadInt32Json_Successful()
 
 static status_t SectionExtents_ReadFloatJson_Successful()
 {
+    FILE *file = fopen(test_file_name, "w+");
+
+    sect_ext_t *extents = sect_ext_new();
+    sect_ext_ctor(extents, 0, file);
+
+    JSON_VALUE_INIT(TYPE_FLOAT, json, "value", 5.5);
+
+    fileoff_t save_json_addr;
+
+    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+
+    json_t *r_json = json_new();
+    entity_t *r_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, save_json_addr, r_entity, r_json));
+
+    assert(r_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(r_entity->key_size == string_get_size(json->key));
+    assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
+    assert(r_entity->val_size == sizeof(json->value));
+    assert(r_entity->dad_ptr == 500);
+    assert(r_entity->bro_ptr == 0);
+    assert(r_entity->son_ptr == 0);
+    assert(r_entity->type == TYPE_FLOAT);
+
+    assert(r_json->key->cnt == json->key->cnt);
+    assert(strncmp(r_json->key->val, json->key->val, r_json->key->cnt) == 0);
+    assert(r_json->value.float_val == json->value.float_val);
+    assert(r_json->type == TYPE_FLOAT);
+
+    return OK;
 }
 
 static status_t SectionExtents_ReadBoolJson_Successful()
 {
+    FILE *file = fopen(test_file_name, "w+");
+
+    sect_ext_t *extents = sect_ext_new();
+    sect_ext_ctor(extents, 0, file);
+
+    JSON_VALUE_INIT(TYPE_BOOL, json, "value", true);
+
+    fileoff_t save_json_addr;
+
+    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+
+    json_t *r_json = json_new();
+    entity_t *r_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, save_json_addr, r_entity, r_json));
+
+    assert(r_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(r_entity->key_size == string_get_size(json->key));
+    assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
+    assert(r_entity->val_size == sizeof(json->value));
+    assert(r_entity->dad_ptr == 500);
+    assert(r_entity->bro_ptr == 0);
+    assert(r_entity->son_ptr == 0);
+    assert(r_entity->type == TYPE_BOOL);
+
+    assert(r_json->key->cnt == json->key->cnt);
+    assert(strncmp(r_json->key->val, json->key->val, r_json->key->cnt) == 0);
+    assert(r_json->value.bool_val == json->value.bool_val);
+    assert(r_json->type == TYPE_BOOL);
+
+    return OK;
 }
 
 static status_t SectionExtents_ReadStringJson_Successful()
 {
+    FILE *file = fopen(test_file_name, "w+");
+
+    sect_ext_t *extents = sect_ext_new();
+    sect_ext_ctor(extents, 0, file);
+
+    string_t *str = string_new();
+    string_ctor(str, "test_value", 10);
+
+    JSON_VALUE_INIT(TYPE_STRING, json, "value", str);
+
+    fileoff_t save_json_addr;
+
+    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+
+    json_t *r_json = json_new();
+    entity_t *r_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, save_json_addr, r_entity, r_json));
+
+    assert(r_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(r_entity->key_size == string_get_size(json->key));
+    assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - string_get_size(json->value.string_val));
+    assert(r_entity->val_size == string_get_size(json->value.string_val));
+    assert(r_entity->dad_ptr == 500);
+    assert(r_entity->bro_ptr == 0);
+    assert(r_entity->son_ptr == 0);
+    assert(r_entity->type == TYPE_STRING);
+
+    assert(r_json->key->cnt == json->key->cnt);
+    assert(strncmp(r_json->key->val, json->key->val, r_json->key->cnt) == 0);
+    assert(r_json->value.string_val->cnt == json->value.string_val->cnt);
+    assert(strncmp(r_json->value.string_val->val, json->value.string_val->val, r_json->value.string_val->cnt) == 0);
+    assert(r_json->type == TYPE_STRING);
+
+    return OK;
 }
 
 static status_t SectionExtents_ReadObjectJson_Successful()
 {
+    FILE *file = fopen(test_file_name, "w+");
+
+    sect_ext_t *extents = sect_ext_new();
+    sect_ext_ctor(extents, 0, file);
+
+    string_t *str = string_new();
+    string_ctor(str, "test_value", 10);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, json, "value", NULL);
+
+    fileoff_t save_json_addr;
+
+    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+
+    json_t *r_json = json_new();
+    entity_t *r_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, save_json_addr, r_entity, r_json));
+
+    assert(r_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(r_entity->key_size == string_get_size(json->key));
+    assert(r_entity->val_ptr == 0);
+    assert(r_entity->val_size == 0);
+    assert(r_entity->dad_ptr == 500);
+    assert(r_entity->bro_ptr == 0);
+    assert(r_entity->son_ptr == 0);
+    assert(r_entity->type == TYPE_OBJECT);
+
+    assert(r_json->key->cnt == json->key->cnt);
+    assert(strncmp(r_json->key->val, json->key->val, r_json->key->cnt) == 0);
+    assert(r_json->type == TYPE_OBJECT);
+
+    return OK;
 }
 
 void test_extents_read()
 {
-    SectionExtents_ReadInt32Json_Successful();
+    assert(SectionExtents_ReadInt32Json_Successful() == OK);
+    assert(SectionExtents_ReadFloatJson_Successful() == OK);
+    assert(SectionExtents_ReadBoolJson_Successful() == OK);
+    assert(SectionExtents_ReadStringJson_Successful() == OK);
+    assert(SectionExtents_ReadObjectJson_Successful() == OK);
 }
