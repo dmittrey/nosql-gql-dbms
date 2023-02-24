@@ -9,7 +9,7 @@
 static const char *test_file_name = "test.bin";
 
 // Создание с существующим файлом и нулевым отступом
-status_t SectionHeader_DefaultCtor_Successful()
+static status_t SectionHeader_DefaultCtor_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -30,7 +30,7 @@ status_t SectionHeader_DefaultCtor_Successful()
 }
 
 // Создание с существующим файлом и ненулевым отступом
-status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
+static status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
     sectoff_t shift = 5;
@@ -51,7 +51,7 @@ status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
     return ctor_status;
 }
 
-status_t SectionHeader_ShiftLastItemPtr_Successful()
+static status_t SectionHeader_ShiftLastItemPtr_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
     sectoff_t shift = 5;
@@ -76,7 +76,7 @@ status_t SectionHeader_ShiftLastItemPtr_Successful()
     return OK;
 }
 
-status_t SectionHeader_ShiftFirstRecordPtr_Successful()
+static status_t SectionHeader_ShiftFirstRecordPtr_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
     sectoff_t shift = -5;
@@ -101,7 +101,7 @@ status_t SectionHeader_ShiftFirstRecordPtr_Successful()
     return OK;
 }
 
-status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
+static status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
     sect_head_t *header = sect_head_new();
