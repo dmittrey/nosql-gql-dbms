@@ -18,8 +18,8 @@ status_t sect_head_ctor(sect_head_t *const header, const fileoff_t offset, FILE 
 {
     header->free_space = SECTION_SIZE - sizeof(sect_head_entity_t);
     header->next_ptr = 0; // If we have 0 then we don't have next section
-    header->lst_itm_ptr = offset + sizeof(sect_head_entity_t);
-    header->fst_rec_ptr = offset + SECTION_SIZE;
+    header->lst_itm_ptr = sizeof(sect_head_entity_t);
+    header->fst_rec_ptr = SECTION_SIZE;
     header->sect_off = offset;
     header->filp = filp;
 
@@ -53,4 +53,9 @@ status_t sect_head_sync(sect_head_t *const header)
               RA_FWRITE_OR_FAIL(header, sizeof(sect_head_entity_t), header->sect_off, header->filp));
 
     return OK;
+}
+
+fileoff_t sect_head_get_fileoff(const sect_head_t *const header, const sectoff_t offset)
+{
+    return header->sect_off + offset;
 }
