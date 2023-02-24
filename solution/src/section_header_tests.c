@@ -40,8 +40,8 @@ static status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
 
     assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
     assert(header->next_ptr == 0); // Next section is undefined
-    assert(header->lst_itm_ptr == shift + sizeof(sect_head_entity_t));
-    assert(header->fst_rec_ptr == shift + SECTION_SIZE);
+    assert(header->lst_itm_ptr == sizeof(sect_head_entity_t));
+    assert(header->fst_rec_ptr == SECTION_SIZE);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));

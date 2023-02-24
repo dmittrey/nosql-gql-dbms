@@ -6,8 +6,6 @@
 #include "memory/section/header.h"
 #include "memory/section/extents.h"
 
-#include "physical/json/entity.h"
-
 static status_t sect_ext_write_itm(sect_ext_t *const, const size_t, const void *const);
 static status_t sect_ext_write_rec(sect_ext_t *const, const size_t, const void *const, fileoff_t *const);
 
@@ -37,53 +35,53 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, con
 
     DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity.key_ptr));
 
-    if (entity.type != TYPE_OBJECT){
-        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity->val_ptr));
+    if (entity.type != TYPE_OBJECT)
+    {
+        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity.val_ptr));
     }
 
     DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), &entity));
-    
+
     return OK;
 }
 
-status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sect_addr, json_t *const o_json)
+status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sect_addr, entity_t *const o_entity, json_t *const o_json)
 {
-    entity_t entity;
-    RA_FREAD_OR_FAIL(&entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, sect_addr), section->header.filp);
+    RA_FREAD_OR_FAIL(o_entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, sect_addr), section->header.filp);
 
     // Key parsing
-    char *key = my_malloc_array(char, entity.key_size);
-    RA_FREAD_OR_FAIL(key, entity.key_size, sect_head_get_fileoff(&section->header, entity.key_ptr), section->header.filp);
+    char *key = my_malloc_array(char, o_entity->key_size);
+    RA_FREAD_OR_FAIL(key, o_entity->key_size, sect_head_get_fileoff(&section->header, o_entity->key_ptr), section->header.filp);
 
-    json_ctor(o_json, entity.type, key, entity.key_size);
+    json_ctor(o_json, o_entity->type, key, o_entity->key_size);
 
     if (o_json->type == TYPE_INT32)
     {
         int32_t *val = my_malloc(int32_t);
-        RA_FREAD_OR_FAIL(val, sizeof(int32_t), sect_head_get_fileoff(&section->header, entity.val_ptr), section->header.filp);
+        RA_FREAD_OR_FAIL(val, sizeof(int32_t), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
         o_json->value.int32_val = *val;
     }
     if (o_json->type == TYPE_BOOL)
     {
         bool *val = my_malloc(bool);
-        RA_FREAD_OR_FAIL(val, sizeof(bool), sect_head_get_fileoff(&section->header, entity.val_ptr), section->header.filp);
+        RA_FREAD_OR_FAIL(val, sizeof(bool), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
         o_json->value.bool_val = *val;
     }
     if (o_json->type == TYPE_FLOAT)
     {
         float *val = my_malloc(float);
-        RA_FREAD_OR_FAIL(val, sizeof(float), sect_head_get_fileoff(&section->header, entity.val_ptr), section->header.filp);
+        RA_FREAD_OR_FAIL(val, sizeof(float), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
         o_json->value.float_val = *val;
     }
     if (o_json->type == TYPE_STRING)
     {
-        char *val = my_malloc_array(char, entity.val_size);
-        RA_FREAD_OR_FAIL(val, entity.val_size, sect_head_get_fileoff(&section->header, entity.val_ptr), section->header.filp);
+        char *val = my_malloc_array(char, o_entity->val_size);
+        RA_FREAD_OR_FAIL(val, o_entity->val_size, sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
-        string_ctor(o_json->value.string_val, val, entity.val_size);
+        string_ctor(o_json->value.string_val, val, o_entity->val_size);
     }
 
     free(key);
