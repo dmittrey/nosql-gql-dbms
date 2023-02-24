@@ -1,6 +1,3 @@
-/*
-По базе прочитать все 4 типа и object
-*/
 #include <assert.h>
 #include <string.h>
 
