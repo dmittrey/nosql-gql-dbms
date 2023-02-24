@@ -23,7 +23,6 @@ static status_t SectionExtents_DefaultCtor_InvokeHeaderCtor()
     // sect_ext_dtor(extents);   // No make sense
     free(extents); // Make sense
     fclose(file);
-
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -85,7 +84,7 @@ static status_t SectionExtents_WriteInt32JsonValue_Successful()
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
     entity_t *json_entity = entity_new();
-    RA_FREAD_OR_FAIL(json_entity, sizeof(json_entity), save_json_addr, file);
+    RA_FREAD_OR_FAIL(json_entity, sizeof(entity_t), save_json_addr, extents->header.filp);
     assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(&json->key));
     assert(json_entity->key_size == string_get_size(&json->key));
     assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(&json->key) - sizeof(json->value));

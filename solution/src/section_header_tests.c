@@ -6,10 +6,12 @@
 #include "memory/section/header.h"
 #include "physical/section/header.h"
 
+static const char *test_file_name = "test.bin";
+
 // Создание с существующим файлом и нулевым отступом
 status_t SectionHeader_DefaultCtor_Successful()
 {
-    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    FILE *file = fopen(test_file_name, "w+");
 
     sect_head_t *header = sect_head_new();
     status_t ctor_status = sect_head_ctor(header, 0, file);
@@ -20,6 +22,7 @@ status_t SectionHeader_DefaultCtor_Successful()
     assert(header->fst_rec_ptr == SECTION_SIZE);
 
     fclose(file);
+    DO_OR_FAIL(remove(test_file_name));
 
     return ctor_status;
 }
@@ -27,7 +30,7 @@ status_t SectionHeader_DefaultCtor_Successful()
 // Создание с существующим файлом и ненулевым отступом
 status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
 {
-    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    FILE *file = fopen(test_file_name, "w+");
     sectoff_t shift = 5;
 
     sect_head_t *header = sect_head_new();
@@ -39,13 +42,14 @@ status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
     assert(header->fst_rec_ptr == shift + SECTION_SIZE);
 
     fclose(file);
+    DO_OR_FAIL(remove(test_file_name));
 
     return ctor_status;
 }
 
 status_t SectionHeader_ShiftLastItemPtr_Successful()
 {
-    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    FILE *file = fopen(test_file_name, "w+");
     sectoff_t shift = 5;
 
     sect_head_t *header = sect_head_new();
@@ -61,12 +65,14 @@ status_t SectionHeader_ShiftLastItemPtr_Successful()
     FREAD_OR_FAIL(&file_last_item_ptr, sizeof(sectoff_t), file);
     assert(file_last_item_ptr == sizeof(sect_head_entity_t) + shift);
 
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
 status_t SectionHeader_ShiftFirstRecordPtr_Successful()
 {
-    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    FILE *file = fopen(test_file_name, "w+");
     sectoff_t shift = -5;
 
     sect_head_t *header = sect_head_new();
@@ -82,12 +88,14 @@ status_t SectionHeader_ShiftFirstRecordPtr_Successful()
     FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
     assert(file_first_record_ptr == SECTION_SIZE + shift);
 
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
 status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
 {
-    FILE *file = fopen("/Users/dmitry/Desktop/low-level-programming/test.txt", "r+");
+    FILE *file = fopen(test_file_name, "w+");
     sect_head_t *header = sect_head_new();
 
     header->free_space = 5;
@@ -113,6 +121,8 @@ status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
     sectoff_t file_first_record_ptr;
     FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
     assert(file_first_record_ptr == 8);
+
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
