@@ -42,7 +42,7 @@ typedef enum
 
 typedef struct json_t
 {
-    string_t key;
+    string_t *key;
     union
     {
         int32_t int32_val;

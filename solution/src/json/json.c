@@ -13,7 +13,7 @@ json_t *json_new()
 
 void json_ctor(json_t *const json, const json_type_t type, const char *const key_val, const size_t key_size)
 {
-    string_ctor(&json->key, key_val, key_size);
+    string_ctor(json->key, key_val, key_size);
 
     memset(&json->value, 0, sizeof(sizeof(json_t)));
 
@@ -41,7 +41,7 @@ void json_dtor(json_t *json)
     }
 
     // Free json
-    string_dtor(&json->key);
+    string_dtor(json->key);
     if (json->type == TYPE_STRING)
     {
         string_dtor(json->value.string_val);
@@ -106,7 +106,7 @@ void json_add_son(json_t *const json, json_t *son)
 
 void json_print(const json_t *const json)
 {
-    printf("%s ", json->key.val);
+    printf("%s ", json->key->val);
 
     switch (json->type)
     {

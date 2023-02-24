@@ -79,15 +79,15 @@ static status_t SectionExtents_WriteInt32JsonValue_Successful()
 
     sect_head_entity_t *header = sect_head_entity_new();
     RA_FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), 0, file);
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(&json->key))); // 32 + 64 + 5 + 16
-    assert(header->fst_rec_ptr == (SECTION_SIZE - sizeof(json->value) - string_get_size(&json->key)));
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(json->key))); // 32 + 64 + 5 + 16
+    assert(header->fst_rec_ptr == (SECTION_SIZE - sizeof(json->value) - string_get_size(json->key)));
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
     entity_t *json_entity = entity_new();
     RA_FREAD_OR_FAIL(json_entity, sizeof(entity_t), save_json_addr, extents->header.filp);
-    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(&json->key));
-    assert(json_entity->key_size == string_get_size(&json->key));
-    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(&json->key) - sizeof(json->value));
+    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity->key_size == string_get_size(json->key));
+    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity->val_size == sizeof(json->value));
     assert(json_entity->dad_ptr == 500);
     assert(json_entity->bro_ptr == 0);
@@ -95,7 +95,7 @@ static status_t SectionExtents_WriteInt32JsonValue_Successful()
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
-    assert(strncmp(key_val, json->key.val, json->key.cnt) == 0);
+    assert(strncmp(key_val, json->key->val, json->key->cnt) == 0);
     free(key_val);
 
     int32_t val_val;
@@ -131,15 +131,15 @@ static status_t SectionExtents_WriteFloatJsonValue_Successful()
 
     sect_head_entity_t *header = sect_head_entity_new();
     RA_FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), 0, file);
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(&json->key))); // 32 + 64 + 5 + 16
-    assert(header->fst_rec_ptr == (SECTION_SIZE - sizeof(json->value) - string_get_size(&json->key)));
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(json->key))); // 32 + 64 + 5 + 16
+    assert(header->fst_rec_ptr == (SECTION_SIZE - sizeof(json->value) - string_get_size(json->key)));
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
     entity_t *json_entity = entity_new();
     RA_FREAD_OR_FAIL(json_entity, sizeof(entity_t), save_json_addr, file);
-    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(&json->key));
-    assert(json_entity->key_size == string_get_size(&json->key));
-    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(&json->key) - sizeof(json->value));
+    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity->key_size == string_get_size(json->key));
+    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity->val_size == sizeof(json->value));
     assert(json_entity->dad_ptr == 500);
     assert(json_entity->bro_ptr == 0);
@@ -147,7 +147,7 @@ static status_t SectionExtents_WriteFloatJsonValue_Successful()
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
-    assert(strncmp(key_val, json->key.val, json->key.cnt) == 0);
+    assert(strncmp(key_val, json->key->val, json->key->cnt) == 0);
     free(key_val);
 
     float val_val;
@@ -183,15 +183,15 @@ static status_t SectionExtents_WriteBoolJsonValue_Successful()
 
     sect_head_entity_t *header = sect_head_entity_new();
     RA_FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), 0, file);
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(&json->key))); 
-    assert(header->fst_rec_ptr == (SECTION_SIZE - sizeof(json->value) - string_get_size(&json->key)));
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(json->key))); 
+    assert(header->fst_rec_ptr == (SECTION_SIZE - sizeof(json->value) - string_get_size(json->key)));
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
     entity_t *json_entity = entity_new();
     RA_FREAD_OR_FAIL(json_entity, sizeof(entity_t), save_json_addr, file);
-    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(&json->key));
-    assert(json_entity->key_size == string_get_size(&json->key));
-    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(&json->key) - sizeof(json->value));
+    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity->key_size == string_get_size(json->key));
+    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity->val_size == sizeof(json->value));
     assert(json_entity->dad_ptr == 500);
     assert(json_entity->bro_ptr == 0);
@@ -199,7 +199,7 @@ static status_t SectionExtents_WriteBoolJsonValue_Successful()
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
-    assert(strncmp(key_val, json->key.val, json->key.cnt) == 0);
+    assert(strncmp(key_val, json->key->val, json->key->cnt) == 0);
     free(key_val);
 
     bool val_val;
@@ -238,15 +238,15 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
 
     sect_head_entity_t *header = sect_head_entity_new();
     RA_FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), 0, file);
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - string_get_size(json->value.string_val) - string_get_size(&json->key))); 
-    assert(header->fst_rec_ptr == (SECTION_SIZE - string_get_size(json->value.string_val) - string_get_size(&json->key)));
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - string_get_size(json->value.string_val) - string_get_size(json->key))); 
+    assert(header->fst_rec_ptr == (SECTION_SIZE - string_get_size(json->value.string_val) - string_get_size(json->key)));
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
     entity_t *json_entity = entity_new();
     RA_FREAD_OR_FAIL(json_entity, sizeof(json_entity), save_json_addr, file);
-    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(&json->key));
-    assert(json_entity->key_size == string_get_size(&json->key));
-    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(&json->key) - string_get_size(json->value.string_val));
+    assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
+    assert(json_entity->key_size == string_get_size(json->key));
+    assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - string_get_size(json->value.string_val));
     assert(json_entity->val_size == string_get_size(json->value.string_val));
     assert(json_entity->dad_ptr == 500);
     assert(json_entity->bro_ptr == 0);
@@ -254,7 +254,7 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
-    assert(strncmp(key_val, json->key.val, json->key.cnt) == 0);
+    assert(strncmp(key_val, json->key->val, json->key->cnt) == 0);
     free(key_val);
 
     char *val_val = my_malloc_array(char, json_entity->val_size);
@@ -320,8 +320,8 @@ static status_t SectionExtents_WriteObjectJsonValue_Successful()
 
     entity_t *object_json_entity = entity_new();
     RA_FREAD_OR_FAIL(&object_json_entity, sizeof(entity_t), object_json_addr, file);
-    assert(object_json_entity->key_ptr == SECTION_SIZE - string_get_size(&object_json->key));
-    assert(object_json_entity->key_size == string_get_size(&object_json->key));
+    assert(object_json_entity->key_ptr == SECTION_SIZE - string_get_size(object_json->key));
+    assert(object_json_entity->key_size == string_get_size(object_json->key));
     assert(object_json_entity->val_ptr == 0);
     assert(object_json_entity->val_size == 0);
     assert(object_json_entity->dad_ptr == 1000);

@@ -10,7 +10,7 @@ entity_t *entity_new()
 void entity_ctor(entity_t *const entity, const json_t *const json, const fileoff_t dad_json_addr, const fileoff_t bro_json_addr, const fileoff_t son_json_addr)
 {
     entity->key_ptr = 0;
-    entity->key_size = json->key.cnt;
+    entity->key_size = json->key->cnt;
     entity->val_ptr = 0;
     entity->val_size = json_val_size(json);
     entity->dad_ptr = dad_json_addr;
