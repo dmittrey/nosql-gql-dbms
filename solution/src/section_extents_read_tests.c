@@ -42,6 +42,16 @@ static status_t SectionExtents_ReadInt32Json_Successful()
     assert(r_json->value.int32_val == json->value.int32_val);
     assert(r_json->type == TYPE_INT32);
 
+    json_dtor(json);
+    json_dtor(r_json);
+    entity_dtor(r_entity);
+
+    sect_ext_dtor(extents);
+
+    fclose(file);
+
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -76,6 +86,16 @@ static status_t SectionExtents_ReadFloatJson_Successful()
     assert(r_json->value.float_val == json->value.float_val);
     assert(r_json->type == TYPE_FLOAT);
 
+    json_dtor(json);
+    json_dtor(r_json);
+    entity_dtor(r_entity);
+
+    sect_ext_dtor(extents);
+
+    fclose(file);
+
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -109,6 +129,16 @@ static status_t SectionExtents_ReadBoolJson_Successful()
     assert(strncmp(r_json->key->val, json->key->val, r_json->key->cnt) == 0);
     assert(r_json->value.bool_val == json->value.bool_val);
     assert(r_json->type == TYPE_BOOL);
+
+    json_dtor(json);
+    json_dtor(r_json);
+    entity_dtor(r_entity);
+
+    sect_ext_dtor(extents);
+
+    fclose(file);
+
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
@@ -148,6 +178,16 @@ static status_t SectionExtents_ReadStringJson_Successful()
     assert(strncmp(r_json->value.string_val->val, json->value.string_val->val, r_json->value.string_val->cnt) == 0);
     assert(r_json->type == TYPE_STRING);
 
+    json_dtor(json);
+    json_dtor(r_json);
+    entity_dtor(r_entity);
+
+    sect_ext_dtor(extents);
+
+    fclose(file);
+
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -157,9 +197,6 @@ static status_t SectionExtents_ReadObjectJson_Successful()
 
     sect_ext_t *extents = sect_ext_new();
     sect_ext_ctor(extents, 0, file);
-
-    string_t *str = string_new();
-    string_ctor(str, "test_value", 10);
 
     JSON_VALUE_INIT(TYPE_OBJECT, json, "value", NULL);
 
@@ -183,6 +220,16 @@ static status_t SectionExtents_ReadObjectJson_Successful()
     assert(r_json->key->cnt == json->key->cnt);
     assert(strncmp(r_json->key->val, json->key->val, r_json->key->cnt) == 0);
     assert(r_json->type == TYPE_OBJECT);
+
+    json_dtor(json);
+    json_dtor(r_json);
+    entity_dtor(r_entity);
+
+    sect_ext_dtor(extents);
+
+    fclose(file);
+
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }

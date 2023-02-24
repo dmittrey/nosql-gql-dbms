@@ -57,31 +57,33 @@ status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sect_add
 
     if (o_json->type == TYPE_INT32)
     {
-        int32_t *val = my_malloc(int32_t);
-        RA_FREAD_OR_FAIL(val, sizeof(int32_t), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
+        int32_t val;
+        RA_FREAD_OR_FAIL(&val, sizeof(int32_t), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
-        o_json->value.int32_val = *val;
+        o_json->value.int32_val = val;
     }
     if (o_json->type == TYPE_BOOL)
     {
-        bool *val = my_malloc(bool);
-        RA_FREAD_OR_FAIL(val, sizeof(bool), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
+        bool val;
+        RA_FREAD_OR_FAIL(&val, sizeof(bool), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
-        o_json->value.bool_val = *val;
+        o_json->value.bool_val = val;
     }
     if (o_json->type == TYPE_FLOAT)
     {
-        float *val = my_malloc(float);
-        RA_FREAD_OR_FAIL(val, sizeof(float), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
+        float val;
+        RA_FREAD_OR_FAIL(&val, sizeof(float), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
-        o_json->value.float_val = *val;
+        o_json->value.float_val = val;
     }
     if (o_json->type == TYPE_STRING)
     {
         char *val = my_malloc_array(char, o_entity->val_size);
         RA_FREAD_OR_FAIL(val, o_entity->val_size, sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
 
+        o_json->value.string_val = string_new();
         string_ctor(o_json->value.string_val, val, o_entity->val_size);
+        free(val);
     }
 
     free(key);
