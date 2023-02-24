@@ -27,18 +27,21 @@ void sect_ext_dtor(sect_ext_t *section)
 
 status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, const fileoff_t dad_addr, const fileoff_t bro_addr, const fileoff_t son_addr, fileoff_t *const save_addr)
 {
-    entity_t entity;
-    entity_ctor(&entity, json, dad_addr, bro_addr, son_addr);
+    entity_t *entity = entity_new();
+    entity_ctor(entity, json, dad_addr, bro_addr, son_addr);
 
     if (section->header.free_space < sizeof(entity_t))
         return FAILED;
 
     *save_addr = section->header.lst_itm_ptr;
 
-    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity.key_ptr));
-    DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity.val_ptr));
+    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity->key_ptr));
 
-    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), &entity));
+    if (entity->type != TYPE_OBJECT){
+        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity->val_ptr));
+    }
+
+    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), entity));
 
     return OK;
 }
@@ -172,13 +175,13 @@ static status_t sect_ext_write_itm(sect_ext_t *const section, const size_t data_
 
 static status_t sect_ext_write_rec(sect_ext_t *const section, const size_t data_size, const void *const data_ptr, fileoff_t *const save_addr)
 {
-    SAVE_FILP(section->header.filp, {
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -data_size));
-        FSEEK_OR_FAIL(section->header.filp, section->header.fst_rec_ptr);
-        FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp); // Bad memory access TODO see memory alloc
+    long prev_ptr = ftell(section->header.filp);
 
-        *save_addr = section->header.fst_rec_ptr;
-    });
+    DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -data_size));
+    FSEEK_OR_FAIL(section->header.filp, section->header.fst_rec_ptr);
+    FWRITE_OR_FAIL(data_ptr, data_size, section->header.filp); // Bad memory access TODO see memory alloc
+
+    *save_addr = section->header.fst_rec_ptr;
 
     return OK;
 }

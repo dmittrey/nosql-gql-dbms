@@ -243,7 +243,7 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
     entity_t *json_entity = entity_new();
-    RA_FREAD_OR_FAIL(json_entity, sizeof(json_entity), save_json_addr, file);
+    RA_FREAD_OR_FAIL(json_entity, sizeof(entity_t), save_json_addr, file);
     assert(json_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
     assert(json_entity->key_size == string_get_size(json->key));
     assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - string_get_size(json->value.string_val));
@@ -316,10 +316,11 @@ static status_t SectionExtents_WriteObjectJsonValue_Successful()
 
     JSON_VALUE_INIT(TYPE_OBJECT, object_json, "parent", NULL);
 
-    sect_ext_write(extents, object_json, parent_json_addr, 0, 0, &object_json_addr);
+    status_t write_status = sect_ext_write(extents, object_json, parent_json_addr, 0, 0, &object_json_addr);
+    assert(object_json_addr == sizeof(sect_head_entity_t));
 
     entity_t *object_json_entity = entity_new();
-    RA_FREAD_OR_FAIL(&object_json_entity, sizeof(entity_t), object_json_addr, file);
+    RA_FREAD_OR_FAIL(object_json_entity, sizeof(entity_t), object_json_addr, extents->header.filp);
     assert(object_json_entity->key_ptr == SECTION_SIZE - string_get_size(object_json->key));
     assert(object_json_entity->key_size == string_get_size(object_json->key));
     assert(object_json_entity->val_ptr == 0);
