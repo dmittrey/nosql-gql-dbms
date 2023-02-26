@@ -13,12 +13,27 @@ void entity_ctor(entity_t *const entity, const json_t *const json, const fileoff
     entity->key_size = json->key->cnt;
     entity->val_ptr = 0;
     entity->val_size = json_val_size(json);
-    entity->dad_ptr = dad_json_addr;
-    entity->bro_ptr = bro_json_addr;
-    entity->son_ptr = son_json_addr;
+    entity->fam_addr.dad_ptr = dad_json_addr;
+    entity->fam_addr.bro_ptr = bro_json_addr;
+    entity->fam_addr.son_ptr = son_json_addr;
     entity->type = json->type;
 }
 void entity_dtor(entity_t *entity)
 {
     free(entity);
+}
+
+size_t entity_itm_size(const entity_t *const entity)
+{
+    return sizeof(entity_t);
+}
+
+size_t entity_rec_size(const entity_t *const entity)
+{
+    return entity->key_size + entity->val_size;
+}
+
+size_t entity_ph_size(const entity_t *const entity)
+{
+    return entity_itm_size(entity) + entity_rec_size(entity);
 }

@@ -72,9 +72,9 @@ static status_t SectionExtents_WriteInt32JsonValue_Successful()
     JSON_VALUE_INIT(TYPE_INT32, json, "value", 5);
 
     fileoff_t save_json_addr;
-    fileoff_t parent_json_addr = 500;
 
-    status_t write_status = sect_ext_write(extents, json, parent_json_addr, 0, 0, &save_json_addr);
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    status_t write_status = sect_ext_write(extents, json, tplgy_addrs, &save_json_addr);
     assert(save_json_addr == sizeof(sect_head_entity_t));
 
     sect_head_entity_t *header = sect_head_entity_new();
@@ -89,9 +89,9 @@ static status_t SectionExtents_WriteInt32JsonValue_Successful()
     assert(json_entity->key_size == string_get_size(json->key));
     assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity->val_size == sizeof(json->value));
-    assert(json_entity->dad_ptr == 500);
-    assert(json_entity->bro_ptr == 0);
-    assert(json_entity->son_ptr == 0);
+    assert(json_entity->fam_addr.dad_ptr == 500);
+    assert(json_entity->fam_addr.bro_ptr == 0);
+    assert(json_entity->fam_addr.son_ptr == 0);
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
@@ -127,9 +127,9 @@ static status_t SectionExtents_WriteFloatJsonValue_Successful()
     JSON_VALUE_INIT(TYPE_FLOAT, json, "value", 5.5);
 
     fileoff_t save_json_addr;
-    fileoff_t parent_json_addr = 500;
 
-    status_t write_status = sect_ext_write(extents, json, parent_json_addr, 0, 0, &save_json_addr);
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    status_t write_status = sect_ext_write(extents, json, tplgy_addrs, &save_json_addr);
     assert(save_json_addr == sizeof(sect_head_entity_t));
 
     sect_head_entity_t *header = sect_head_entity_new();
@@ -144,9 +144,9 @@ static status_t SectionExtents_WriteFloatJsonValue_Successful()
     assert(json_entity->key_size == string_get_size(json->key));
     assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity->val_size == sizeof(json->value));
-    assert(json_entity->dad_ptr == 500);
-    assert(json_entity->bro_ptr == 0);
-    assert(json_entity->son_ptr == 0);
+    assert(json_entity->fam_addr.dad_ptr == 500);
+    assert(json_entity->fam_addr.bro_ptr == 0);
+    assert(json_entity->fam_addr.son_ptr == 0);
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
@@ -182,9 +182,9 @@ static status_t SectionExtents_WriteBoolJsonValue_Successful()
     JSON_VALUE_INIT(TYPE_BOOL, json, "value", true);
 
     fileoff_t save_json_addr;
-    fileoff_t parent_json_addr = 500;
 
-    status_t write_status = sect_ext_write(extents, json, parent_json_addr, 0, 0, &save_json_addr);
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    status_t write_status = sect_ext_write(extents, json, tplgy_addrs, &save_json_addr);
     assert(save_json_addr == sizeof(sect_head_entity_t));
 
     sect_head_entity_t *header = sect_head_entity_new();
@@ -199,9 +199,9 @@ static status_t SectionExtents_WriteBoolJsonValue_Successful()
     assert(json_entity->key_size == string_get_size(json->key));
     assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(json_entity->val_size == sizeof(json->value));
-    assert(json_entity->dad_ptr == 500);
-    assert(json_entity->bro_ptr == 0);
-    assert(json_entity->son_ptr == 0);
+    assert(json_entity->fam_addr.dad_ptr == 500);
+    assert(json_entity->fam_addr.bro_ptr == 0);
+    assert(json_entity->fam_addr.son_ptr == 0);
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
@@ -240,9 +240,9 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
     JSON_VALUE_INIT(TYPE_STRING, json, "value", str);
 
     fileoff_t save_json_addr;
-    fileoff_t parent_json_addr = 500;
 
-    status_t write_status = sect_ext_write(extents, json, parent_json_addr, 0, 0, &save_json_addr);
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    status_t write_status = sect_ext_write(extents, json, tplgy_addrs, &save_json_addr);
     assert(save_json_addr == sizeof(sect_head_entity_t));
 
     sect_head_entity_t *header = sect_head_entity_new();
@@ -257,9 +257,9 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
     assert(json_entity->key_size == string_get_size(json->key));
     assert(json_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - string_get_size(json->value.string_val));
     assert(json_entity->val_size == string_get_size(json->value.string_val));
-    assert(json_entity->dad_ptr == 500);
-    assert(json_entity->bro_ptr == 0);
-    assert(json_entity->son_ptr == 0);
+    assert(json_entity->fam_addr.dad_ptr == 500);
+    assert(json_entity->fam_addr.bro_ptr == 0);
+    assert(json_entity->fam_addr.son_ptr == 0);
 
     char *key_val = my_malloc_array(char, json_entity->key_size);
     RA_FREAD_OR_FAIL(key_val, sizeof(char) * json_entity->key_size, json_entity->key_ptr, file);
@@ -298,11 +298,11 @@ static status_t SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed()
 
     JSON_VALUE_INIT(TYPE_STRING, json, "value", str);
 
-    fileoff_t save_json_addr;
-    fileoff_t parent_json_addr = 500;
-
     extents->header.free_space = 5;
-    status_t write_status = sect_ext_write(extents, json, parent_json_addr, 0, 0, &save_json_addr);
+
+    fileoff_t save_json_addr;
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    status_t write_status = sect_ext_write(extents, json, tplgy_addrs, &save_json_addr);
 
     json_dtor(json);
     sect_ext_dtor(extents);
@@ -328,7 +328,9 @@ static status_t SectionExtents_WriteObjectJsonValue_Successful()
 
     JSON_VALUE_INIT(TYPE_OBJECT, object_json, "parent", NULL);
 
-    status_t write_status = sect_ext_write(extents, object_json, parent_json_addr, 0, 0, &object_json_addr);
+    fileoff_t save_json_addr;
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 1000, .bro_ptr = 0, .son_ptr = 0};
+    status_t write_status = sect_ext_write(extents, object_json, tplgy_addrs, &object_json_addr);
     assert(object_json_addr == sizeof(sect_head_entity_t));
 
     entity_t *object_json_entity = entity_new();
@@ -337,9 +339,9 @@ static status_t SectionExtents_WriteObjectJsonValue_Successful()
     assert(object_json_entity->key_size == string_get_size(object_json->key));
     assert(object_json_entity->val_ptr == 0);
     assert(object_json_entity->val_size == 0);
-    assert(object_json_entity->dad_ptr == 1000);
-    assert(object_json_entity->bro_ptr == 0);
-    assert(object_json_entity->son_ptr == 0);
+    assert(object_json_entity->fam_addr.dad_ptr == 1000);
+    assert(object_json_entity->fam_addr.bro_ptr == 0);
+    assert(object_json_entity->fam_addr.son_ptr == 0);
     assert(object_json_entity->type == TYPE_OBJECT);
 
     json_dtor(object_json);

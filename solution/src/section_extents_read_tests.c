@@ -18,8 +18,8 @@ static status_t SectionExtents_ReadInt32Json_Successful()
     JSON_VALUE_INIT(TYPE_INT32, json, "value", 5);
 
     fileoff_t save_json_addr;
-
-    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -29,9 +29,9 @@ static status_t SectionExtents_ReadInt32Json_Successful()
     assert(r_entity->key_size == string_get_size(json->key));
     assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(r_entity->val_size == sizeof(json->value));
-    assert(r_entity->dad_ptr == 500);
-    assert(r_entity->bro_ptr == 0);
-    assert(r_entity->son_ptr == 0);
+    assert(r_entity->fam_addr.dad_ptr == 500);
+    assert(r_entity->fam_addr.bro_ptr == 0);
+    assert(r_entity->fam_addr.son_ptr == 0);
     assert(r_entity->type == TYPE_INT32);
 
     assert(r_json->key->cnt == json->key->cnt);
@@ -63,7 +63,8 @@ static status_t SectionExtents_ReadFloatJson_Successful()
 
     fileoff_t save_json_addr;
 
-    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -73,9 +74,9 @@ static status_t SectionExtents_ReadFloatJson_Successful()
     assert(r_entity->key_size == string_get_size(json->key));
     assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(r_entity->val_size == sizeof(json->value));
-    assert(r_entity->dad_ptr == 500);
-    assert(r_entity->bro_ptr == 0);
-    assert(r_entity->son_ptr == 0);
+    assert(r_entity->fam_addr.dad_ptr == 500);
+    assert(r_entity->fam_addr.bro_ptr == 0);
+    assert(r_entity->fam_addr.son_ptr == 0);
     assert(r_entity->type == TYPE_FLOAT);
 
     assert(r_json->key->cnt == json->key->cnt);
@@ -107,7 +108,8 @@ static status_t SectionExtents_ReadBoolJson_Successful()
 
     fileoff_t save_json_addr;
 
-    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -117,9 +119,9 @@ static status_t SectionExtents_ReadBoolJson_Successful()
     assert(r_entity->key_size == string_get_size(json->key));
     assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - sizeof(json->value));
     assert(r_entity->val_size == sizeof(json->value));
-    assert(r_entity->dad_ptr == 500);
-    assert(r_entity->bro_ptr == 0);
-    assert(r_entity->son_ptr == 0);
+    assert(r_entity->fam_addr.dad_ptr == 500);
+    assert(r_entity->fam_addr.bro_ptr == 0);
+    assert(r_entity->fam_addr.son_ptr == 0);
     assert(r_entity->type == TYPE_BOOL);
 
     assert(r_json->key->cnt == json->key->cnt);
@@ -154,7 +156,8 @@ static status_t SectionExtents_ReadStringJson_Successful()
 
     fileoff_t save_json_addr;
 
-    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -164,9 +167,9 @@ static status_t SectionExtents_ReadStringJson_Successful()
     assert(r_entity->key_size == string_get_size(json->key));
     assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key) - string_get_size(json->value.string_val));
     assert(r_entity->val_size == string_get_size(json->value.string_val));
-    assert(r_entity->dad_ptr == 500);
-    assert(r_entity->bro_ptr == 0);
-    assert(r_entity->son_ptr == 0);
+    assert(r_entity->fam_addr.dad_ptr == 500);
+    assert(r_entity->fam_addr.bro_ptr == 0);
+    assert(r_entity->fam_addr.son_ptr == 0);
     assert(r_entity->type == TYPE_STRING);
 
     assert(r_json->key->cnt == json->key->cnt);
@@ -199,7 +202,8 @@ static status_t SectionExtents_ReadObjectJson_Successful()
 
     fileoff_t save_json_addr;
 
-    DO_OR_FAIL(sect_ext_write(extents, json, 500, 0, 0, &save_json_addr));
+    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
+    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -209,9 +213,9 @@ static status_t SectionExtents_ReadObjectJson_Successful()
     assert(r_entity->key_size == string_get_size(json->key));
     assert(r_entity->val_ptr == 0);
     assert(r_entity->val_size == 0);
-    assert(r_entity->dad_ptr == 500);
-    assert(r_entity->bro_ptr == 0);
-    assert(r_entity->son_ptr == 0);
+    assert(r_entity->fam_addr.dad_ptr == 500);
+    assert(r_entity->fam_addr.bro_ptr == 0);
+    assert(r_entity->fam_addr.son_ptr == 0);
     assert(r_entity->type == TYPE_OBJECT);
 
     assert(r_json->key->cnt == json->key->cnt);

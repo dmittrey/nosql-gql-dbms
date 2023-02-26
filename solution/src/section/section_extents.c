@@ -23,24 +23,23 @@ void sect_ext_dtor(sect_ext_t *section)
     sect_head_dtor((sect_head_t *)section);
 }
 
-status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, const fileoff_t dad_addr, const fileoff_t bro_addr, const fileoff_t son_addr, sectoff_t *const save_addr)
+status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, const tplgy_addr tplgy_addrs, sectoff_t *const save_addr)
 {
-    entity_t entity;
-    entity_ctor(&entity, json, dad_addr, bro_addr, son_addr);
+    ENTITY_INIT(entity, json, tplgy_addrs.dad_ptr, tplgy_addrs.bro_ptr, tplgy_addrs.son_ptr);
 
     if (section->header.free_space < sizeof(entity_t))
         return FAILED;
 
     *save_addr = section->header.lst_itm_ptr;
 
-    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity.key_ptr));
+    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity->key_ptr));
 
-    if (entity.type != TYPE_OBJECT)
+    if (entity->type != TYPE_OBJECT)
     {
-        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity.val_ptr));
+        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity->val_ptr));
     }
 
-    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), &entity));
+    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), entity));
 
     return OK;
 }
@@ -102,34 +101,34 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t offset, cons
     RA_FREAD_OR_FAIL(old_entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, offset), section->header.filp);
 
     entity_t *new_entity = entity_new();
-    entity_ctor(new_entity, new_json, old_entity->dad_ptr, old_entity->bro_ptr, old_entity->son_ptr);
+    entity_ctor(new_entity, new_json, old_entity->fam_addr.dad_ptr, old_entity->fam_addr.bro_ptr, old_entity->fam_addr.son_ptr);
 
-    if (offset + sizeof(entity_t) == section->header.lst_itm_ptr)
+    if (section->header.free_space + entity_ph_size(old_entity) - entity_ph_size(new_entity) >= 0)
     {
-        if (section->header.free_space + sizeof(entity_t) - sizeof(entity_t) >= 0)
+        if (offset + sizeof(entity_t) == section->header.lst_itm_ptr)
         {
+            section->header.lst_itm_ptr -= entity_itm_size(old_entity);
+            section->header.fst_rec_ptr += entity_rec_size(old_entity);
+            section->header.free_space += entity_ph_size(old_entity);
+
             fileoff_t save_addr;
             DO_OR_FAIL(
-                sect_head_shift_lst_itm_ptr(&section->header, old_entity->key_size + old_entity->val_size));
-            DO_OR_FAIL(
-                sect_ext_write(section, new_json, new_entity->dad_ptr, new_entity->bro_ptr, new_entity->son_ptr, &save_addr));
+                sect_ext_write(section, new_json, (tplgy_addr){new_entity->fam_addr.dad_ptr, new_entity->fam_addr.bro_ptr, new_entity->fam_addr.son_ptr}, &save_addr));
 
             return OK;
         }
-    }
-    else
-    {
-        if (sizeof(entity_t) >= sizeof(entity_t))
+        else if (entity_ph_size(new_entity) <= entity_ph_size(old_entity))
         {
             sectoff_t prev_last_item_ptr = section->header.lst_itm_ptr;
             sectoff_t prev_first_record_ptr = section->header.fst_rec_ptr;
 
             section->header.lst_itm_ptr = offset;
-            section->header.fst_rec_ptr = old_entity->key_ptr + old_entity->key_size;
+            section->header.fst_rec_ptr = old_entity->key_ptr + old_entity->key_size; // TODO
+            section->header.free_space += entity_ph_size(old_entity);
 
             fileoff_t save_addr;
             DO_OR_FAIL(
-                sect_ext_write(section, new_json, new_entity->dad_ptr, new_entity->bro_ptr, new_entity->son_ptr, &save_addr));
+                sect_ext_write(section, new_json, (tplgy_addr){new_entity->fam_addr.dad_ptr, new_entity->fam_addr.bro_ptr, new_entity->fam_addr.son_ptr}, &save_addr));
 
             section->header.lst_itm_ptr = prev_last_item_ptr;
             section->header.fst_rec_ptr = prev_first_record_ptr;
