@@ -159,8 +159,8 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t offset)
         entity_t *entity = entity_new();
         RA_FREAD_OR_FAIL(entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, offset), section->header.filp);
 
-        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * sizeof(entity_t)));
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity->key_size + entity->val_size));
+        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * entity_itm_size(entity)));
+        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(entity)));
 
         entity_dtor(entity);
     }
