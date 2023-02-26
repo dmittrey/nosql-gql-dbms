@@ -24,3 +24,5 @@ status_t sect_ext_update(sect_ext_t *const, const sectoff_t, const json_t *const
 status_t sect_ext_delete(sect_ext_t *const, const sectoff_t);
 
 status_t sect_ext_sync(sect_ext_t *const);
+
+status_t sect_ext_add_next(sect_ext_t *const);

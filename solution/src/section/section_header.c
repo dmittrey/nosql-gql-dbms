@@ -59,3 +59,5 @@ fileoff_t sect_head_get_fileoff(const sect_head_t *const header, const sectoff_t
 {
     return header->sect_off + offset;
 }
+
+status_t sect_head_add_next(sect_head_t *const header);

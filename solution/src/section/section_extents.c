@@ -193,3 +193,5 @@ status_t sect_ext_sync(sect_ext_t *const section)
 {
     return sect_head_sync(&section->header);
 }
+
+status_t sect_ext_add_next(sect_ext_t *const extents);
