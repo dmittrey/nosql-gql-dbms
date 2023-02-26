@@ -16,10 +16,10 @@ static status_t SectionExtents_ReadInt32Json_Successful()
     sect_ext_ctor(extents, 0, file);
 
     JSON_VALUE_INIT(TYPE_INT32, json, "value", 5);
+    ENTITY_INIT(entity, json, 500, 0, 0);
 
     fileoff_t save_json_addr;
-    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
-    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
+    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -60,11 +60,10 @@ static status_t SectionExtents_ReadFloatJson_Successful()
     sect_ext_ctor(extents, 0, file);
 
     JSON_VALUE_INIT(TYPE_FLOAT, json, "value", 5.5);
+    ENTITY_INIT(entity, json, 500, 0, 0);
 
     fileoff_t save_json_addr;
-
-    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
-    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
+    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -105,11 +104,10 @@ static status_t SectionExtents_ReadBoolJson_Successful()
     sect_ext_ctor(extents, 0, file);
 
     JSON_VALUE_INIT(TYPE_BOOL, json, "value", true);
+    ENTITY_INIT(entity, json, 500, 0, 0);
 
     fileoff_t save_json_addr;
-
-    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
-    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
+    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -153,11 +151,10 @@ static status_t SectionExtents_ReadStringJson_Successful()
     string_ctor(str, "test_value", 10);
 
     JSON_VALUE_INIT(TYPE_STRING, json, "value", str);
+    ENTITY_INIT(entity, json, 500, 0, 0);
 
     fileoff_t save_json_addr;
-
-    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
-    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
+    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -199,11 +196,10 @@ static status_t SectionExtents_ReadObjectJson_Successful()
     sect_ext_ctor(extents, 0, file);
 
     JSON_VALUE_INIT(TYPE_OBJECT, json, "value", NULL);
+    ENTITY_INIT(entity, json, 500, 0, 0);
 
     fileoff_t save_json_addr;
-
-    tplgy_addr tplgy_addrs = (tplgy_addr) {.dad_ptr = 500, .bro_ptr = 0, .son_ptr = 0};
-    DO_OR_FAIL(sect_ext_write(extents, json, tplgy_addrs, &save_json_addr));
+    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_addr));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();

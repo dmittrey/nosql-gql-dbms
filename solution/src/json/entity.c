@@ -17,6 +17,7 @@ void entity_ctor(entity_t *const entity, const json_t *const json, const fileoff
     entity->fam_addr.bro_ptr = bro_json_addr;
     entity->fam_addr.son_ptr = son_json_addr;
     entity->type = json->type;
+    entity->rec_size = entity->key_size + entity->val_size;
 }
 void entity_dtor(entity_t *entity)
 {

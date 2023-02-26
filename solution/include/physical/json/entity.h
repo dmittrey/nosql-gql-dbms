@@ -22,6 +22,7 @@ typedef struct
     size_t val_size;
     tplgy_addr fam_addr;
     uint64_t type;
+    size_t rec_size;
 } entity_t;
 
 entity_t *entity_new();
