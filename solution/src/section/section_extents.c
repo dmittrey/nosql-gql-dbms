@@ -113,6 +113,9 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t offset, cons
             DO_OR_FAIL(
                 sect_ext_write(section, new_json, new_entity, &save_addr));
 
+            entity_dtor(new_entity);
+            entity_dtor(old_entity);
+
             return OK;
         }
         else if (entity_rec_size(new_entity) <= old_entity->rec_size)
@@ -132,6 +135,9 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t offset, cons
 
             section->header.lst_itm_ptr = prev_last_item_ptr;
             section->header.fst_rec_ptr = prev_first_record_ptr;
+
+            entity_dtor(new_entity);
+            entity_dtor(old_entity);
 
             return OK;
         }

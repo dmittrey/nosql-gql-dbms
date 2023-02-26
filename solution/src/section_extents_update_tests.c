@@ -60,6 +60,7 @@ static status_t SectionExtents_UpdateBoundaryElement_ShiftPtrsAndUpdate()
     assert(r_json->type == TYPE_STRING);
 
     json_dtor(json);
+    json_dtor(updated_json);
     json_dtor(r_json);
 
     entity_dtor(entity);
@@ -120,6 +121,7 @@ static status_t SectionExtents_UpdateInsideElementWithEqualSizeWithEnoughSpace_U
 
     json_dtor(first_json);
     json_dtor(second_json);
+    json_dtor(updated_json);
     json_dtor(r_json);
 
     entity_dtor(f_entity);
@@ -191,6 +193,7 @@ static status_t SectionExtents_UpdateInsideElementWithLessSizeWithEnoughSpace_Up
 
     json_dtor(first_json);
     json_dtor(second_json);
+    json_dtor(updated_json);
     json_dtor(r_json);
 
     entity_dtor(f_entity);
@@ -243,7 +246,7 @@ static status_t SectionExtents_UpdateInsideElementWithGreaterSizeWithEnoughSpace
     assert(extents->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - 2 * sizeof(entity_t) - string_get_size(first_json->key) - string_get_size(second_json->key) - sizeof(second_json->value) - string_get_size(first_json->value.string_val)));
     assert(extents->header.next_ptr == 0);
     assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(entity_t));
-    assert(extents->header.fst_rec_ptr == SECTION_SIZE - string_get_size(first_json->key)  - string_get_size(second_json->key) - sizeof(second_json->value) - string_get_size(first_json->value.string_val));
+    assert(extents->header.fst_rec_ptr == SECTION_SIZE - string_get_size(first_json->key) - string_get_size(second_json->key) - sizeof(second_json->value) - string_get_size(first_json->value.string_val));
 
     assert(r_f_entity->key_ptr == SECTION_SIZE - string_get_size(first_json->key));
     assert(r_f_entity->key_size == string_get_size(first_json->key));
@@ -329,7 +332,7 @@ static status_t SectionExtents_UpdateInsideElementWithGreaterSizeWithNotEnoughSp
     assert(extents->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - 2 * sizeof(entity_t) - string_get_size(first_json->key) - string_get_size(second_json->key) - 2 * sizeof(second_json->value)));
     assert(extents->header.next_ptr == 0);
     assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(entity_t));
-    assert(extents->header.fst_rec_ptr == SECTION_SIZE - string_get_size(first_json->key)  - string_get_size(second_json->key) - 2 * sizeof(first_json->value));
+    assert(extents->header.fst_rec_ptr == SECTION_SIZE - string_get_size(first_json->key) - string_get_size(second_json->key) - 2 * sizeof(first_json->value));
 
     assert(r_f_entity->key_ptr == SECTION_SIZE - string_get_size(first_json->key));
     assert(r_f_entity->key_size == string_get_size(first_json->key));
@@ -359,6 +362,7 @@ static status_t SectionExtents_UpdateInsideElementWithGreaterSizeWithNotEnoughSp
 
     json_dtor(first_json);
     json_dtor(second_json);
+    json_dtor(updated_json);
     json_dtor(r_f_json);
     json_dtor(r_s_json);
 

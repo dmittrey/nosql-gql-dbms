@@ -41,6 +41,8 @@ static status_t SectionExtents_ReadInt32Json_Successful()
 
     json_dtor(json);
     json_dtor(r_json);
+
+    entity_dtor(entity);
     entity_dtor(r_entity);
 
     sect_ext_dtor(extents);
@@ -85,6 +87,8 @@ static status_t SectionExtents_ReadFloatJson_Successful()
 
     json_dtor(json);
     json_dtor(r_json);
+
+    entity_dtor(entity);
     entity_dtor(r_entity);
 
     sect_ext_dtor(extents);
@@ -129,6 +133,8 @@ static status_t SectionExtents_ReadBoolJson_Successful()
 
     json_dtor(json);
     json_dtor(r_json);
+
+    entity_dtor(entity);
     entity_dtor(r_entity);
 
     sect_ext_dtor(extents);
@@ -177,6 +183,8 @@ static status_t SectionExtents_ReadStringJson_Successful()
 
     json_dtor(json);
     json_dtor(r_json);
+
+    entity_dtor(entity);
     entity_dtor(r_entity);
 
     sect_ext_dtor(extents);
@@ -220,6 +228,8 @@ static status_t SectionExtents_ReadObjectJson_Successful()
 
     json_dtor(json);
     json_dtor(r_json);
+
+    entity_dtor(entity);
     entity_dtor(r_entity);
 
     sect_ext_dtor(extents);

@@ -106,16 +106,17 @@ static status_t SectionExtents_WriteInt32JsonValue_Successful()
     assert(val_val == json->value.int32_val);
 
     json_dtor(json);
+
+    entity_dtor(entity);
     entity_dtor(json_entity);
+
     sect_head_entity_dtor(header);
-    
+
     sect_ext_dtor(extents);
+
     fclose(file);
 
-    if (remove(test_file_name))
-    {
-        return FAILED;
-    }
+    DO_OR_FAIL(remove(test_file_name));
 
     return write_status;
 }
@@ -160,16 +161,17 @@ static status_t SectionExtents_WriteFloatJsonValue_Successful()
     assert(val_val == json->value.float_val);
 
     json_dtor(json);
+
+    entity_dtor(entity);
     entity_dtor(json_entity);
+
     sect_head_entity_dtor(header);
 
     sect_ext_dtor(extents);
+
     fclose(file);
 
-    if (remove(test_file_name))
-    {
-        return FAILED;
-    }
+    DO_OR_FAIL(remove(test_file_name));
 
     return write_status;
 }
@@ -190,7 +192,7 @@ static status_t SectionExtents_WriteBoolJsonValue_Successful()
 
     sect_head_entity_t *header = sect_head_entity_new();
     RA_FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), 0, file);
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(json->key))); 
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - sizeof(json->value) - string_get_size(json->key)));
     assert(header->fst_rec_ptr == (SECTION_SIZE - sizeof(json->value) - string_get_size(json->key)));
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
@@ -214,16 +216,17 @@ static status_t SectionExtents_WriteBoolJsonValue_Successful()
     assert(val_val == json->value.bool_val);
 
     json_dtor(json);
+
+    entity_dtor(entity);
     entity_dtor(json_entity);
+
     sect_head_entity_dtor(header);
 
     sect_ext_dtor(extents);
+
     fclose(file);
 
-    if (remove(test_file_name))
-    {
-        return FAILED;
-    }
+    DO_OR_FAIL(remove(test_file_name));
 
     return write_status;
 }
@@ -247,7 +250,7 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
 
     sect_head_entity_t *header = sect_head_entity_new();
     RA_FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), 0, file);
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - string_get_size(json->value.string_val) - string_get_size(json->key))); 
+    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - string_get_size(json->value.string_val) - string_get_size(json->key)));
     assert(header->fst_rec_ptr == (SECTION_SIZE - string_get_size(json->value.string_val) - string_get_size(json->key)));
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
 
@@ -272,16 +275,17 @@ static status_t SectionExtents_WriteStringJsonValue_Successful()
     free(val_val);
 
     json_dtor(json);
+
+    entity_dtor(entity);
     entity_dtor(json_entity);
+
     sect_head_entity_dtor(header);
 
     sect_ext_dtor(extents);
+
     fclose(file);
 
-    if (remove(test_file_name))
-    {
-        return FAILED;
-    }
+    DO_OR_FAIL(remove(test_file_name));
 
     return write_status;
 }
@@ -305,13 +309,14 @@ static status_t SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed()
     status_t write_status = sect_ext_write(extents, json, entity, &save_json_addr);
 
     json_dtor(json);
+
+    entity_dtor(entity);
+
     sect_ext_dtor(extents);
+
     fclose(file);
 
-    if (remove(test_file_name))
-    {
-        return FAILED;
-    }
+    DO_OR_FAIL(remove(test_file_name));
 
     return write_status;
 }
@@ -345,15 +350,15 @@ static status_t SectionExtents_WriteObjectJsonValue_Successful()
     assert(object_json_entity->type == TYPE_OBJECT);
 
     json_dtor(object_json);
+
+    entity_dtor(entity);
     entity_dtor(object_json_entity);
 
     sect_ext_dtor(extents);
+
     fclose(file);
 
-    if (remove(test_file_name))
-    {
-        return FAILED;
-    }
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }

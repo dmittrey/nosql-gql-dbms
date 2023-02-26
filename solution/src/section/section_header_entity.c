@@ -9,4 +9,3 @@ void sect_head_entity_dtor(sect_head_entity_t *section)
 {
     free(section);
 }
-
