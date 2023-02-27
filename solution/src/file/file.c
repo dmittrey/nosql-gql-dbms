@@ -1,6 +1,6 @@
 #include "memory/file/file.h"
 
-static sect_ext_t *get_sect_ext(fileoff_t fileoff);
+static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff);
 static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size);
 
 file_t *file_new()
@@ -46,7 +46,8 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
     }
 
     sect_ext_t *extents = find_sect_ext(file, entity_ph_size(entity));
-    if (extents == NULL) {
+    if (extents == NULL)
+    {
         extents = sect_ext_new();
         DO_OR_FAIL(file_add_sect_ext(file, extents));
     }
@@ -76,20 +77,24 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
 */
 status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const ret_json)
 {
-    sect_ext_t *extents = get_sect_ext(fileoff);
+    sect_ext_t *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL) return FAILED; // Заменить на дополнение секциями до fileoff 
+                                        // и выборка последней секции
 
     sectoff_t sectoff = fileoff - extents->header.sect_off;
 
     entity_t *entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, sectoff, entity, ret_json));
 
-    if (entity->fam_addr.bro_ptr != 0) {
+    if (entity->fam_addr.bro_ptr != 0)
+    {
         json_t *bro_json = json_new();
         DO_OR_FAIL(file_read(file, entity->fam_addr.bro_ptr, bro_json));
         ret_json->bro = bro_json;
     }
 
-    if (entity->fam_addr.son_ptr != 0) {
+    if (entity->fam_addr.son_ptr != 0)
+    {
         json_t *son_json = json_new();
         DO_OR_FAIL(file_read(file, entity->fam_addr.son_ptr, son_json));
         ret_json->son = son_json;
@@ -115,7 +120,21 @@ status_t file_read_sect_ext(file_t *const file, const fileoff_t fileoff, sect_ex
     return OK;
 }
 
-static sect_ext_t *get_sect_ext(fileoff_t fileoff);
+static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff)
+{
+    for (size_t i = 0; i < fileoff; i += SECTION_SIZE)
+    {
+        // Если мы не ушли за пределы файла и fileoff в секции
+        if (i < file->lst_sect_ptr && i < fileoff && (i + SECTION_SIZE) > fileoff)
+        {
+            sect_ext_t *extents = sect_ext_new();
+            RA_FREAD_OR_FAIL(extents, sizeof(sect_ext_t), (void *)i, file->filp);
+            return extents;
+        }
+    }
+
+    return NULL;
+}
 static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size)
 {
     sect_ext_t *cur_ext = file->f_extent;
