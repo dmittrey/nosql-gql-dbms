@@ -12,7 +12,7 @@
 
 static const char *test_file_name = "test.bin";
 
-status_t SectionExtents_DeleteIntBoundaryElement_ShiftPtrs()
+static status_t SectionExtents_DeleteIntBoundaryElement_ShiftPtrs()
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -45,7 +45,7 @@ status_t SectionExtents_DeleteIntBoundaryElement_ShiftPtrs()
     return OK;
 }
 
-status_t SectionExtents_DeleteStringBoundaryElement_ShiftPtrs()
+static status_t SectionExtents_DeleteStringBoundaryElement_ShiftPtrs()
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -80,7 +80,7 @@ status_t SectionExtents_DeleteStringBoundaryElement_ShiftPtrs()
     return OK;
 }
 
-status_t SectionExtents_UpdateInsideElement_Nothing()
+static status_t SectionExtents_UpdateInsideElement_Nothing()
 {
     FILE *file = fopen(test_file_name, "w+");
 
