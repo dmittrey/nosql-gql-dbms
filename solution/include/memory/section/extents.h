@@ -8,6 +8,14 @@
 #include "memory/json/json.h"
 #include "physical/json/entity.h"
 
+#define ADD_SECT_EXT_TO_END(LIST_NODE, ADD_NODE) \
+    sect_ext_t *cur = LIST_NODE;                 \
+    while (cur->next != NULL)                    \
+    {                                            \
+        cur = cur->next;                         \
+    }                                            \
+    cur->next = ADD_NODE;
+
 typedef struct sect_ext_t
 {
     sect_head_t header;
