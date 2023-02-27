@@ -16,6 +16,7 @@ sect_ext_t *sect_ext_new()
 
 status_t sect_ext_ctor(sect_ext_t *const section, const fileoff_t offset, FILE *const filp)
 {
+    section->next = NULL;
     return sect_head_ctor((sect_head_t *)section, offset, filp);
 }
 void sect_ext_dtor(sect_ext_t *section)

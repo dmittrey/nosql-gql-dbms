@@ -8,9 +8,10 @@
 #include "memory/json/json.h"
 #include "physical/json/entity.h"
 
-typedef struct
+typedef struct sect_ext_t
 {
     sect_head_t header;
+    struct sect_ext_t *next;
 } sect_ext_t;
 
 sect_ext_t *sect_ext_new();
