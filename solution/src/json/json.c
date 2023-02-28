@@ -35,10 +35,12 @@ void json_dtor(json_t *json)
 
     // Free all children
     json_t *cur_son = json->son;
+    json_t *next_son = NULL;
     while (cur_son != NULL)
     {
-        free(cur_son);
-        cur_son = cur_son->bro;
+        next_son = cur_son->bro;
+        json_dtor(cur_son);
+        cur_son = next_son;
     }
 
     // Free json

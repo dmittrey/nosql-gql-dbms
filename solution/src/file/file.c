@@ -16,6 +16,15 @@ void file_ctor(file_t *const file, FILE *const filp)
 }
 void file_dtor(file_t *file)
 {
+    sect_ext_t *cur_extent = file->f_extent;
+    sect_ext_t *next_extent = NULL;
+    while (cur_extent != NULL)
+    {
+        next_extent = cur_extent->next;
+        sect_ext_dtor(cur_extent);
+        cur_extent = next_extent;
+    }
+
     free(file);
 }
 
@@ -59,6 +68,8 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
     {
         RA_FWRITE_OR_FAIL(write_addr, sizeof(write_addr), son_offset + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, dad_ptr), file->filp);
     }
+
+    entity_dtor(entity);
 
     return OK;
 }

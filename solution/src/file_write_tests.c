@@ -62,6 +62,16 @@ static status_t File_WriteString_AddSectionAndWrite()
     assert(o_entity->fam_addr.bro_ptr == entity->fam_addr.bro_ptr);
     assert(o_entity->fam_addr.son_ptr == entity->fam_addr.son_ptr);
 
+    json_dtor(json);
+    json_dtor(o_json);
+
+    entity_dtor(entity);
+    entity_dtor(o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -103,6 +113,16 @@ static status_t File_WriteInt32_AddSectionAndWrite()
     assert(o_entity->fam_addr.bro_ptr == entity->fam_addr.bro_ptr);
     assert(o_entity->fam_addr.son_ptr == entity->fam_addr.son_ptr);
 
+    json_dtor(json);
+    json_dtor(o_json);
+
+    entity_dtor(entity);
+    entity_dtor(o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -122,7 +142,7 @@ static status_t File_WriteBool_AddSectionAndWrite()
     // Проверка создания новой секции
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
-    assert(file->f_extent->header.filp = filp);
+    assert(file->f_extent->header.filp == filp);
     assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(entity));
     assert(file->f_extent->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(entity));
     assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + entity_itm_size(entity));
@@ -143,6 +163,16 @@ static status_t File_WriteBool_AddSectionAndWrite()
     assert(o_entity->fam_addr.dad_ptr == entity->fam_addr.dad_ptr);
     assert(o_entity->fam_addr.bro_ptr == entity->fam_addr.bro_ptr);
     assert(o_entity->fam_addr.son_ptr == entity->fam_addr.son_ptr);
+
+    json_dtor(json);
+    json_dtor(o_json);
+
+    entity_dtor(entity);
+    entity_dtor(o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
@@ -163,7 +193,7 @@ static status_t File_WriteFloat_AddSectionAndWrite()
     // Проверка создания новой секции
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
-    assert(file->f_extent->header.filp = filp);
+    assert(file->f_extent->header.filp == filp);
     assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(entity));
     assert(file->f_extent->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(entity));
     assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + entity_itm_size(entity));
@@ -184,6 +214,16 @@ static status_t File_WriteFloat_AddSectionAndWrite()
     assert(o_entity->fam_addr.dad_ptr == entity->fam_addr.dad_ptr);
     assert(o_entity->fam_addr.bro_ptr == entity->fam_addr.bro_ptr);
     assert(o_entity->fam_addr.son_ptr == entity->fam_addr.son_ptr);
+
+    json_dtor(json);
+    json_dtor(o_json);
+
+    entity_dtor(entity);
+    entity_dtor(o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
@@ -211,7 +251,7 @@ static status_t File_WriteTwoStrings_AddSectionAndWriteTwoObjectsInOneSect()
     // Проверка создания новой секции
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
-    assert(file->f_extent->header.filp = filp);
+    assert(file->f_extent->header.filp == filp);
     assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(f_entity) - entity_ph_size(s_entity));
     assert(file->f_extent->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(f_entity) - entity_rec_size(s_entity));
     assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + entity_itm_size(f_entity) + entity_itm_size(s_entity));
@@ -247,6 +287,20 @@ static status_t File_WriteTwoStrings_AddSectionAndWriteTwoObjectsInOneSect()
     assert(s_o_entity->fam_addr.bro_ptr == s_entity->fam_addr.bro_ptr);
     assert(s_o_entity->fam_addr.son_ptr == s_entity->fam_addr.son_ptr);
 
+    json_dtor(f_json);
+    json_dtor(s_json);
+    json_dtor(f_o_json);
+    json_dtor(s_o_json);
+
+    entity_dtor(f_entity);
+    entity_dtor(s_entity);
+    entity_dtor(f_o_entity);
+    entity_dtor(s_o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -276,7 +330,7 @@ static status_t File_WriteObject_AddSectionAndWriteComponents()
 
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
-    assert(file->f_extent->header.filp = filp);
+    assert(file->f_extent->header.filp == filp);
     assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(f_entity) - entity_ph_size(s_entity) - entity_ph_size(obj_entity));
     assert(file->f_extent->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(f_entity) - entity_rec_size(s_entity) - entity_rec_size(obj_entity));
     assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + entity_itm_size(f_entity) + entity_itm_size(s_entity) + entity_itm_size(obj_entity));
@@ -323,6 +377,23 @@ static status_t File_WriteObject_AddSectionAndWriteComponents()
     assert(obj_o_entity->type == obj_entity->type);
     assert(obj_o_entity->fam_addr.dad_ptr == 0);
 
+    json_dtor(f_json);
+    json_dtor(obj_json);
+    json_dtor(f_o_json);
+    json_dtor(s_o_json);
+    json_dtor(obj_o_json);
+
+    entity_dtor(f_entity);
+    entity_dtor(s_entity);
+    entity_dtor(obj_entity);
+    entity_dtor(f_o_entity);
+    entity_dtor(s_o_entity);
+    entity_dtor(obj_o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -363,6 +434,17 @@ static status_t File_WriteObjectInFileWithExistExtentsion_WriteComponents()
     assert(file->f_extent->header.next_ptr == 0);
     assert(file->f_extent->header.sect_off == sizeof(file_head_t));
     assert(file->f_extent->next == NULL);
+
+    json_dtor(f_json);
+    json_dtor(obj_json);
+
+    entity_dtor(f_entity);
+    entity_dtor(s_entity);
+    entity_dtor(obj_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
@@ -411,7 +493,7 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
     assert(file->f_extent->next->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(s_entity));
     assert(file->f_extent->next->header.lst_itm_ptr == sizeof(sect_head_entity_t) + entity_itm_size(s_entity));
     assert(file->f_extent->next->header.next_ptr == 0);
-    assert(file->f_extent->next->header.sect_off = sizeof(file_head_t) + SECTION_SIZE);
+    assert(file->f_extent->next->header.sect_off == sizeof(file_head_t) + SECTION_SIZE);
 
     entity_t *obj_o_entity = entity_new();
     json_t *obj_o_json = json_new();
@@ -454,6 +536,23 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
     assert(s_o_entity->fam_addr.dad_ptr == obj_wrt_addr);
     assert(s_o_entity->fam_addr.bro_ptr == 0);
     assert(s_o_entity->fam_addr.son_ptr == 0);
+
+    json_dtor(f_json);
+    json_dtor(obj_json);
+    json_dtor(f_o_json);
+    json_dtor(s_o_json);
+    json_dtor(obj_o_json);
+
+    entity_dtor(f_entity);
+    entity_dtor(s_entity);
+    entity_dtor(obj_entity);
+    entity_dtor(f_o_entity);
+    entity_dtor(s_o_entity);
+    entity_dtor(obj_o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
