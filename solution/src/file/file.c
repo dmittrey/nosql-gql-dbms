@@ -1,6 +1,6 @@
 #include "memory/file/file.h"
 
-static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff);
+static status_t get_sect_ext(const file_t *const file, fileoff_t fileoff, sect_ext_t *r_sect_ext);
 static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size);
 
 file_t *file_new()
@@ -10,7 +10,7 @@ file_t *file_new()
 
 void file_ctor(file_t *const file, FILE *const filp)
 {
-    file->lst_sect_ptr = sizeof(file->lst_sect_ptr);
+    file->header.lst_sect_ptr = sizeof(file_head_t);
     file->f_extent = NULL;
     file->filp = filp;
 }
@@ -27,21 +27,21 @@ void file_dtor(file_t *file)
 5) Записали адрес текущей сущности в записанного брата
 6) Записали адрес текущей сущности в записанного сына
 */
-status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, const fileoff_t *write_addr)
+status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t *const write_addr)
 {
     ENTITY_INIT(entity, json, dad_fileoff, 0, 0);
 
     fileoff_t bro_offset = 0;
     if (json->bro != NULL)
     {
-        DO_OR_FAIL(file_write(file, json, 0, &bro_offset));
+        DO_OR_FAIL(file_write(file, json->bro, 0, &bro_offset));
         entity->fam_addr.bro_ptr = bro_offset;
     }
 
     fileoff_t son_offset = 0;
     if (json->son != NULL)
     {
-        DO_OR_FAIL(file_write(file, json, 0, &son_offset));
+        DO_OR_FAIL(file_write(file, json->son, 0, &son_offset));
         entity->fam_addr.son_ptr = son_offset;
     }
 
@@ -52,17 +52,12 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
         DO_OR_FAIL(file_add_sect_ext(file, extents));
     }
 
-    fileoff_t cur_offset;
-    sect_ext_write(extents, json, entity, &cur_offset);
-
-    if (bro_offset)
-    {
-        RA_FWRITE_OR_FAIL(&cur_offset, sizeof(cur_offset), bro_offset + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, bro_ptr), file->filp);
-    }
+    sect_ext_write(extents, json, entity, write_addr);
+    *write_addr += extents->header.sect_off;
 
     if (son_offset)
     {
-        RA_FWRITE_OR_FAIL(&cur_offset, sizeof(cur_offset), son_offset + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
+        RA_FWRITE_OR_FAIL(write_addr, sizeof(write_addr), son_offset + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, dad_ptr), file->filp);
     }
 
     return OK;
@@ -77,9 +72,9 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
 */
 status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const ret_json)
 {
-    sect_ext_t *extents = get_sect_ext(file, fileoff);
-    if (extents == NULL) return FAILED; // Заменить на дополнение секциями до fileoff 
-                                        // и выборка последней секции
+
+    sect_ext_t *extents = sect_ext_new();
+    DO_OR_FAIL(get_sect_ext(file, fileoff, extents));
 
     sectoff_t sectoff = fileoff - extents->header.sect_off;
 
@@ -108,10 +103,24 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff);
 /*
 Add empty extents section to end of file
 */
-status_t file_add_sect_ext(file_t *const file, sect_ext_t *r_extents)
+status_t file_add_sect_ext(file_t *const file, sect_ext_t *new_extents)
 {
-    DO_OR_FAIL(sect_ext_ctor(r_extents, file->lst_sect_ptr, file->filp));
-    ADD_SECT_EXT_TO_END(file->f_extent, r_extents);
+    DO_OR_FAIL(sect_ext_ctor(new_extents, file->header.lst_sect_ptr, file->filp));
+    file->header.lst_sect_ptr += SECTION_SIZE;
+    if (file->f_extent == NULL)
+    {
+        file->f_extent = new_extents;
+        return OK;
+    }
+
+    sect_ext_t *cur = file->f_extent;
+    while (cur->next != NULL)
+    {
+        cur = cur->next;
+    }
+    cur->next = new_extents;
+    cur->header.next_ptr = new_extents->header.sect_off;
+    sect_ext_sync(cur);
     return OK;
 }
 status_t file_read_sect_ext(file_t *const file, const fileoff_t fileoff, sect_ext_t *const r_sect_ext)
@@ -120,20 +129,19 @@ status_t file_read_sect_ext(file_t *const file, const fileoff_t fileoff, sect_ex
     return OK;
 }
 
-static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff)
+static status_t get_sect_ext(const file_t *const file, fileoff_t fileoff, sect_ext_t *r_sect_ext)
 {
     for (size_t i = 0; i < fileoff; i += SECTION_SIZE)
     {
         // Если мы не ушли за пределы файла и fileoff в секции
-        if (i < file->lst_sect_ptr && i < fileoff && (i + SECTION_SIZE) > fileoff)
+        if (i < file->header.lst_sect_ptr && i < fileoff && (i + SECTION_SIZE) > fileoff)
         {
-            sect_ext_t *extents = sect_ext_new();
-            RA_FREAD_OR_FAIL(extents, sizeof(sect_ext_t), (void *)i, file->filp);
-            return extents;
+            RA_FREAD_OR_FAIL(r_sect_ext, sizeof(sect_ext_t), i, file->filp);
+            return OK;
         }
     }
 
-    return NULL;
+    return FAILED;
 }
 static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size)
 {

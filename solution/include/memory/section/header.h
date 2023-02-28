@@ -18,11 +18,12 @@ sect_head_t *sect_head_new();
 status_t sect_head_ctor(sect_head_t *const, const fileoff_t, FILE *const);
 void sect_head_dtor(sect_head_t *);
 
-status_t sect_head_shift_lst_itm_ptr(sect_head_t *const, const int64_t);
-status_t sect_head_shift_fst_rec_ptr(sect_head_t *const, const int64_t);
+status_t sect_head_shift_lst_itm_ptr(sect_head_t *const, const size_t);
+status_t sect_head_shift_fst_rec_ptr(sect_head_t *const, const size_t);
 
 status_t sect_head_sync(sect_head_t *const);
 
 fileoff_t sect_head_get_fileoff(const sect_head_t *const, const sectoff_t);
+sectoff_t sect_head_get_sectoff(const sect_head_t *const header, const fileoff_t offset);
 
 status_t sect_head_add_next(sect_head_t *const);

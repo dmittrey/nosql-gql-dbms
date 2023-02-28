@@ -31,7 +31,7 @@ void sect_head_dtor(sect_head_t *header)
     free(header);
 }
 
-status_t sect_head_shift_lst_itm_ptr(sect_head_t *const header, const int64_t shift)
+status_t sect_head_shift_lst_itm_ptr(sect_head_t *const header, const size_t shift)
 {
     header->free_space -= shift;
     header->lst_itm_ptr += shift;
@@ -39,7 +39,7 @@ status_t sect_head_shift_lst_itm_ptr(sect_head_t *const header, const int64_t sh
     return sect_head_sync(header);
 }
 
-status_t sect_head_shift_fst_rec_ptr(sect_head_t *const header, const int64_t shift)
+status_t sect_head_shift_fst_rec_ptr(sect_head_t *const header, const size_t shift)
 {
     header->free_space += shift;
     header->fst_rec_ptr += shift;
@@ -58,6 +58,11 @@ status_t sect_head_sync(sect_head_t *const header)
 fileoff_t sect_head_get_fileoff(const sect_head_t *const header, const sectoff_t offset)
 {
     return header->sect_off + offset;
+}
+
+sectoff_t sect_head_get_sectoff(const sect_head_t *const header, const fileoff_t offset)
+{
+    return offset - header->sect_off;
 }
 
 status_t sect_head_add_next(sect_head_t *const header);

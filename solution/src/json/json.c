@@ -76,7 +76,7 @@ size_t json_val_size(const json_t *const json)
     }
 }
 
-void json_add_bro(json_t *const json, json_t *bro)
+void json_add_bro(json_t *const json, json_t *const bro)
 {
     json_t *cur_json = json;
     while (cur_json->bro != NULL)
@@ -87,7 +87,7 @@ void json_add_bro(json_t *const json, json_t *bro)
     cur_json->bro = bro;
 }
 
-void json_add_son(json_t *const json, json_t *son)
+void json_add_son(json_t *const json, json_t *const son)
 {
     if (json->son == NULL)
     {

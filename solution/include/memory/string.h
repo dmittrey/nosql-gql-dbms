@@ -2,6 +2,10 @@
 
 #include <stddef.h>
 
+#define STR_INIT(NAME, VAL)        \
+    string_t *NAME = string_new(); \
+    string_ctor(NAME, VAL, strlen(VAL))
+
 typedef struct
 {
     char *val;

@@ -8,14 +8,6 @@
 #include "memory/json/json.h"
 #include "physical/json/entity.h"
 
-#define ADD_SECT_EXT_TO_END(LIST_NODE, ADD_NODE) \
-    sect_ext_t *cur = LIST_NODE;                 \
-    while (cur->next != NULL)                    \
-    {                                            \
-        cur = cur->next;                         \
-    }                                            \
-    cur->next = ADD_NODE;
-
 typedef struct sect_ext_t
 {
     sect_head_t header;
@@ -28,7 +20,7 @@ status_t sect_ext_ctor(sect_ext_t *const, const fileoff_t, FILE *const);
 void sect_ext_dtor(sect_ext_t *);
 
 status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, entity_t *const entity, sectoff_t *const save_addr);
-status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t entity_addr, entity_t *const o_entity, json_t *const json);
+status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t entity_addr, entity_t *const o_entity, json_t *const o_json);
 status_t sect_ext_update(sect_ext_t *const, const sectoff_t, const json_t *const);
 status_t sect_ext_delete(sect_ext_t *const, const sectoff_t);
 
