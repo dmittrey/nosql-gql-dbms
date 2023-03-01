@@ -85,7 +85,8 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
 {
 
     sect_ext_t *extents = get_sect_ext(file, fileoff);
-    if (extents == NULL) return FAILED;
+    if (extents == NULL)
+        return FAILED;
 
     entity_t *ret_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), ret_entity, ret_json));
@@ -107,8 +108,81 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
     entity_dtor(ret_entity);
     return OK;
 }
-status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json);
-status_t file_delete(file_t *const file, const fileoff_t fileoff);
+
+/*
+1) Считали старую ноду
+2) Если есть брат - запустились от брата
+3) Если есть сын - запустились от сына
+4) Сравним ноды
+5) Если они разные, то перезаписать
+*/
+status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json)
+{
+    sect_ext_t *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+    {
+        return FAILED;
+    }
+
+    json_t *old_json = json_new();
+    entity_t *old_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
+
+    if (old_entity->fam_addr.bro_ptr != 0)
+    {
+        DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro));
+    }
+
+    if (old_entity->fam_addr.son_ptr != 0)
+    {
+        DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son));
+    }
+
+    if (json_cmp(old_json, new_json))
+    {
+        DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
+    }
+
+    json_dtor(old_json);
+    entity_dtor(old_entity);
+    return OK;
+}
+
+/*
+1) Считали старую ноду
+2) Если есть брат - запустились от брата
+3) Если есть сын - запустились от сына
+4) Сравним ноды
+5) Если они разные, то перезаписать
+*/
+status_t file_delete(file_t *const file, const fileoff_t fileoff)
+{
+    sect_ext_t *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+    {
+        return FAILED;
+    }
+
+    json_t *r_json = json_new();
+    entity_t *r_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), r_entity, r_json));
+
+    if (r_entity->fam_addr.bro_ptr != 0)
+    {
+        DO_OR_FAIL(file_update(file, r_entity->fam_addr.bro_ptr, r_json->bro));
+    }
+
+    if (r_entity->fam_addr.son_ptr != 0)
+    {
+        DO_OR_FAIL(file_update(file, r_entity->fam_addr.son_ptr, r_json->son));
+    }
+
+    DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff)));
+
+    json_dtor(r_json);
+    entity_dtor(r_entity);
+    return OK;
+}
 
 /*
 Add empty extents section to end of file

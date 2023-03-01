@@ -6,9 +6,6 @@
 #include "memory/section/header.h"
 #include "memory/section/extents.h"
 
-static status_t sect_ext_write_itm(sect_ext_t *const, const size_t, const void *const);
-static status_t sect_ext_write_rec(sect_ext_t *const, const size_t, const void *const, fileoff_t *const);
-
 sect_ext_t *sect_ext_new()
 {
     return memset(my_malloc(sect_ext_t), 0, sizeof(sect_ext_t));
@@ -31,60 +28,47 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, ent
 
     *save_addr = section->header.lst_itm_ptr;
 
-    DO_OR_FAIL(sect_ext_write_rec(section, sizeof(char) * json->key->cnt, json->key->val, &entity->key_ptr));
+    DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -1 * json->key->cnt));
+    DO_OR_FAIL(sect_ext_wrt_rec(section, section->header.fst_rec_ptr, json->key->val, json->key->cnt));
+    entity->key_ptr = section->header.fst_rec_ptr;
 
     if (entity->type != TYPE_OBJECT)
     {
-        DO_OR_FAIL(sect_ext_write_rec(section, json_val_size(json), json_val_ptr(json), &entity->val_ptr));
+        DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -1 * json_val_size(json)));
+        DO_OR_FAIL(sect_ext_wrt_rec(section, section->header.fst_rec_ptr, json_val_ptr(json), json_val_size(json)));
+        entity->val_ptr = section->header.fst_rec_ptr;
     }
 
-    DO_OR_FAIL(sect_ext_write_itm(section, sizeof(entity_t), entity));
+    DO_OR_FAIL(sect_head_shift_lst_itm_ptr((sect_head_t *)section, sizeof(entity_t)));
+    DO_OR_FAIL(sect_ext_wrt_itm(section, *save_addr, entity));
 
     return OK;
 }
 
-status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sect_addr, entity_t *const o_entity, json_t *const o_json)
+status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sectoff, entity_t *const o_entity, json_t *const o_json)
 {
-    RA_FREAD_OR_FAIL(o_entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, sect_addr), section->header.filp);
+    DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, o_entity));
 
     // Key parsing
     char *key = my_malloc_array(char, o_entity->key_size);
-    RA_FREAD_OR_FAIL(key, o_entity->key_size, sect_head_get_fileoff(&section->header, o_entity->key_ptr), section->header.filp);
+    DO_OR_FAIL(sect_ext_rd_rec(section, o_entity->key_ptr, o_entity->key_size, key));
 
     json_ctor(o_json, o_entity->type, key, o_entity->key_size);
+    free(key);
 
-    if (o_json->type == TYPE_INT32)
-    {
-        int32_t val;
-        RA_FREAD_OR_FAIL(&val, sizeof(int32_t), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
-
-        o_json->value.int32_val = val;
-    }
-    if (o_json->type == TYPE_BOOL)
-    {
-        bool val;
-        RA_FREAD_OR_FAIL(&val, sizeof(bool), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
-
-        o_json->value.bool_val = val;
-    }
-    if (o_json->type == TYPE_FLOAT)
-    {
-        float val;
-        RA_FREAD_OR_FAIL(&val, sizeof(float), sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
-
-        o_json->value.float_val = val;
-    }
     if (o_json->type == TYPE_STRING)
     {
         char *val = my_malloc_array(char, o_entity->val_size);
-        RA_FREAD_OR_FAIL(val, o_entity->val_size, sect_head_get_fileoff(&section->header, o_entity->val_ptr), section->header.filp);
+        DO_OR_FAIL(sect_ext_rd_rec(section, o_entity->val_ptr, o_entity->val_size, val));
 
         o_json->value.string_val = string_new();
         string_ctor(o_json->value.string_val, val, o_entity->val_size);
         free(val);
     }
-
-    free(key);
+    else if (o_json->type != TYPE_OBJECT)
+    {
+        DO_OR_FAIL(sect_ext_rd_rec(section, o_entity->val_ptr, o_entity->val_size, json_val_ptr(o_json)));
+    }
 
     return OK;
 }
@@ -94,17 +78,17 @@ status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sect_add
 
 Иначе проверим вместимость по размеру старой записи(сумма размеров ключа и значения)
 */
-status_t sect_ext_update(sect_ext_t *const section, const sectoff_t offset, const json_t *const new_json)
+status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, const json_t *const new_json)
 {
     entity_t *old_entity = entity_new();
-    RA_FREAD_OR_FAIL(old_entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, offset), section->header.filp);
+    DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, old_entity));
 
     entity_t *new_entity = entity_new();
     entity_ctor(new_entity, new_json, old_entity->fam_addr.dad_ptr, old_entity->fam_addr.bro_ptr, old_entity->fam_addr.son_ptr);
 
     if (section->header.free_space + entity_ph_size(old_entity) - entity_ph_size(new_entity) >= 0)
     {
-        if (offset + sizeof(entity_t) == section->header.lst_itm_ptr)
+        if (sectoff + sizeof(entity_t) == section->header.lst_itm_ptr)
         {
             section->header.lst_itm_ptr -= entity_itm_size(old_entity);
             section->header.fst_rec_ptr += entity_rec_size(old_entity);
@@ -126,7 +110,7 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t offset, cons
             sectoff_t prev_last_item_ptr = section->header.lst_itm_ptr;
             sectoff_t prev_first_record_ptr = section->header.fst_rec_ptr;
 
-            section->header.lst_itm_ptr = offset;
+            section->header.lst_itm_ptr = sectoff;
             section->header.fst_rec_ptr = old_entity->key_ptr + old_entity->key_size;
             section->header.free_space += entity_ph_size(old_entity);
 
@@ -153,12 +137,12 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t offset, cons
 /*
     Если нода является последней записанной записью, мы можем подвинуть указатели, чтобы не образовывались пропуски
 */
-status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t offset)
+status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff)
 {
-    if (offset + sizeof(entity_t) == section->header.lst_itm_ptr)
+    if (sectoff + sizeof(entity_t) == section->header.lst_itm_ptr)
     {
         entity_t *entity = entity_new();
-        RA_FREAD_OR_FAIL(entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, offset), section->header.filp);
+        DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, entity));
 
         DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * entity_itm_size(entity)));
         DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(entity)));
@@ -169,22 +153,35 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t offset)
     return OK;
 }
 
-static status_t sect_ext_write_itm(sect_ext_t *const section, const size_t data_size, const void *const data_ptr)
+status_t sect_ext_wrt_itm(sect_ext_t *const section, const sectoff_t sectoff, const entity_t *const entity)
 {
     SAVE_FILP(section->header.filp, {
-        RA_FWRITE_OR_FAIL(data_ptr, data_size, sect_head_get_fileoff(&section->header, section->header.lst_itm_ptr), section->header.filp);
-        DO_OR_FAIL(sect_head_shift_lst_itm_ptr((sect_head_t *)section, data_size));
+        RA_FWRITE_OR_FAIL(entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
+    });
+
+    return OK;
+}
+status_t sect_ext_rd_itm(const sect_ext_t *const section, const sectoff_t sectoff, entity_t *const o_entity)
+{
+    SAVE_FILP(section->header.filp, {
+        RA_FREAD_OR_FAIL(o_entity, sizeof(entity_t), sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
     });
 
     return OK;
 }
 
-static status_t sect_ext_write_rec(sect_ext_t *const section, const size_t data_size, const void *const data_ptr, fileoff_t *const save_addr)
+status_t sect_ext_wrt_rec(sect_ext_t *const section, const sectoff_t sectoff, const void *const val, const size_t size)
 {
     SAVE_FILP(section->header.filp, {
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -data_size));
-        RA_FWRITE_OR_FAIL(data_ptr, data_size, sect_head_get_fileoff(&section->header, section->header.fst_rec_ptr), section->header.filp);
-        *save_addr = section->header.fst_rec_ptr;
+        RA_FWRITE_OR_FAIL(val, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
+    });
+
+    return OK;
+}
+status_t sect_ext_rd_rec(const sect_ext_t *const section, const sectoff_t sectoff, const size_t size, void *const o_val)
+{
+    SAVE_FILP(section->header.filp, {
+        RA_FREAD_OR_FAIL(o_val, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
     });
 
     return OK;

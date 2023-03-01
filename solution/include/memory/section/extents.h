@@ -19,6 +19,11 @@ sect_ext_t *sect_ext_new();
 status_t sect_ext_ctor(sect_ext_t *const, const fileoff_t, FILE *const);
 void sect_ext_dtor(sect_ext_t *);
 
+status_t sect_ext_wrt_itm(sect_ext_t *const, const sectoff_t, const entity_t *const);
+status_t sect_ext_rd_itm(const sect_ext_t *const, const sectoff_t, entity_t *const o_entity);
+status_t sect_ext_wrt_rec(sect_ext_t *const, const sectoff_t, const void *const, const size_t);
+status_t sect_ext_rd_rec(const sect_ext_t *const, const sectoff_t, const size_t, void *const o_val);
+
 status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, entity_t *const entity, sectoff_t *const save_addr);
 status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t entity_addr, entity_t *const o_entity, json_t *const o_json);
 status_t sect_ext_update(sect_ext_t *const, const sectoff_t, const json_t *const);

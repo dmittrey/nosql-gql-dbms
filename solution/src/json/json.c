@@ -48,7 +48,7 @@ void json_dtor(json_t *json)
     {
         string_dtor(json->key);
     }
-    
+
     if (json->type == TYPE_STRING)
     {
         string_dtor(json->value.string_val);
@@ -142,4 +142,51 @@ void json_print(const json_t *const json)
         printf("\n}");
         break;
     }
+}
+
+/*
+Equal - 0
+json_1 < json_2 - -1
+json_1 > json_2 - 1
+*/
+int json_cmp(const json_t *const json_1, const json_t *const json_2)
+{
+    if (json_1->type > json_2->type)
+    {
+        return 1;
+    }
+    else if (json_1->type < json_2->type)
+    {
+        return -1;
+    }
+    else
+    {
+        int key_cmp = string_cmp(json_1->key, json_2->key);
+        if (key_cmp != 0)
+            return key_cmp;
+
+        switch (json_1->type)
+        {
+        case TYPE_STRING:
+            return string_cmp(json_1->value.string_val, json_2->value.string_val);
+        case TYPE_INT32:
+            if (json_1->value.int32_val == json_2->value.int32_val)
+                return 0;
+            else
+                return 1;
+        case TYPE_FLOAT:
+            if (json_1->value.float_val == json_2->value.float_val)
+                return 0;
+            else
+                return 1;
+        case TYPE_BOOL:
+            if (json_1->value.bool_val == json_2->value.bool_val)
+                return 0;
+            else
+                return 1;
+        case TYPE_OBJECT:
+            return 0;
+        }
+    }
+    return 1;
 }

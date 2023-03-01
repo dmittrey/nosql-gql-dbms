@@ -36,8 +36,7 @@ typedef enum
     TYPE_FLOAT,
     TYPE_STRING,
     TYPE_BOOL,
-    TYPE_OBJECT,
-    TYPE_ARRAY
+    TYPE_OBJECT
 } json_type_t;
 
 typedef struct json_t
@@ -68,3 +67,5 @@ void json_add_bro(json_t *const json, json_t *const bro);
 void json_add_son(json_t *const json, json_t *const son);
 
 void json_print(const json_t *const);
+
+int json_cmp(const json_t *const json_1, const json_t *const json_2);
