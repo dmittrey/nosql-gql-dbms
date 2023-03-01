@@ -556,6 +556,160 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
 
     return OK;
 }
+/*
+"info" : {
+    "city" : {
+        "location" : "Moscow",
+        "amount" : "50000"
+    },
+    "flag": true
+}
+*/
+/*
+1) flag
+2) amount
+3) location
+4) city
+5) info
+*/
+static status_t File_WriteThreeLevelsObject_AddSectionWriteComponents()
+{
+    FILE *filp = fopen(test_file_name, "w+");
+
+    file_t *file = file_new();
+    file_ctor(file, filp);
+
+    STR_INIT(location_str, "Moscow");
+    JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
+    ENTITY_INIT(location_entity, location_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
+    ENTITY_INIT(amount_entity, amount_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
+    ENTITY_INIT(city_entity, city_json, 0, 0, 0);
+
+    json_add_son(city_json, location_json);
+    json_add_son(city_json, amount_json);
+
+    JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
+    ENTITY_INIT(flag_entity, flag_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
+    ENTITY_INIT(info_entity, info_json, 0, 0, 0);
+
+    json_add_son(info_json, city_json);
+    json_add_son(info_json, flag_json);
+
+    fileoff_t info_wrt_addr;
+    file_write(file, info_json, 0, &info_wrt_addr);
+
+    assert(file->filp == filp);
+    assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
+
+    assert(file->f_extent != NULL);
+    assert(file->f_extent->header.filp == filp);
+    assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(flag_entity) - entity_ph_size(amount_entity) - entity_ph_size(location_entity) - entity_ph_size(city_entity) - entity_ph_size(info_entity));
+    assert(file->f_extent->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(flag_entity) - entity_rec_size(amount_entity) - entity_rec_size(location_entity) - entity_rec_size(city_entity) - entity_rec_size(info_entity));
+    assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + entity_itm_size(flag_entity) + entity_itm_size(amount_entity) + entity_itm_size(location_entity) + entity_itm_size(city_entity) + entity_itm_size(info_entity));
+    assert(file->f_extent->header.next_ptr == 0);
+    assert(file->f_extent->header.sect_off == sizeof(file_head_t));
+
+    entity_t *flag_o_entity = entity_new();
+    json_t *flag_o_json = json_new();
+    sect_ext_read(file->f_extent, sizeof(sect_head_entity_t), flag_o_entity, flag_o_json);
+
+    assert(flag_o_entity->key_ptr == SECTION_SIZE - flag_entity->key_size);
+    assert(flag_o_entity->key_size == flag_entity->key_size);
+    assert(flag_o_entity->val_ptr == SECTION_SIZE - flag_entity->key_size - flag_entity->val_size);
+    assert(flag_o_entity->val_size == flag_entity->val_size);
+    assert(flag_o_entity->rec_size == flag_entity->key_size + flag_entity->val_size);
+    assert(flag_o_entity->type == flag_entity->type);
+    assert(flag_o_entity->fam_addr.dad_ptr == 0);
+    assert(flag_o_entity->fam_addr.bro_ptr == 0);
+    assert(flag_o_entity->fam_addr.son_ptr == 0);
+
+    entity_t *amount_o_entity = entity_new();
+    json_t *amount_o_json = json_new();
+    sect_ext_read(file->f_extent, sizeof(sect_head_entity_t) + sizeof(entity_t), amount_o_entity, amount_o_json);
+
+    assert(amount_o_entity->key_ptr == flag_o_entity->val_ptr - amount_entity->key_size);
+    assert(amount_o_entity->key_size == amount_entity->key_size);
+    assert(amount_o_entity->val_ptr == flag_o_entity->val_ptr - amount_entity->key_size - amount_entity->val_size);
+    assert(amount_o_entity->val_size == amount_entity->val_size);
+    assert(amount_o_entity->rec_size == amount_entity->key_size + amount_entity->val_size);
+    assert(amount_o_entity->type == amount_entity->type);
+    assert(amount_o_entity->fam_addr.dad_ptr == 0);
+    assert(amount_o_entity->fam_addr.bro_ptr == 0);
+    assert(amount_o_entity->fam_addr.son_ptr == 0);
+
+    entity_t *location_o_entity = entity_new();
+    json_t *location_o_json = json_new();
+    sect_ext_read(file->f_extent, sizeof(sect_head_entity_t) + 2 * sizeof(entity_t), location_o_entity, location_o_json);
+
+    assert(location_o_entity->key_ptr == amount_o_entity->val_ptr - location_entity->key_size);
+    assert(location_o_entity->key_size == location_entity->key_size);
+    assert(location_o_entity->val_ptr == amount_o_entity->val_ptr - location_entity->key_size - location_entity->val_size);
+    assert(location_o_entity->val_size == location_entity->val_size);
+    assert(location_o_entity->rec_size == location_entity->key_size + location_entity->val_size);
+    assert(location_o_entity->type == location_entity->type);
+    assert(location_o_entity->fam_addr.dad_ptr == sect_head_get_fileoff(&file->f_extent->header, sizeof(sect_head_entity_t) + 3 * sizeof(entity_t)));
+    assert(location_o_entity->fam_addr.bro_ptr == sect_head_get_fileoff(&file->f_extent->header, sizeof(sect_head_entity_t) + sizeof(entity_t)));
+    assert(location_o_entity->fam_addr.son_ptr == 0);
+
+    entity_t *city_o_entity = entity_new();
+    json_t *city_o_json = json_new();
+    sect_ext_read(file->f_extent, sizeof(sect_head_entity_t) + 3 * sizeof(entity_t), city_o_entity, city_o_json);
+
+    assert(city_o_entity->key_ptr == location_o_entity->val_ptr - city_entity->key_size);
+    assert(city_o_entity->key_size == city_entity->key_size);
+    assert(city_o_entity->val_ptr == 0);
+    assert(city_o_entity->val_size == city_entity->val_size);
+    assert(city_o_entity->rec_size == city_entity->key_size + city_entity->val_size);
+    assert(city_o_entity->type == city_entity->type);
+    assert(city_o_entity->fam_addr.dad_ptr == sect_head_get_fileoff(&file->f_extent->header, sizeof(sect_head_entity_t) + 4 * sizeof(entity_t)));
+    assert(city_o_entity->fam_addr.bro_ptr == sect_head_get_fileoff(&file->f_extent->header, sizeof(sect_head_entity_t)));
+    assert(city_o_entity->fam_addr.son_ptr == sect_head_get_fileoff(&file->f_extent->header, sizeof(sect_head_entity_t) + 2 * sizeof(entity_t)));
+
+    entity_t *info_o_entity = entity_new();
+    json_t *info_o_json = json_new();
+    sect_ext_read(file->f_extent, sizeof(sect_head_entity_t) + 4 * sizeof(entity_t), info_o_entity, info_o_json);
+
+    assert(info_o_entity->key_ptr == city_o_entity->key_ptr - info_entity->key_size);
+    assert(info_o_entity->key_size == info_entity->key_size);
+    assert(info_o_entity->val_ptr == 0);
+    assert(info_o_entity->val_size == info_entity->val_size);
+    assert(info_o_entity->rec_size == info_entity->key_size + info_entity->val_size);
+    assert(info_o_entity->type == info_entity->type);
+    assert(info_o_entity->fam_addr.dad_ptr == 0);
+    assert(info_o_entity->fam_addr.bro_ptr == 0);
+    assert(info_o_entity->fam_addr.son_ptr == sect_head_get_fileoff(&file->f_extent->header, sizeof(sect_head_entity_t) + 3 * sizeof(entity_t)));
+
+    json_dtor(info_json);
+
+    json_dtor(location_o_json);
+    json_dtor(amount_o_json);
+    json_dtor(city_o_json);
+    json_dtor(flag_o_json);
+    json_dtor(info_o_json);
+
+    entity_dtor(location_entity);
+    entity_dtor(amount_entity);
+    entity_dtor(city_entity);
+    entity_dtor(flag_entity);
+    entity_dtor(info_entity);
+    entity_dtor(location_o_entity);
+    entity_dtor(amount_o_entity);
+    entity_dtor(city_o_entity);
+    entity_dtor(flag_o_entity);
+    entity_dtor(info_o_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
+    return OK;
+}
 
 void test_file_write()
 {
@@ -567,4 +721,5 @@ void test_file_write()
     assert(File_WriteObject_AddSectionAndWriteComponents() == OK);
     assert(File_WriteObjectInFileWithExistExtentsion_WriteComponents() == OK);
     assert(File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteComponents() == OK);
+    assert(File_WriteThreeLevelsObject_AddSectionWriteComponents() == OK);
 }
