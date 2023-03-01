@@ -104,6 +104,7 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
         ret_json->son = son_json;
     }
 
+    entity_dtor(ret_entity);
     return OK;
 }
 status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json);

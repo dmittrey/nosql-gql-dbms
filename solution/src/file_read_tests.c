@@ -225,7 +225,7 @@ static status_t File_ReadObjectWithComponentsFromVariousSect_Successful()
     file_t *file = file_new();
     file_ctor(file, filp);
 
-    sect_ext_t* f_sect;
+    sect_ext_t* f_sect = sect_ext_new();
     file_add_sect_ext(file, f_sect);
     sect_head_shift_lst_itm_ptr(&f_sect->header, 8000);
 
@@ -271,22 +271,13 @@ static status_t File_ReadThreeLvlObject_Successful()
 
     STR_INIT(location_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
-    ENTITY_INIT(location_entity, location_json, 0, 0, 0);
-
     JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
-    ENTITY_INIT(amount_entity, amount_json, 0, 0, 0);
-
     JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
-    ENTITY_INIT(city_entity, city_json, 0, 0, 0);
+    JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
+    JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
 
     json_add_son(city_json, location_json);
     json_add_son(city_json, amount_json);
-
-    JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
-    ENTITY_INIT(flag_entity, flag_json, 0, 0, 0);
-
-    JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
-    ENTITY_INIT(info_entity, info_json, 0, 0, 0);
 
     json_add_son(info_json, city_json);
     json_add_son(info_json, flag_json);
@@ -299,6 +290,10 @@ static status_t File_ReadThreeLvlObject_Successful()
 
     json_dtor(info_json);
     json_dtor(info_o_json);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
