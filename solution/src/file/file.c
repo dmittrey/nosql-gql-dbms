@@ -2,6 +2,7 @@
 
 static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff);
 static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size);
+static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff);
 
 file_t *file_new()
 {
@@ -120,68 +121,75 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
 */
 status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json)
 {
-    sect_ext_t *extents = get_sect_ext(file, fileoff);
-    if (extents == NULL)
-    {
-        return FAILED;
-    }
+    // sect_ext_t *extents = get_sect_ext(file, fileoff);
+    // if (extents == NULL)
+    // {
+    //     return FAILED;
+    // }
 
-    json_t *old_json = json_new();
-    entity_t *old_entity = entity_new();
-    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
+    // json_t *old_json = json_new();
+    // entity_t *old_entity = entity_new();
+    // DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
 
-    if (old_entity->fam_addr.bro_ptr != 0)
-    {
-        DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro));
-    }
+    // if (old_entity->fam_addr.bro_ptr != 0)
+    // {
+    //     DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro));
+    // }
 
-    if (old_entity->fam_addr.son_ptr != 0)
-    {
-        DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son));
-    }
+    // if (old_entity->fam_addr.son_ptr != 0)
+    // {
+    //     DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son));
+    // }
 
-    if (json_cmp(old_json, new_json))
-    {
-        DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
-    }
+    // if (json_cmp(old_json, new_json))
+    // {
+    //     DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
+    // }
 
-    json_dtor(old_json);
-    entity_dtor(old_entity);
-    return OK;
+    // json_dtor(old_json);
+    // entity_dtor(old_entity);
+    // return OK;
 }
 
 /*
-1) Удалили текущую ноду
-2) Удалили брата
-3) Удалили сына
-
-TODO Нам не нужно удалять братьев ноды, только сыновей и всю топологию снизу
-TODO Нужно перекинуть ссылку на брата если удаляем с родителем
-
-Считали удаляемую ноду
-Если у нее есть родитель, то обновили ссылку родителя на брата
-Запустились алгоритм del cur -> del bro -> del son от сына
-Почистили текущую
+1) Нашли секцию с удаляемой нодой, если не нашли то FAILED
+2) Удалили текущую ноду и вернули ее сущность
+3) Удалили дерево под ней
+4) Поменяли ссылку с отца на сына
 */
 status_t file_delete(file_t *const file, const fileoff_t fileoff)
 {
+    // Find root section
     sect_ext_t *extents = get_sect_ext(file, fileoff);
     if (extents == NULL)
     {
         return FAILED;
     }
 
+    // Delete and read del root
     entity_t *const del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
 
+    // Delete recursively under tree
     if (del_entity->fam_addr.son_ptr != 0)
     {
-        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.son_ptr));
+        DO_OR_FAIL(file_delete_depth(file, del_entity->fam_addr.son_ptr));
     }
 
-    if (del_entity->fam_addr.bro_ptr != 0)
+    // If dad exist change dad -> son ptr
+    if (del_entity->fam_addr.dad_ptr != 0)
     {
-        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.bro_ptr));
+        // Change dad -> son to bro_ptr
+        if (del_entity->fam_addr.bro_ptr != 0)
+        {
+            RA_FWRITE_OR_FAIL(&del_entity->fam_addr.bro_ptr, sizeof(fileoff_t), del_entity->fam_addr.dad_ptr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
+        }
+        // Change dad -> son to 0
+        else
+        {
+            fileoff_t temp_zero = 0;
+            RA_FWRITE_OR_FAIL(&temp_zero, sizeof(fileoff_t), del_entity->fam_addr.dad_ptr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
+        }
     }
 
     entity_dtor(del_entity);
@@ -242,4 +250,32 @@ static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size)
     }
 
     return cur_ext;
+}
+
+/*
+cur -> bro -> son
+*/
+static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff)
+{
+    sect_ext_t *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+    {
+        return FAILED;
+    }
+
+    entity_t *const del_entity = entity_new();
+    DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
+
+    if (del_entity->fam_addr.bro_ptr != 0)
+    {
+        DO_OR_FAIL(file_delete_depth(file, del_entity->fam_addr.bro_ptr));
+    }
+
+    if (del_entity->fam_addr.son_ptr != 0)
+    {
+        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.bro_ptr));
+    }
+
+    entity_dtor(del_entity);
+    return OK;
 }
