@@ -1,6 +1,6 @@
 #include "memory/query/query.h"
 
-bool query_check(const query_t *const query, const json_t *const json)
+bool query_item_check(const query_item_t *const query, const json_t *const json)
 {
     if (string_cmp(query->query_key, json->key) == 0)
     {
@@ -21,4 +21,18 @@ bool query_check(const query_t *const query, const json_t *const json)
     }
 
     return false;
+}
+
+bool query_check(const query_t *const query, const json_t *const json)
+{
+    const query_item_t * cur_query_itm = query->f_query_itm;
+    while (cur_query_itm != NULL)
+    {
+        if (query_item_check(cur_query_itm, json) == false)
+            return false;
+
+        cur_query_itm = cur_query_itm->next;
+    }
+
+    return true;
 }
