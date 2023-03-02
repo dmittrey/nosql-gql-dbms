@@ -13,7 +13,7 @@ typedef struct query_item_t
         string_t *string_val;
         bool bool_val;
     } query_val;
-    query_item_t *next;
+    struct query_item_t *next;
 } query_item_t;
 
 bool query_item_check(const query_item_t *const, const json_t *const);
