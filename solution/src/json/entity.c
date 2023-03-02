@@ -38,3 +38,13 @@ size_t entity_ph_size(const entity_t *const entity)
 {
     return entity_itm_size(entity) + entity_rec_size(entity);
 }
+
+entity_t *entity_clear(entity_t *const entity)
+{
+    return memset(entity, 0, sizeof(entity_t));
+}
+
+entity_t *entity_cpy(entity_t *const dest, entity_t *const src)
+{
+    return memcpy(dest, src, sizeof(entity_t));
+}

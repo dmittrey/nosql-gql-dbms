@@ -5,10 +5,11 @@
 #include "memory/json/json.h"
 
 #define ENTITY_INIT(ENTITY_NAME, JSON_NAME, DAD_ADDR, BRO_ADDR, SON_ADDR) \
-    entity_t *ENTITY_NAME = entity_new();                                            \
+    entity_t *ENTITY_NAME = entity_new();                                 \
     entity_ctor(ENTITY_NAME, JSON_NAME, DAD_ADDR, BRO_ADDR, SON_ADDR);
 
-typedef struct {
+typedef struct
+{
     fileoff_t dad_ptr;
     fileoff_t bro_ptr;
     fileoff_t son_ptr;
@@ -33,3 +34,6 @@ void entity_dtor(entity_t *);
 size_t entity_itm_size(const entity_t *const entity);
 size_t entity_rec_size(const entity_t *const entity);
 size_t entity_ph_size(const entity_t *const entity);
+
+entity_t *entity_clear(entity_t *const);
+entity_t *entity_cpy(entity_t *const dest, entity_t *const src);

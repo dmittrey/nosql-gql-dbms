@@ -149,11 +149,9 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
 }
 
 /*
-1) Считали старую ноду
-2) Если есть брат - запустились от брата
-3) Если есть сын - запустились от сына
-4) Сравним ноды
-5) Если они разные, то перезаписать
+1) Удалили текущую ноду
+2) Удалили сына
+3) Удалили брата
 */
 status_t file_delete(file_t *const file, const fileoff_t fileoff)
 {
@@ -163,24 +161,20 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff)
         return FAILED;
     }
 
-    json_t *r_json = json_new();
-    entity_t *r_entity = entity_new();
-    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), r_entity, r_json));
+    entity_t * const del_entity = entity_new();
+    DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
 
-    if (r_entity->fam_addr.bro_ptr != 0)
+    if (del_entity->fam_addr.son_ptr != 0)
     {
-        DO_OR_FAIL(file_update(file, r_entity->fam_addr.bro_ptr, r_json->bro));
+        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.son_ptr));
     }
 
-    if (r_entity->fam_addr.son_ptr != 0)
+    if (del_entity->fam_addr.bro_ptr != 0)
     {
-        DO_OR_FAIL(file_update(file, r_entity->fam_addr.son_ptr, r_json->son));
+        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.bro_ptr));
     }
 
-    DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff)));
-
-    json_dtor(r_json);
-    entity_dtor(r_entity);
+    entity_dtor(del_entity);
     return OK;
 }
 

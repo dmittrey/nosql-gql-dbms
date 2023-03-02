@@ -135,24 +135,33 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
 }
 
 /*
+    - Возвращаем старую сущность
     - Обнуляем поля сущности
     - Если нода стоит на границе, двигаем указатели
 */
-status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff)
+status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t *const o_entity)
 {
-    // Set null entity fields
-    entity_t *const entity = entity_new();
-    sect_ext_wrt_itm(section, sectoff, entity);
+    entity_t *const del_entity = entity_new();
+    sect_ext_rd_itm(section, sectoff, del_entity);
 
-    if (sectoff + entity_itm_size(entity) == section->header.lst_itm_ptr)
+    if (sectoff + entity_itm_size(del_entity) == section->header.lst_itm_ptr)
     {
-        DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, entity));
+        DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, del_entity));
 
-        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * entity_itm_size(entity)));
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(entity)));
+        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * entity_itm_size(del_entity)));
+        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(del_entity)));
     }
 
-    entity_dtor(entity);
+    // Save old entity
+    if (o_entity)
+    {
+        entity_cpy(o_entity, del_entity);
+    }
+
+    // Set null entity fields
+    sect_ext_wrt_itm(section, sectoff, entity_clear(del_entity));
+
+    entity_dtor(del_entity);
     return OK;
 }
 

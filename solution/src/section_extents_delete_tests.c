@@ -25,7 +25,7 @@ static status_t SectionExtents_DeleteIntBoundaryElement_ShiftPtrs()
     fileoff_t save_json_addr;
     DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_addr));
 
-    DO_OR_FAIL(sect_ext_delete(extents, save_json_addr));
+    DO_OR_FAIL(sect_ext_delete(extents, save_json_addr, NULL));
 
     assert(extents->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
     assert(extents->header.next_ptr == 0);
@@ -60,7 +60,7 @@ static status_t SectionExtents_DeleteStringBoundaryElement_ShiftPtrs()
     fileoff_t save_json_addr;
     DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_addr));
 
-    DO_OR_FAIL(sect_ext_delete(extents, save_json_addr));
+    DO_OR_FAIL(sect_ext_delete(extents, save_json_addr, NULL));
 
     assert(extents->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
     assert(extents->header.next_ptr == 0);
@@ -97,7 +97,7 @@ static status_t SectionExtents_UpdateInsideElement_Nothing()
     fileoff_t second_json_addr;
     DO_OR_FAIL(sect_ext_write(extents, second_json, s_entity, &second_json_addr));
 
-    DO_OR_FAIL(sect_ext_delete(extents, first_json_addr));
+    DO_OR_FAIL(sect_ext_delete(extents, first_json_addr, NULL));
 
     assert(extents->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - 2 * sizeof(entity_t) - string_get_size(first_json->key) - string_get_size(second_json->key) - 2 * sizeof(first_json->value)));
     assert(extents->header.next_ptr == 0);
