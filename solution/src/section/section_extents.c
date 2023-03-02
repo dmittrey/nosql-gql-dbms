@@ -135,21 +135,24 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
 }
 
 /*
-    Если нода является последней записанной записью, мы можем подвинуть указатели, чтобы не образовывались пропуски
+    - Обнуляем поля сущности
+    - Если нода стоит на границе, двигаем указатели
 */
 status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff)
 {
-    if (sectoff + sizeof(entity_t) == section->header.lst_itm_ptr)
+    // Set null entity fields
+    entity_t *const entity = entity_new();
+    sect_ext_wrt_itm(section, sectoff, entity);
+
+    if (sectoff + entity_itm_size(entity) == section->header.lst_itm_ptr)
     {
-        entity_t *entity = entity_new();
         DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, entity));
 
         DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * entity_itm_size(entity)));
         DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(entity)));
-
-        entity_dtor(entity);
     }
 
+    entity_dtor(entity);
     return OK;
 }
 
