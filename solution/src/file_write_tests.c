@@ -545,7 +545,6 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
     // assert(f_o_entity->fam_addr.bro_ptr == 0);
     // assert(f_o_entity->fam_addr.son_ptr == 0);
 
-    json_dtor(f_json);
     json_dtor(obj_json);
     json_dtor(f_o_json);
     json_dtor(s_o_json);
