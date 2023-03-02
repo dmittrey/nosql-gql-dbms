@@ -263,7 +263,7 @@ status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
 "info" : {
     "city" : {
         "location" : "Moscow",
-        "amount" : "50000"
+        "amount" : 50000
     },
     "flag": true
 }
@@ -278,12 +278,16 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     STR_INIT(location_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
     ENTITY_INIT(location_entity, location_json, 0, 0, 0);
+
     JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
     ENTITY_INIT(amount_entity, amount_json, 0, 0, 0);
+
     JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
     ENTITY_INIT(city_entity, city_json, 0, 0, 0);
+
     JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
     ENTITY_INIT(flag_entity, flag_json, 0, 0, 0);
+
     JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
     ENTITY_INIT(info_entity, info_json, 0, 0, 0);
 
@@ -321,6 +325,52 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
 
     // free(del_memory);
     // free(cmp_memory);
+    json_dtor(info_json);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
+    return OK;
+}
+
+status_t File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject()
+{
+    FILE *filp = fopen(test_file_name, "w+");
+
+    file_t *file = file_new();
+    file_ctor(file, filp);
+
+    STR_INIT(location_str, "Moscow");
+    JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
+    ENTITY_INIT(location_entity, location_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
+    ENTITY_INIT(amount_entity, amount_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
+    ENTITY_INIT(city_entity, city_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
+    ENTITY_INIT(flag_entity, flag_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
+    ENTITY_INIT(info_entity, info_json, 0, 0, 0);
+
+    json_add_son(city_json, location_json);
+    json_add_son(city_json, amount_json);
+
+    json_add_son(info_json, city_json);
+    json_add_son(info_json, flag_json);
+
+    fileoff_t wrt_addr;
+    DO_OR_FAIL(file_write(file, info_json, 0, &wrt_addr));
+
+    DO_OR_FAIL(file_delete(file, wrt_addr));
+
+
+
+
     json_dtor(info_json);
 
     file_dtor(file);
