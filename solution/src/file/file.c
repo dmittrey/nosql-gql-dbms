@@ -29,7 +29,7 @@ void file_dtor(file_t *file)
 }
 
 /*
-cur -> son -> bro
+cur -> bro -> son
 */
 status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t *const write_addr)
 {
@@ -43,21 +43,23 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
     }
 
     size_t entity_size = entity_ph_size(entity);
+    size_t a = entity_itm_size(entity);
     sect_ext_write(extents, json, entity, write_addr);
+
     *write_addr += extents->header.sect_off;
+
+    fileoff_t bro_offset = 0;
+    if (json->bro != NULL)
+    {
+        DO_OR_FAIL(file_write(file, json->bro, dad_fileoff, &bro_offset));
+        entity->fam_addr.bro_ptr = bro_offset;
+    }
 
     fileoff_t son_offset = 0;
     if (json->son != NULL)
     {
         DO_OR_FAIL(file_write(file, json->son, *write_addr, &son_offset));
         entity->fam_addr.son_ptr = son_offset;
-    }
-
-    fileoff_t bro_offset = 0;
-    if (json->bro != NULL)
-    {
-        DO_OR_FAIL(file_write(file, json->bro, *write_addr, &bro_offset));
-        entity->fam_addr.bro_ptr = bro_offset;
     }
 
     if (bro_offset)
@@ -150,8 +152,10 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
 
 /*
 1) Удалили текущую ноду
-2) Удалили сына
-3) Удалили брата
+2) Удалили брата
+3) Удалили сына
+
+TODO Нам не нужно удалять братьев ноды, только сыновей и всю топологию снизу
 */
 status_t file_delete(file_t *const file, const fileoff_t fileoff)
 {

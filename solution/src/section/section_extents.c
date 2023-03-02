@@ -138,6 +138,8 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
     - Возвращаем старую сущность
     - Обнуляем поля сущности
     - Если нода стоит на границе, двигаем указатели
+
+    TODO Двигать указатель будем через все зануленные секции
 */
 status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t *const o_entity)
 {
