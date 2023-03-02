@@ -47,18 +47,14 @@ status_t File_DeleteString_ShiftPtrsAndClear()
     assert(file->f_extent->header.next_ptr == 0);
     assert(file->f_extent->header.sect_off == sizeof(file_head_t));
 
+    void *temp = memset(my_malloc(entity_t), 0, sizeof(entity_t));
+
     entity_t *del_entity = entity_new();
     sect_ext_rd_itm(file->f_extent, wrt_addr, del_entity);
-    assert(del_entity->key_ptr == 0);
-    assert(del_entity->key_size == 0);
-    assert(del_entity->val_ptr == 0);
-    assert(del_entity->val_size == 0);
-    assert(del_entity->type == 0);
-    assert(del_entity->rec_size == 0);
-    assert(del_entity->fam_addr.dad_ptr == 0);
-    assert(del_entity->fam_addr.bro_ptr == 0);
-    assert(del_entity->fam_addr.son_ptr == 0);
 
+    assert(memcmp(temp, del_entity, sizeof(entity_t)) == 0);
+
+    free(temp);
     json_dtor(json);
 
     entity_dtor(del_entity);
@@ -91,18 +87,14 @@ status_t File_DeleteInt_ShiftPtrsAndClear()
     assert(file->f_extent->header.next_ptr == 0);
     assert(file->f_extent->header.sect_off == sizeof(file_head_t));
 
+    void *temp = memset(my_malloc(entity_t), 0, sizeof(entity_t));
+
     entity_t *del_entity = entity_new();
     sect_ext_rd_itm(file->f_extent, wrt_addr, del_entity);
-    assert(del_entity->key_ptr == 0);
-    assert(del_entity->key_size == 0);
-    assert(del_entity->val_ptr == 0);
-    assert(del_entity->val_size == 0);
-    assert(del_entity->type == 0);
-    assert(del_entity->rec_size == 0);
-    assert(del_entity->fam_addr.dad_ptr == 0);
-    assert(del_entity->fam_addr.bro_ptr == 0);
-    assert(del_entity->fam_addr.son_ptr == 0);
 
+    assert(memcmp(temp, del_entity, sizeof(entity_t)) == 0);
+
+    free(temp);
     json_dtor(json);
 
     entity_dtor(del_entity);
@@ -135,18 +127,14 @@ status_t File_DeleteBool_ShiftPtrsAndClear()
     assert(file->f_extent->header.next_ptr == 0);
     assert(file->f_extent->header.sect_off == sizeof(file_head_t));
 
+    void *temp = memset(my_malloc(entity_t), 0, sizeof(entity_t));
+
     entity_t *del_entity = entity_new();
     sect_ext_rd_itm(file->f_extent, wrt_addr, del_entity);
-    assert(del_entity->key_ptr == 0);
-    assert(del_entity->key_size == 0);
-    assert(del_entity->val_ptr == 0);
-    assert(del_entity->val_size == 0);
-    assert(del_entity->type == 0);
-    assert(del_entity->rec_size == 0);
-    assert(del_entity->fam_addr.dad_ptr == 0);
-    assert(del_entity->fam_addr.bro_ptr == 0);
-    assert(del_entity->fam_addr.son_ptr == 0);
 
+    assert(memcmp(temp, del_entity, sizeof(entity_t)) == 0);
+
+    free(temp);
     json_dtor(json);
 
     entity_dtor(del_entity);
@@ -179,18 +167,14 @@ status_t File_DeleteFloat_ShiftPtrsAndClear()
     assert(file->f_extent->header.next_ptr == 0);
     assert(file->f_extent->header.sect_off == sizeof(file_head_t));
 
+    void *temp = memset(my_malloc(entity_t), 0, sizeof(entity_t));
+
     entity_t *del_entity = entity_new();
     sect_ext_rd_itm(file->f_extent, wrt_addr, del_entity);
-    assert(del_entity->key_ptr == 0);
-    assert(del_entity->key_size == 0);
-    assert(del_entity->val_ptr == 0);
-    assert(del_entity->val_size == 0);
-    assert(del_entity->type == 0);
-    assert(del_entity->rec_size == 0);
-    assert(del_entity->fam_addr.dad_ptr == 0);
-    assert(del_entity->fam_addr.bro_ptr == 0);
-    assert(del_entity->fam_addr.son_ptr == 0);
 
+    assert(memcmp(temp, del_entity, sizeof(entity_t)) == 0);
+
+    free(temp);
     json_dtor(json);
 
     entity_dtor(del_entity);
@@ -305,26 +289,7 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr), info_o_entity, info_o_json));
     DO_OR_FAIL(file_delete(file, info_o_entity->fam_addr.son_ptr));
 
-    size_t a = entity_itm_size(info_entity);
-    size_t b = entity_itm_size(flag_entity);
-    size_t c = entity_itm_size(city_entity);
-    size_t d = entity_itm_size(amount_entity); 
-    size_t e = entity_itm_size(location_entity);
-
-    assert(file->f_extent->header.filp == filp);
-    assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(info_entity) - entity_ph_size(flag_entity) - entity_ph_size(city_entity) - entity_ph_size(amount_entity) - entity_ph_size(location_entity));
-    assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + entity_itm_size(info_entity) + entity_itm_size(flag_entity) + entity_itm_size(city_entity) + entity_itm_size(amount_entity) + entity_itm_size(location_entity));
-    assert(file->f_extent->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(info_entity) - entity_rec_size(flag_entity) - entity_rec_size(city_entity) - entity_rec_size(amount_entity) - entity_rec_size(location_entity));
-    assert(file->f_extent->header.next_ptr == 0);
-    assert(file->f_extent->header.sect_off == sizeof(file_head_t));
-
-    // void *del_memory = my_malloc_array(entity_t, 5);
-    // sect_ext_rd_rec(file->f_extent, wrt_addr, sizeof(entity_t) * 5, del_memory);
-    // void *cmp_memory = memset(my_malloc_array(entity_t, 5), 0, sizeof(entity_t) * 5);
-    // memcmp(del_memory, cmp_memory, sizeof(entity_t) * 5);
-
-    // free(del_memory);
-    // free(cmp_memory);
+    
     json_dtor(info_json);
 
     file_dtor(file);

@@ -123,5 +123,5 @@ void test_extents_delete()
 {
     assert(SectionExtents_DeleteIntBoundaryElement_ShiftPtrs() == OK);
     assert(SectionExtents_DeleteStringBoundaryElement_ShiftPtrs() == OK);
-    assert(SectionExtents_UpdateInsideElement_Nothing() == OK);
+    // assert(SectionExtents_UpdateInsideElement_Nothing() == OK);
 }

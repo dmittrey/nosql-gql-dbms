@@ -158,6 +158,24 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, ent
         DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(del_entity)));
     }
 
+    // Save old entity
+    if (o_entity)
+    {
+        memcpy(o_entity, del_entity, sizeof(entity_t));
+    }
+
+    // Set null rec fields
+    void *temp_zero = memset(my_malloc_array(char, entity_rec_size(del_entity)), 0, entity_rec_size(del_entity));
+    if (del_entity->type == TYPE_OBJECT)
+    {
+        sect_ext_wrt_rec(section, del_entity->key_ptr, temp_zero, entity_rec_size(del_entity));
+    }
+    else
+    {
+        sect_ext_wrt_rec(section, del_entity->val_ptr, temp_zero, entity_rec_size(del_entity));
+    }
+    free(temp_zero);
+
     // Set null entity fields
     sect_ext_wrt_itm(section, sectoff, entity_clear(del_entity));
 
@@ -165,15 +183,7 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, ent
     reduce_lst_itm_ptr_emt(section);
     reduce_fst_rec_ptr_emt(section);
 
-    // Save old entity
-    if (o_entity)
-    {
-        o_entity = del_entity;
-    }
-    else
-    {
-        entity_dtor(del_entity);
-    }
+    entity_dtor(del_entity);
 
     return OK;
 }
@@ -232,6 +242,7 @@ static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section)
             break;
 
         section->header.lst_itm_ptr -= 1;
+        section->header.free_space += 1;
     }
     free(chrs);
 
@@ -246,10 +257,11 @@ static status_t reduce_fst_rec_ptr_emt(sect_ext_t *section)
             RA_FREAD_OR_FAIL(chr, sizeof(char), sect_head_get_fileoff(&section->header, section->header.fst_rec_ptr), section->header.filp);
         });
 
-        if (section->header.fst_rec_ptr == SECTION_SIZE || chr != 0)
+        if (section->header.fst_rec_ptr == SECTION_SIZE || *chr != 0)
             break;
 
         section->header.fst_rec_ptr += 1;
+        section->header.free_space += 1;
     }
     free(chr);
 

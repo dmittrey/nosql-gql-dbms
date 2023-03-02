@@ -166,6 +166,9 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff)
         return FAILED;
     }
 
+    json_t * o_json = json_new();
+    file_read(file, fileoff, o_json);
+
     // Delete and read del root
     entity_t *const del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
@@ -263,6 +266,9 @@ static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff)
         return FAILED;
     }
 
+    json_t * o_json = json_new();
+    file_read(file, fileoff, o_json);
+
     entity_t *const del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
 
@@ -273,7 +279,7 @@ static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff)
 
     if (del_entity->fam_addr.son_ptr != 0)
     {
-        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.bro_ptr));
+        DO_OR_FAIL(file_delete_depth(file, del_entity->fam_addr.son_ptr));
     }
 
     entity_dtor(del_entity);
