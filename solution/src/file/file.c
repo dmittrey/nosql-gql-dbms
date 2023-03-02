@@ -29,30 +29,11 @@ void file_dtor(file_t *file)
 }
 
 /*
-1) Запустили запись от брата
-2) Запустили запись от сына
-3) Нашли секцию в которой есть пространство для записи
-    Если не нашли то добавили в конец файла новую секцию
-5) Записали адрес текущей сущности в записанного брата
-6) Записали адрес текущей сущности в записанного сына
+cur -> son -> bro
 */
 status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t *const write_addr)
 {
     ENTITY_INIT(entity, json, dad_fileoff, 0, 0);
-
-    fileoff_t bro_offset = 0;
-    if (json->bro != NULL)
-    {
-        DO_OR_FAIL(file_write(file, json->bro, 0, &bro_offset));
-        entity->fam_addr.bro_ptr = bro_offset;
-    }
-
-    fileoff_t son_offset = 0;
-    if (json->son != NULL)
-    {
-        DO_OR_FAIL(file_write(file, json->son, 0, &son_offset));
-        entity->fam_addr.son_ptr = son_offset;
-    }
 
     sect_ext_t *extents = find_sect_ext(file, entity_ph_size(entity));
     if (extents == NULL)
@@ -61,12 +42,31 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
         DO_OR_FAIL(file_add_sect_ext(file, extents));
     }
 
+    size_t entity_size = entity_ph_size(entity);
     sect_ext_write(extents, json, entity, write_addr);
     *write_addr += extents->header.sect_off;
 
+    fileoff_t son_offset = 0;
+    if (json->son != NULL)
+    {
+        DO_OR_FAIL(file_write(file, json->son, *write_addr, &son_offset));
+        entity->fam_addr.son_ptr = son_offset;
+    }
+
+    fileoff_t bro_offset = 0;
+    if (json->bro != NULL)
+    {
+        DO_OR_FAIL(file_write(file, json->bro, *write_addr, &bro_offset));
+        entity->fam_addr.bro_ptr = bro_offset;
+    }
+
+    if (bro_offset)
+    {
+        RA_FWRITE_OR_FAIL(&bro_offset, sizeof(bro_offset), *write_addr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, bro_ptr), file->filp);
+    }
     if (son_offset)
     {
-        RA_FWRITE_OR_FAIL(write_addr, sizeof(write_addr), son_offset + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, dad_ptr), file->filp);
+        RA_FWRITE_OR_FAIL(&son_offset, sizeof(son_offset), *write_addr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
     }
 
     entity_dtor(entity);
@@ -161,7 +161,7 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff)
         return FAILED;
     }
 
-    entity_t * const del_entity = entity_new();
+    entity_t *const del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
 
     if (del_entity->fam_addr.son_ptr != 0)
