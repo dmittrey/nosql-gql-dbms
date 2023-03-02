@@ -6,6 +6,11 @@
 #include "memory/section/header.h"
 #include "memory/section/extents.h"
 
+#include "physical/section/header.h"
+
+static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section);
+static status_t reduce_fst_rec_ptr_emt(sect_ext_t *section);
+
 sect_ext_t *sect_ext_new()
 {
     return memset(my_malloc(sect_ext_t), 0, sizeof(sect_ext_t));
@@ -138,10 +143,9 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
     - Возвращаем старую сущность
     - Обнуляем поля сущности
     - Если нода стоит на границе, двигаем указатели
-
-    TODO Двигать указатель будем через все зануленные секции
+    - TODO В цикле проверяем ноду на границе и если 0 то двигаем дальше
 */
-status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t *const o_entity)
+status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t *o_entity)
 {
     entity_t *const del_entity = entity_new();
     sect_ext_rd_itm(section, sectoff, del_entity);
@@ -154,16 +158,23 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, ent
         DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(del_entity)));
     }
 
-    // Save old entity
-    if (o_entity)
-    {
-        entity_cpy(o_entity, del_entity);
-    }
-
     // Set null entity fields
     sect_ext_wrt_itm(section, sectoff, entity_clear(del_entity));
 
-    entity_dtor(del_entity);
+    // Shift border by null items
+    reduce_lst_itm_ptr_emt(section);
+    reduce_fst_rec_ptr_emt(section);
+
+    // Save old entity
+    if (o_entity)
+    {
+        o_entity = del_entity;
+    }
+    else
+    {
+        entity_dtor(del_entity);
+    }
+
     return OK;
 }
 
@@ -207,3 +218,40 @@ status_t sect_ext_sync(sect_ext_t *const section)
 }
 
 status_t sect_ext_add_next(sect_ext_t *const extents);
+
+static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section)
+{
+    char *chrs = my_malloc_array(char, 2);
+    while (true)
+    {
+        SAVE_FILP(section->header.filp, {
+            RA_FREAD_OR_FAIL(chrs, 2 * sizeof(char), sect_head_get_fileoff(&section->header, section->header.lst_itm_ptr - 1), section->header.filp);
+        });
+
+        if (section->header.lst_itm_ptr == sizeof(sect_head_entity_t) || chrs[0] != 0)
+            break;
+
+        section->header.lst_itm_ptr -= 1;
+    }
+    free(chrs);
+
+    return sect_head_sync((sect_head_t *)section);
+}
+static status_t reduce_fst_rec_ptr_emt(sect_ext_t *section)
+{
+    char *chr = my_malloc(char);
+    while (true)
+    {
+        SAVE_FILP(section->header.filp, {
+            RA_FREAD_OR_FAIL(chr, sizeof(char), sect_head_get_fileoff(&section->header, section->header.fst_rec_ptr), section->header.filp);
+        });
+
+        if (section->header.fst_rec_ptr == SECTION_SIZE || chr != 0)
+            break;
+
+        section->header.fst_rec_ptr += 1;
+    }
+    free(chr);
+
+    return sect_head_sync((sect_head_t *)section);
+}

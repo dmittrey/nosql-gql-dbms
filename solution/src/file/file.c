@@ -156,6 +156,12 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
 3) Удалили сына
 
 TODO Нам не нужно удалять братьев ноды, только сыновей и всю топологию снизу
+TODO Нужно перекинуть ссылку на брата если удаляем с родителем
+
+Считали удаляемую ноду
+Если у нее есть родитель, то обновили ссылку родителя на брата
+Запустились алгоритм del cur -> del bro -> del son от сына
+Почистили текущую
 */
 status_t file_delete(file_t *const file, const fileoff_t fileoff)
 {
