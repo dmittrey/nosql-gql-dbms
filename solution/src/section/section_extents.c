@@ -263,20 +263,19 @@ static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section)
 }
 static status_t reduce_fst_rec_ptr_emt(sect_ext_t *section)
 {
-    char *chr = my_malloc(char);
+    char chr;
     while (true)
     {
         SAVE_FILP(section->header.filp, {
-            RA_FREAD_OR_FAIL(chr, sizeof(char), sect_head_get_fileoff(&section->header, section->header.fst_rec_ptr), section->header.filp);
+            RA_FREAD_OR_FAIL(&chr, sizeof(char), sect_head_get_fileoff(&section->header, section->header.fst_rec_ptr), section->header.filp);
         });
 
-        if (section->header.fst_rec_ptr == SECTION_SIZE || *chr != 0)
+        if (section->header.fst_rec_ptr == SECTION_SIZE || chr != 0)
             break;
 
         section->header.fst_rec_ptr += 1;
         section->header.free_space += 1;
     }
-    free(chr);
 
     return sect_head_sync((sect_head_t *)section);
 }

@@ -21,7 +21,7 @@
 
 static const char *test_file_name = "test.bin";
 
-static status_t SectionExtents_DeleteOnBorderType_ShiftPtrsAndClearRecAndItm(const json_t * const json)
+static status_t SectionExtents_DeleteOnBorderType_ShiftPtrsAndClearRecAndItm(const json_t *const json)
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -47,14 +47,24 @@ static status_t SectionExtents_DeleteOnBorderType_ShiftPtrsAndClearRecAndItm(con
     void *o_rec = my_malloc_array(char, entity_rec_size(del_entity));
     void *temp_zero = memset(my_malloc_array(char, entity_rec_size(del_entity)), 0, entity_rec_size(del_entity));
     sect_ext_rd_itm(extents, save_json_sectoff, o_entity);
-    sect_ext_rd_rec(extents, del_entity->key_ptr, entity_rec_size(del_entity), o_rec);
+    sect_ext_rd_rec(extents, del_entity->key_ptr - del_entity->val_size, entity_rec_size(del_entity), o_rec);
     assert(entity_cmp(o_entity, temp_zero_entity) == 0);
     assert(memcmp(o_rec, temp_zero, entity_rec_size(del_entity)) == 0);
+
+    free(temp_zero);
+    free(o_rec);
+
+    entity_dtor(entity);
+    entity_dtor(del_entity);
+    entity_dtor(o_entity);
+    entity_dtor(temp_zero_entity);
+
+    sect_ext_dtor(extents);
 
     return OK;
 }
 
-static status_t SectionExtents_DeleteInnerType_ShiftPtrsAndClearRecAndItm(const json_t * const json)
+static status_t SectionExtents_DeleteInnerType_ShiftPtrsAndClearRecAndItm(const json_t *const json)
 {
     FILE *file = fopen(test_file_name, "w+");
 
@@ -88,8 +98,11 @@ static status_t SectionExtents_DeleteInnerType_ShiftPtrsAndClearRecAndItm(const 
     free(o_rec);
     free(temp_zero);
 
+    json_dtor(brdr_json);
+
     entity_dtor(entity);
     entity_dtor(del_entity);
+    entity_dtor(brdr_entity);
     entity_dtor(o_entity);
     entity_dtor(temp_zero_entity);
 
@@ -127,6 +140,15 @@ static status_t SectionExtents_DeleteOnBorderElementWithLeftGap_ReduceGapsAndDel
     assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t));
     assert(extents->header.fst_rec_ptr == SECTION_SIZE);
     assert(extents->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
+
+    json_dtor(json);
+    json_dtor(brdr_json);
+
+    entity_dtor(entity);
+    entity_dtor(brdr_entity);
+    entity_dtor(del_entity);
+
+    sect_ext_dtor(extents);
 
     return OK;
 }
