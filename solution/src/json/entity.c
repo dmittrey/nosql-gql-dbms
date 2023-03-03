@@ -48,3 +48,8 @@ entity_t *entity_cpy(entity_t *const dest, entity_t *const src)
 {
     return memcpy(dest, src, sizeof(entity_t));
 }
+
+int entity_cmp(entity_t *const e1, entity_t *const e2)
+{
+    return memcmp(e1, e2, sizeof(entity_t));
+}

@@ -21,9 +21,9 @@ typedef struct
     size_t key_size;
     sectoff_t val_ptr;
     size_t val_size;
-    tplgy_addr fam_addr;
     uint64_t type;
     size_t rec_size;
+    tplgy_addr fam_addr;
 } entity_t;
 
 entity_t *entity_new();
@@ -37,3 +37,5 @@ size_t entity_ph_size(const entity_t *const entity);
 
 entity_t *entity_clear(entity_t *const);
 entity_t *entity_cpy(entity_t *const dest, entity_t *const src);
+
+int entity_cmp(entity_t *const e1, entity_t *const e2);

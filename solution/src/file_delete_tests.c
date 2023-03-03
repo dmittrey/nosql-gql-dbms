@@ -11,7 +11,7 @@
 
 /*
 Проверять:
-Отсутствие ссылок к потомкам и братьям!!!
+TODO Перекидывание ссылок отца!!!
 
 1) Удалить строку
 2) Удалить инт
@@ -195,6 +195,7 @@ status_t File_DeleteFloat_ShiftPtrsAndClear()
     "flag": true
 }
 */
+//TODO Add asserts
 status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
 {
     FILE *filp = fopen(test_file_name, "w+");
@@ -252,6 +253,7 @@ status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
     "flag": true
 }
 */
+//TODO Add asserts
 status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
 {
     FILE *filp = fopen(test_file_name, "w+");
@@ -289,7 +291,6 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr), info_o_entity, info_o_json));
     DO_OR_FAIL(file_delete(file, info_o_entity->fam_addr.son_ptr));
 
-    
     json_dtor(info_json);
 
     file_dtor(file);
@@ -299,6 +300,7 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     return OK;
 }
 
+//TODO Add asserts
 status_t File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject()
 {
     FILE *filp = fopen(test_file_name, "w+");
@@ -345,6 +347,11 @@ status_t File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject()
     return OK;
 }
 
+status_t File_DeleteFirstLevelFromObjectNodeFromVariousSections_ShiftPtrsAndClearObject()
+{
+
+}
+
 void test_file_delete()
 {
     assert(File_DeleteString_ShiftPtrsAndClear() == OK);
@@ -353,4 +360,6 @@ void test_file_delete()
     assert(File_DeleteFloat_ShiftPtrsAndClear() == OK);
     assert(File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject() == OK);
     assert(File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject() == OK);
+    assert(File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject() == OK);
+    // assert(File_DeleteFirstLevelFromObjectNodeFromVariousSections_ShiftPtrsAndClearObject() == OK);
 }
