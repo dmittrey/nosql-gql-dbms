@@ -3,6 +3,7 @@
 static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff);
 static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size);
 static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff);
+static status_t file_update_depth(file_t *const file, const fileoff_t fileoff, const json_t *const new_json);
 
 file_t *file_new()
 {
@@ -114,41 +115,34 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
 
 /*
 1) Считали старую ноду
-2) Если есть брат - запустились от брата
-3) Если есть сын - запустились от сына
-4) Сравним ноды
-5) Если они разные, то перезаписать
+2) Сравнили ноду, если надо, то обновили
+3) Обновили поддерево
 */
 status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json)
 {
-    // sect_ext_t *extents = get_sect_ext(file, fileoff);
-    // if (extents == NULL)
-    // {
-    //     return FAILED;
-    // }
+    sect_ext_t *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+    {
+        return FAILED;
+    }
 
-    // json_t *old_json = json_new();
-    // entity_t *old_entity = entity_new();
-    // DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
+    json_t *old_json = json_new();
+    entity_t *old_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
 
-    // if (old_entity->fam_addr.bro_ptr != 0)
-    // {
-    //     DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro));
-    // }
+    if (json_cmp(old_json, new_json))
+    {
+        DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
+    }
 
-    // if (old_entity->fam_addr.son_ptr != 0)
-    // {
-    //     DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son));
-    // }
+    if (old_entity->fam_addr.son_ptr != 0)
+    {
+        DO_OR_FAIL(file_update_depth(file, old_entity->fam_addr.son_ptr, new_json->son));
+    }
 
-    // if (json_cmp(old_json, new_json))
-    // {
-    //     DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
-    // }
-
-    // json_dtor(old_json);
-    // entity_dtor(old_entity);
-    // return OK;
+    json_dtor(old_json);
+    entity_dtor(old_entity);
+    return OK;
 }
 
 /*
@@ -250,6 +244,41 @@ static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size)
     }
 
     return cur_ext;
+}
+
+/*
+cur -> bro -> son
+*/
+static status_t file_update_depth(file_t *const file, const fileoff_t fileoff, const json_t *const new_json)
+{
+    sect_ext_t *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+    {
+        return FAILED;
+    }
+
+    json_t *old_json = json_new();
+    entity_t *old_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
+
+    if (json_cmp(old_json, new_json))
+    {
+        DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
+    }
+
+    if (old_entity->fam_addr.bro_ptr != 0)
+    {
+        DO_OR_FAIL(file_update_depth(file, old_entity->fam_addr.bro_ptr, new_json->bro));
+    }
+
+    if (old_entity->fam_addr.son_ptr != 0)
+    {
+        DO_OR_FAIL(file_update_depth(file, old_entity->fam_addr.son_ptr, new_json->son));
+    }
+
+    json_dtor(old_json);
+    entity_dtor(old_entity);
+    return OK;
 }
 
 /*
