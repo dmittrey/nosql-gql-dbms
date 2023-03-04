@@ -106,9 +106,9 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
             entity_dtor(new_entity);
             entity_dtor(old_entity);
 
-            return OK;
+            return sect_head_sync(&section->header);
         }
-        else if (entity_rec_size(new_entity) <= old_entity->rec_size)
+        else if (new_entity->rec_size <= old_entity->rec_size)
         {
             new_entity->rec_size = old_entity->rec_size;
 
@@ -117,7 +117,6 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
 
             section->header.lst_itm_ptr = sectoff;
             section->header.fst_rec_ptr = old_entity->key_ptr + old_entity->key_size;
-            section->header.free_space += entity_ph_size(old_entity);
 
             fileoff_t save_addr;
             DO_OR_FAIL(
@@ -125,6 +124,7 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
 
             section->header.lst_itm_ptr = prev_last_item_ptr;
             section->header.fst_rec_ptr = prev_first_record_ptr;
+            section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
 
             entity_dtor(new_entity);
             entity_dtor(old_entity);

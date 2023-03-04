@@ -93,6 +93,7 @@ static status_t SectionExtents_UpdateInsideElementWithEqualSizeWithEnoughSpace_U
     DO_OR_FAIL(sect_ext_write(extents, second_json, s_entity, &second_json_addr));
 
     JSON_VALUE_INIT(TYPE_BOOL, updated_json, "value", true);
+    ENTITY_INIT(updated_entity, updated_json, 500, 0, 0);
 
     DO_OR_FAIL(sect_ext_update(extents, first_json_addr, updated_json));
 
@@ -100,14 +101,14 @@ static status_t SectionExtents_UpdateInsideElementWithEqualSizeWithEnoughSpace_U
     entity_t *r_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, first_json_addr, r_entity, r_json));
 
-    assert(extents->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - 2 * sizeof(entity_t) - string_get_size(updated_json->key) - string_get_size(second_json->key) - 2 * sizeof(updated_json->value)));
+    assert(extents->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - 2 * sizeof(entity_t) - string_get_size(first_json->key) - string_get_size(second_json->key) - 2 * sizeof(updated_json->value)));
     assert(extents->header.next_ptr == 0);
     assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(entity_t));
-    assert(extents->header.fst_rec_ptr == r_entity->val_ptr - string_get_size(second_json->key) - sizeof(second_json->value));
+    assert(extents->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(s_entity) - entity_rec_size(updated_entity));
 
-    assert(r_entity->key_ptr == SECTION_SIZE - string_get_size(updated_json->key));
-    assert(r_entity->key_size == string_get_size(updated_json->key));
-    assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(updated_json->key) - sizeof(updated_json->value));
+    assert(r_entity->key_ptr == SECTION_SIZE - updated_entity->key_size);
+    assert(r_entity->key_size == updated_entity->key_size);
+    assert(r_entity->val_ptr == SECTION_SIZE - entity_rec_size(updated_entity));
     assert(r_entity->val_size == sizeof(updated_json->value));
     assert(r_entity->fam_addr.dad_ptr == f_entity->fam_addr.dad_ptr);
     assert(r_entity->fam_addr.bro_ptr == f_entity->fam_addr.bro_ptr);
@@ -157,6 +158,7 @@ static status_t SectionExtents_UpdateInsideElementWithLessSizeWithEnoughSpace_Up
     string_t *str = string_new();
     string_ctor(str, "kek", 3);
     JSON_VALUE_INIT(TYPE_STRING, updated_json, "value", str);
+    ENTITY_INIT(updated_entity, updated_json, 0, 0, 0);
 
     DO_OR_FAIL(sect_ext_update(extents, first_json_addr, updated_json));
 
@@ -164,7 +166,7 @@ static status_t SectionExtents_UpdateInsideElementWithLessSizeWithEnoughSpace_Up
     entity_t *r_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, first_json_addr, r_entity, r_json));
 
-    assert(extents->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - 2 * sizeof(entity_t) - string_get_size(updated_json->key) - string_get_size(second_json->key) - string_get_size(updated_json->value.string_val) - sizeof(second_json->value)));
+    assert(extents->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(f_entity) - entity_ph_size(s_entity));
     assert(extents->header.next_ptr == 0);
     assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(entity_t));
     /*
@@ -174,12 +176,12 @@ static status_t SectionExtents_UpdateInsideElementWithLessSizeWithEnoughSpace_Up
     |     8 bits      |      8 bits     | 5 bits |      3 bits      |     8 bits       |
     | second_json_val | second_json_key | empty  | updated_json_val | updated_json_key |
     */
-    assert(extents->header.fst_rec_ptr == SECTION_SIZE - string_get_size(first_json->key) - sizeof(first_json->value) - string_get_size(second_json->key) - sizeof(second_json->value));
+    assert(extents->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(f_entity) - entity_rec_size(s_entity));
 
-    assert(r_entity->key_ptr == SECTION_SIZE - string_get_size(updated_json->key));
-    assert(r_entity->key_size == string_get_size(updated_json->key));
-    assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(updated_json->key) - string_get_size(updated_json->value.string_val));
-    assert(r_entity->val_size == string_get_size(updated_json->value.string_val));
+    assert(r_entity->key_ptr == SECTION_SIZE - updated_entity->key_size);
+    assert(r_entity->key_size == updated_entity->key_size);
+    assert(r_entity->val_ptr == SECTION_SIZE - entity_rec_size(updated_entity));
+    assert(r_entity->val_size == updated_entity->val_size);
     assert(r_entity->fam_addr.dad_ptr == f_entity->fam_addr.dad_ptr);
     assert(r_entity->fam_addr.bro_ptr == f_entity->fam_addr.bro_ptr);
     assert(r_entity->fam_addr.son_ptr == f_entity->fam_addr.son_ptr);
