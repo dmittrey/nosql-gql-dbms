@@ -231,33 +231,21 @@ status_t sect_ext_add_next(sect_ext_t *const extents);
 
 static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section)
 {
-    char *chrs = my_malloc_array(char, 2);
-    while (true)
+    entity_t *lst_entity = entity_new();
+    entity_t *rd_entity = entity_new();
+
+    sect_ext_rd_itm(section, section->header.lst_itm_ptr - sizeof(entity_t), rd_entity);
+
+    while (section->header.lst_itm_ptr != sizeof(sect_head_entity_t) && entity_cmp(lst_entity, rd_entity) == 0)
     {
-        SAVE_FILP(section->header.filp, {
-            RA_FREAD_OR_FAIL(chrs, 2 * sizeof(char), sect_head_get_fileoff(&section->header, section->header.lst_itm_ptr - 1), section->header.filp);
-        });
+        section->header.lst_itm_ptr -= sizeof(entity_t);
+        section->header.free_space += sizeof(entity_t);
 
-        if (section->header.lst_itm_ptr == sizeof(sect_head_entity_t) || chrs[0] != 0)
-        {
-            // Check if we on item expand to item border
-            if (chrs[0] != 0 && section->header.lst_itm_ptr != sizeof(sect_head_entity_t))
-            {
-                size_t i = sizeof(sect_head_entity_t);
-                while (i < section->header.lst_itm_ptr)
-                {
-                    i += sizeof(entity_t);
-                }
-                section->header.lst_itm_ptr = i;
-                section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
-            }
-            break;
-        }
-
-        section->header.lst_itm_ptr -= 1;
-        section->header.free_space += 1;
+        sect_ext_rd_itm(section, section->header.lst_itm_ptr - sizeof(entity_t), rd_entity);
     }
-    free(chrs);
+
+    entity_dtor(lst_entity);
+    entity_dtor(rd_entity);
 
     return sect_head_sync((sect_head_t *)section);
 }
