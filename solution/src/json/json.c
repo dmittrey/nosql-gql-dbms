@@ -13,6 +13,10 @@ json_t *json_new()
 
 void json_ctor(json_t *const json, const json_type_t type, const char *const key_val, const size_t key_size)
 {
+    if (json->key != NULL)
+    {
+        string_dtor(json->key);
+    }
     json->key = string_new();
     string_ctor(json->key, key_val, key_size);
 

@@ -59,8 +59,11 @@ status_t File_DeleteType_ShiftPtrsAndClear(const json_t *const json)
     assert(memcmp(rec, temp_rec_zr, entity_rec_size(entity)) == 0);
 
     free(temp);
+    free(rec);
+    free(temp_rec_zr);
 
     entity_dtor(del_entity);
+    entity_dtor(entity);
 
     file_dtor(file);
     fclose(filp);
@@ -132,7 +135,18 @@ status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
     sect_ext_rd_rec(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, SECTION_SIZE - total_rec_sz), total_rec_sz, del_recs_area);
     assert(memcmp(del_recs_area, temp_recs_zr, total_rec_sz) == 0);
 
+    free(del_items_area);
+    free(temp_items_zr);
+    free(del_recs_area);
+    free(temp_recs_zr);
+
     json_dtor(info_json);
+
+    entity_dtor(location_entity);
+    entity_dtor(amount_entity);
+    entity_dtor(city_entity);
+    entity_dtor(flag_entity);
+    entity_dtor(info_entity);
 
     file_dtor(file);
     fclose(filp);
@@ -197,16 +211,17 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     void *temp_items_zr = memset(my_malloc_array(entity_t, 2), 0, 2 * sizeof(entity_t));
     sect_ext_rd_rec(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr + 3 * sizeof(entity_t)), sizeof(entity_t) * 2, del_items_area);
     assert(memcmp(del_items_area, temp_items_zr, sizeof(entity_t) * 2) == 0);
+    free(del_items_area);
+    free(temp_items_zr);
 
     del_items_area = my_malloc_array(entity_t, 1);
     temp_items_zr = memset(my_malloc_array(entity_t, 1), 0, 1 * sizeof(entity_t));
     sect_ext_rd_rec(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr + sizeof(entity_t)), sizeof(entity_t), del_items_area);
     assert(memcmp(del_items_area, temp_items_zr, sizeof(entity_t)) == 0);
+    free(del_items_area);
+    free(temp_items_zr);
 
     // Check ptrs shift
-    size_t a = entity_ph_size(info_entity);
-    size_t b = entity_ph_size(city_entity);
-    size_t c = entity_ph_size(flag_entity);
     assert(file->f_extent->header.filp == filp);
     assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - entity_ph_size(info_entity) - entity_ph_size(city_entity) - entity_ph_size(flag_entity));
     assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + 3 * sizeof(entity_t));
@@ -215,6 +230,14 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     assert(file->f_extent->header.sect_off == sizeof(file_head_t));
 
     json_dtor(info_json);
+    json_dtor(info_o_json);
+
+    entity_dtor(info_o_entity);
+    entity_dtor(location_entity);
+    entity_dtor(amount_entity);
+    entity_dtor(city_entity);
+    entity_dtor(flag_entity);
+    entity_dtor(info_entity);
 
     file_dtor(file);
     fclose(filp);

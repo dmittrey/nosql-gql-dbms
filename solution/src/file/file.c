@@ -166,9 +166,6 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff)
         return FAILED;
     }
 
-    json_t * o_json = json_new();
-    file_read(file, fileoff, o_json);
-
     // Delete and read del root
     entity_t *const del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
@@ -265,9 +262,6 @@ static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff)
     {
         return FAILED;
     }
-
-    json_t * o_json = json_new();
-    file_read(file, fileoff, o_json);
 
     entity_t *const del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
