@@ -163,6 +163,8 @@ status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
     },
     "flag": true
 }
+info -> city -> flag -> location -> amount
+del city
 */
 status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
 {
@@ -246,6 +248,103 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     return OK;
 }
 
+/*
+"info" : {
+    "city" : {
+        "location" : "Moscow",
+        "amount" : 50000
+    },
+    "flag": true
+}
+info -> city -> flag -> location -> amount
+del location
+*/
+status_t File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject()
+{
+    FILE *filp = fopen(test_file_name, "w+");
+
+    file_t *file = file_new();
+    file_ctor(file, filp);
+
+    STR_INIT(location_str, "Moscow");
+    JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
+    ENTITY_INIT(location_entity, location_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
+    ENTITY_INIT(amount_entity, amount_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
+    ENTITY_INIT(city_entity, city_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
+    ENTITY_INIT(flag_entity, flag_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
+    ENTITY_INIT(info_entity, info_json, 0, 0, 0);
+
+    json_add_son(city_json, location_json);
+    json_add_son(city_json, amount_json);
+
+    json_add_son(info_json, city_json);
+    json_add_son(info_json, flag_json);
+
+    fileoff_t wrt_addr;
+    DO_OR_FAIL(file_write(file, info_json, 0, &wrt_addr));
+
+    sect_ext_t *sect_ext_aftr_wrt = memcpy(my_malloc(sect_ext_t), file->f_extent, sizeof(sect_ext_t));
+
+    json_t *info_o_json = json_new();
+    entity_t *info_o_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr), info_o_entity, info_o_json));
+
+    json_t *city_o_json = json_new();
+    entity_t *city_o_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, info_o_entity->fam_addr.son_ptr), city_o_entity, city_o_json));
+
+    DO_OR_FAIL(file_delete(file, city_o_entity->fam_addr.son_ptr));
+
+    DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, info_o_entity->fam_addr.son_ptr), city_o_entity, city_o_json));
+
+    // Check change ptr dad -> son from city
+    assert(city_o_entity->fam_addr.son_ptr == sect_head_get_fileoff(&file->f_extent->header, sizeof(sect_head_entity_t) + 4 * sizeof(entity_t)));
+
+    // Check section 4 empty
+    void *del_items_area = my_malloc(entity_t);
+    void *temp_items_zr = memset(my_malloc(entity_t), 0, sizeof(entity_t));
+    sect_ext_rd_rec(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr + 3 * sizeof(entity_t)), sizeof(entity_t), del_items_area);
+    assert(memcmp(del_items_area, temp_items_zr, sizeof(entity_t)) == 0);
+    free(del_items_area);
+    free(temp_items_zr);
+
+    // Check ptrs shift
+    assert(file->f_extent->header.filp == filp);
+    assert(file->f_extent->header.free_space == sect_ext_aftr_wrt->header.free_space);
+    assert(file->f_extent->header.lst_itm_ptr == sect_ext_aftr_wrt->header.lst_itm_ptr);
+    assert(file->f_extent->header.fst_rec_ptr == sect_ext_aftr_wrt->header.fst_rec_ptr);
+    assert(file->f_extent->header.next_ptr == sect_ext_aftr_wrt->header.next_ptr);
+    assert(file->f_extent->header.sect_off == sect_ext_aftr_wrt->header.sect_off);
+
+    json_dtor(info_json);
+    json_dtor(info_o_json);
+    json_dtor(city_o_json);
+
+    entity_dtor(info_o_entity);
+    entity_dtor(city_o_entity);
+    entity_dtor(location_entity);
+    entity_dtor(amount_entity);
+    entity_dtor(city_entity);
+    entity_dtor(flag_entity);
+    entity_dtor(info_entity);
+
+    sect_ext_dtor(sect_ext_aftr_wrt);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
+    return OK;
+}
+
 void test_file_delete()
 {
     JSON_VALUE_INIT(TYPE_OBJECT, obj_json, "json", NULL);
@@ -262,6 +361,7 @@ void test_file_delete()
     assert(File_DeleteType_ShiftPtrsAndClear(bool_json) == OK);
     assert(File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject() == OK);
     assert(File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject() == OK);
+    assert(File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject() == OK);
 
     json_dtor(obj_json);
     json_dtor(str_json);
