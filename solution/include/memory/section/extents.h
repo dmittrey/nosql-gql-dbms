@@ -5,12 +5,13 @@
 
 #include "memory/section/header.h"
 
-#include "memory/json/json.h"
+#include "memory/json/it_json.h"
 #include "physical/json/entity.h"
 
 typedef struct sect_ext_t
 {
     sect_head_t header;
+    it_json_t *f_json;
     struct sect_ext_t *next;
 } sect_ext_t;
 
@@ -27,8 +28,9 @@ status_t sect_ext_rd_rec(const sect_ext_t *const, const sectoff_t, const size_t,
 status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, entity_t *const entity, sectoff_t *const save_addr);
 status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t entity_addr, entity_t *const o_entity, json_t *const o_json);
 status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, const json_t *const new_json, entity_t *const new_entity);
-status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t * del_entity);
+status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t *del_entity);
 
 status_t sect_ext_sync(sect_ext_t *const);
 
-status_t sect_ext_add_next(sect_ext_t *const);
+status_t sect_ext_load(const sect_ext_t *const section, it_json_t *const f_it_json);
+status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const);

@@ -262,7 +262,40 @@ status_t sect_ext_sync(sect_ext_t *const section)
     return sect_head_sync(&section->header);
 }
 
-status_t sect_ext_add_next(sect_ext_t *const extents);
+status_t sect_ext_load(const sect_ext_t *const section, it_json_t *const f_it_json)
+{
+    for (size_t i = sizeof(sect_head_entity_t); i < section->header.lst_itm_ptr; i += sizeof(entity_t))
+    {
+        json_t *o_json = json_new();
+        entity_t *o_entity = entity_new();
+        DO_OR_FAIL(sect_ext_read(section, i, o_entity, o_json));
+
+        it_json_t *next = it_json_new();
+        it_json_ctor(next, o_json);
+
+        it_json_add_nxt(f_it_json, next);
+    }
+
+    return OK;
+}
+
+status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const new_section)
+{
+    sect_ext_t *cur = section;
+    if (cur == NULL)
+    {
+        memcpy(section, new_section, sizeof(sect_ext_t));
+    }
+
+    while (cur->next != NULL)
+    {
+        cur = cur->next;
+    }
+
+    cur->next = new_section;
+
+    return OK;
+}
 
 static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section)
 {
