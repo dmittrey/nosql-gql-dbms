@@ -7,6 +7,11 @@ json_col_t *json_col_new()
     return memset(my_malloc(json_col_t), 0, sizeof(json_col_t));
 }
 
+void json_col_ctor(json_col_t *const collection, json_col_t *other)
+{
+    collection->f_json = other->f_json;
+}
+
 void json_col_dtor(json_col_t *collection)
 {
     while (collection->f_json != NULL)

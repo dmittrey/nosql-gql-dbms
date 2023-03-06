@@ -25,4 +25,5 @@ typedef struct
     query_item_t *f_query_itm;
 } query_t;
 
-bool query_check(const query_t *const, const json_t *const);
+bool query_check_or(const query_t *const, const json_t *const);
+bool query_check_and(const query_t *const, const json_t *const);

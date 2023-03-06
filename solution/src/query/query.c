@@ -23,9 +23,23 @@ bool query_item_check(const query_item_t *const query, const json_t *const json)
     return false;
 }
 
-bool query_check(const query_t *const query, const json_t *const json)
+bool query_check_or(const query_t *const query, const json_t *const json)
 {
-    const query_item_t * cur_query_itm = query->f_query_itm;
+    const query_item_t *cur_query_itm = query->f_query_itm;
+    while (cur_query_itm != NULL)
+    {
+        if (query_item_check(cur_query_itm, json) == true)
+            return true;
+
+        cur_query_itm = cur_query_itm->next;
+    }
+
+    return true;
+}
+
+bool query_check_and(const query_t *const query, const json_t *const json)
+{
+    const query_item_t *cur_query_itm = query->f_query_itm;
     while (cur_query_itm != NULL)
     {
         if (query_item_check(cur_query_itm, json) == false)

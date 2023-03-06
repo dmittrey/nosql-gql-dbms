@@ -12,6 +12,7 @@
 
 static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section);
 static status_t reduce_fst_rec_ptr_emt(sect_ext_t *section);
+static status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection);
 
 sect_ext_t *sect_ext_new()
 {
@@ -219,6 +220,38 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, ent
     return OK;
 }
 
+status_t sect_ext_find(sect_ext_t *const section, const query_t *const query, json_col_t *const o_json_col)
+{
+    DO_OR_FAIL(sect_ext_load(section, o_json_col));
+
+    json_t *cur = o_json_col->f_json;
+    json_t *next = cur->next;
+
+    // Доходим до первого проверенного cur
+    while (!query_check_or(query, cur))
+    {
+        o_json_col->f_json = o_json_col->f_json->next;
+    }
+
+    while (next != NULL)
+    {
+        // Если не подошел, то сдвинем next
+        if (!query_check_or(query, next))
+        {
+            json_del_nxt(cur);
+        }
+        // Если подошел, то next "проверенный", двигаем оба
+        else
+        {
+            cur = next;
+        }
+        
+        next = cur->next;
+    }
+
+    return OK;
+}
+
 status_t sect_ext_wrt_itm(sect_ext_t *const section, const sectoff_t sectoff, const entity_t *const entity)
 {
     SAVE_FILP(section->header.filp, {
@@ -264,20 +297,6 @@ status_t sect_ext_sync(sect_ext_t *const section)
     return sect_head_sync(&section->header);
 }
 
-status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection)
-{
-    for (size_t i = sizeof(sect_head_entity_t); i < section->header.lst_itm_ptr; i += sizeof(entity_t))
-    {
-        json_t *o_json = json_new();
-        entity_t *o_entity = entity_new();
-        DO_OR_FAIL(sect_ext_read(section, i, o_entity, o_json));
-
-        json_col_add(collection, o_json);
-    }
-
-    return OK;
-}
-
 status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const new_section)
 {
     sect_ext_t *cur = section;
@@ -292,6 +311,21 @@ status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const new_sect
     }
 
     cur->next = new_section;
+
+    return OK;
+}
+
+static status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection)
+{
+    for (size_t i = sizeof(sect_head_entity_t); i < section->header.lst_itm_ptr; i += sizeof(entity_t))
+    {
+        json_t *o_json = json_new();
+        entity_t *o_entity = entity_new();
+        DO_OR_FAIL(sect_ext_read(section, i, o_entity, o_json));
+        entity_dtor(o_entity);
+
+        json_col_add(collection, o_json);
+    }
 
     return OK;
 }

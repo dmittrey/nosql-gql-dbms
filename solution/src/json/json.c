@@ -125,6 +125,20 @@ void json_add_nxt(json_t *const json, json_t *const next)
     }
 }
 
+void json_del_nxt(json_t *const json)
+{
+    json_t *nxt = json->next;
+    if (nxt != NULL)
+    {
+        json->next = nxt->next;
+        json_dtor(nxt);
+    }
+    else
+    {
+        json->next = NULL;
+    }
+}
+
 void json_print(const json_t *const json)
 {
     printf("\"%s\" : ", json->key->val);
