@@ -14,6 +14,7 @@ void iter_dtor(iter_t *);
 typedef struct
 {
     json_t *f_json;
+    json_t *l_json;
 } json_col_t;
 
 json_col_t *json_col_new();

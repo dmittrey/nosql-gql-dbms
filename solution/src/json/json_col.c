@@ -28,9 +28,11 @@ void json_col_add(json_col_t *collection, json_t *json)
     if (collection->f_json == NULL)
     {
         collection->f_json = json;
+        collection->l_json = json;
     }
     else
     {
-        json_add_nxt(collection->f_json, json);
+        collection->l_json->next = json;
+        collection->l_json = json;
     }
 }

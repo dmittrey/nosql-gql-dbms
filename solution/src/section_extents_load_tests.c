@@ -12,12 +12,23 @@
 
 static const char *test_file_name = "test.bin";
 
-/*
-1) Проверить считывание коллекций всех типов(каждого по одному)
-2) Проверить считывание всех элементов отдельно составного объекта записанного в одну секцию
-*/
+static status_t SectionExtents_LoadEmpty_ReturnEmptyCol()
+{
+    FILE *filp = fopen(test_file_name, "w+");
 
-static status_t SectionExtents_LoadType_ReturnItJsonWithObject()
+    sect_ext_t *extents = sect_ext_new();
+    sect_ext_ctor(extents, 0, filp);
+
+    json_col_t *collection = json_col_new();
+    DO_OR_FAIL(sect_ext_load(extents, collection));
+
+    assert(collection->f_json == NULL);
+    assert(collection->l_json == NULL);
+
+    return OK;
+}
+
+static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
 {
     FILE *filp = fopen(test_file_name, "w+");
 
@@ -53,23 +64,20 @@ static status_t SectionExtents_LoadType_ReturnItJsonWithObject()
     DO_OR_FAIL(sect_ext_load(file->f_extent, collection));
 
     assert(json_cmp(collection->f_json, prev_info_json) == 0);
-    
-    assert(json_cmp(collection->f_json, prev_amount_json) == 0);
-    assert(json_cmp(collection->f_json, prev_location_json) == 0);
-    assert(json_cmp(collection->f_json, prev_flag_json) == 0);
+    collection->f_json = collection->f_json->next;
     assert(json_cmp(collection->f_json, prev_city_json) == 0);
-
-    while (collection->f_json != NULL)
-    {
-        json_print(collection->f_json);
-        printf(" | ");
-        collection->f_json = collection->f_json->next;
-    }
+    collection->f_json = collection->f_json->next;
+    assert(json_cmp(collection->f_json, prev_flag_json) == 0);
+    collection->f_json = collection->f_json->next;
+    assert(json_cmp(collection->f_json, prev_location_json) == 0);
+    collection->f_json = collection->f_json->next;
+    assert(json_cmp(collection->f_json, prev_amount_json) == 0);
 
     return OK;
 }
 
 void test_extents_load()
 {
-    assert(SectionExtents_LoadType_ReturnItJsonWithObject() == OK);
+    assert(SectionExtents_LoadEmpty_ReturnEmptyCol() == OK);
+    assert(SectionExtents_Load3LvlObject_ReturnColWithFiveEls() == OK);
 }
