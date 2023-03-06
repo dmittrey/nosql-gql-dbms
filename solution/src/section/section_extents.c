@@ -223,28 +223,33 @@ status_t sect_ext_find(sect_ext_t *const section, const query_t *const query, js
 {
     DO_OR_FAIL(sect_ext_load(section, o_json_col));
 
-    json_t *cur = o_json_col->f_json;
-    json_t *next = cur->next;
+    if (o_json_col->count == 0)
+    {
+        return OK;
+    }
 
     // Доходим до первого проверенного cur
-    while (!query_check_or(query, cur))
+    while (!query_check_or(query, o_json_col->f_json))
     {
-        o_json_col->f_json = o_json_col->f_json->next;
+        json_col_del_fst(o_json_col);
     }
+
+    json_t *cur = o_json_col->f_json;
+    json_t *next = cur->next;
 
     while (next != NULL)
     {
         // Если не подошел, то сдвинем next
         if (!query_check_or(query, next))
         {
-            json_del_nxt(cur);
+            json_col_del_nxt(o_json_col, cur);
         }
         // Если подошел, то next "проверенный", двигаем оба
         else
         {
             cur = next;
         }
-        
+
         next = cur->next;
     }
 

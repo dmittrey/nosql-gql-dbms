@@ -69,7 +69,6 @@ void json_add_bro(json_t *const json, json_t *const bro);
 void json_add_son(json_t *const json, json_t *const son);
 
 void json_add_nxt(json_t *const json, json_t *const nxt);
-void json_del_nxt(json_t *const json);
 
 void json_print(const json_t *const);
 

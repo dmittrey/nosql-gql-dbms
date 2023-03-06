@@ -1,26 +1,27 @@
 #include "memory/query/query.h"
 
-bool query_item_check(const query_item_t *const query, const json_t *const json)
+query_t *query_new()
 {
-    if (string_cmp(query->query_key, json->key) == 0)
-    {
-        switch (json->type)
-        {
-        case TYPE_STRING:
-            return string_cmp(json->value.string_val, query->query_val.string_val);
-        case TYPE_INT32:
-            if (json->value.int32_val == query->query_val.int32_val)
-                return true;
-        case TYPE_FLOAT:
-            if (json->value.float_val == query->query_val.float_val)
-                return true;
-        case TYPE_BOOL:
-            if (json->value.bool_val == query->query_val.bool_val)
-                return true;
-        }
-    }
+    return memset(my_malloc(query_t), 0, sizeof(query_t));
+}
 
-    return false;
+void query_dtor(query_t *query)
+{
+    free(query);
+}
+
+void query_item_add(query_t *const query, query_item_t *const query_item)
+{
+    if (query->f_query_itm == NULL)
+    {
+        query->f_query_itm = query_item;
+    }
+    else
+    {
+        query_item_t *nxt = query->f_query_itm->next;
+        query->f_query_itm->next = query_item;
+        query_item->next = nxt;
+    }
 }
 
 bool query_check_or(const query_t *const query, const json_t *const json)
@@ -34,7 +35,7 @@ bool query_check_or(const query_t *const query, const json_t *const json)
         cur_query_itm = cur_query_itm->next;
     }
 
-    return true;
+    return false;
 }
 
 bool query_check_and(const query_t *const query, const json_t *const json)
