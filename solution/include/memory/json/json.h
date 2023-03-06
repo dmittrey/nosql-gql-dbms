@@ -53,6 +53,8 @@ typedef struct json_t
     struct json_t *bro; // next json with same parent
     struct json_t *son;
     uint64_t type; // Тип значения
+    // Указатель на следующий json в секции
+    struct json_t *next;
 } json_t;
 
 json_t *json_new();
@@ -65,6 +67,7 @@ size_t json_val_size(const json_t *const);
 
 void json_add_bro(json_t *const json, json_t *const bro);
 void json_add_son(json_t *const json, json_t *const son);
+void json_add_nxt(json_t *const json, json_t *const nxt);
 
 void json_print(const json_t *const);
 

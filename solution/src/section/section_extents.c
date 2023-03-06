@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "table.h"
 
+#include "memory/json/json_col.h"
+
 #include "memory/section/header.h"
 #include "memory/section/extents.h"
 
@@ -262,7 +264,7 @@ status_t sect_ext_sync(sect_ext_t *const section)
     return sect_head_sync(&section->header);
 }
 
-status_t sect_ext_load(const sect_ext_t *const section, it_json_t *const f_it_json)
+status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection)
 {
     for (size_t i = sizeof(sect_head_entity_t); i < section->header.lst_itm_ptr; i += sizeof(entity_t))
     {
@@ -270,10 +272,7 @@ status_t sect_ext_load(const sect_ext_t *const section, it_json_t *const f_it_js
         entity_t *o_entity = entity_new();
         DO_OR_FAIL(sect_ext_read(section, i, o_entity, o_json));
 
-        it_json_t *next = it_json_new();
-        it_json_ctor(next, o_json);
-
-        it_json_add_nxt(f_it_json, next);
+        json_col_add(collection, o_json);
     }
 
     return OK;

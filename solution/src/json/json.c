@@ -115,26 +115,36 @@ void json_add_son(json_t *const json, json_t *const son)
     }
 }
 
+void json_add_nxt(json_t *const json, json_t *const next)
+{
+    if (json != NULL)
+    {
+        struct json_t *nxt = json->next;
+        json->next = next;
+        next->next = nxt;
+    }
+}
+
 void json_print(const json_t *const json)
 {
-    printf("%s ", json->key->val);
+    printf("\"%s\" : ", json->key->val);
 
     switch (json->type)
     {
     case TYPE_STRING:
-        printf("%s ", json->value.string_val->val);
+        printf("\"%s\"", json->value.string_val->val);
         break;
     case TYPE_INT32:
-        printf("%d ", json->value.int32_val);
+        printf("%d", json->value.int32_val);
         break;
     case TYPE_FLOAT:
-        printf("%.6f ", json->value.float_val);
+        printf("%.6f", json->value.float_val);
         break;
     case TYPE_BOOL:
-        printf("%d ", json->value.bool_val);
+        printf("%d", json->value.bool_val);
         break;
     default:
-        printf("{");
+        printf("{\n");
 
         json_t *cur_son = json->son;
         while (cur_son != NULL)

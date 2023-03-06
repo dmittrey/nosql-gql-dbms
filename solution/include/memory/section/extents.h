@@ -3,15 +3,16 @@
 #include "utils.h"
 #include "table.h"
 
+#include "memory/json/json_col.h"
+
 #include "memory/section/header.h"
 
-#include "memory/json/it_json.h"
 #include "physical/json/entity.h"
 
 typedef struct sect_ext_t
 {
     sect_head_t header;
-    it_json_t *f_json;
+    json_t *f_json;
     struct sect_ext_t *next;
 } sect_ext_t;
 
@@ -32,5 +33,5 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, ent
 
 status_t sect_ext_sync(sect_ext_t *const);
 
-status_t sect_ext_load(const sect_ext_t *const section, it_json_t *const f_it_json);
+status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection);
 status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const);
