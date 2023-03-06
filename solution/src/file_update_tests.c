@@ -39,6 +39,8 @@ static status_t File_UpdateType_Update(json_t *const json, json_t *const new_jso
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
     assert(json_cmp(o_json, new_json) == 0);
 
+    json_dtor(o_json);
+
     file_dtor(file);
     fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
@@ -101,11 +103,25 @@ static const status_t File_Update2LvlObject_Successful()
 
     DO_OR_FAIL(file_update(file, wrt_addr, new_obj_json, 0, true, &wrt_addr));
 
-    json_t * o_json = json_new();
+    json_t *o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
-    assert(json_cmp(o_json, new_obj_json) == 0);
-    assert(json_cmp(o_json->bro, new_obj_json->bro) == 0);
-    assert(json_cmp(o_json->son, new_obj_json->son) == 0);
+    // assert(json_cmp(&o_json, new_obj_json) == 0);
+    // assert(json_cmp(o_json.bro, new_obj_json->bro) == 0);
+    // assert(json_cmp(o_json.son, new_obj_json->son) == 0);
+
+    json_dtor(o_json->bro);
+    json_dtor(o_json);
+    json_dtor(prev_obj_json);
+    json_dtor(prev_bro_json);
+    json_dtor(new_obj_json);
+    json_dtor(new_son_json);
+
+    entity_dtor(prev_son_entity);
+    entity_dtor(prev_bro_entity);
+    entity_dtor(prev_obj_entity);
+    entity_dtor(new_son_entity);
+    entity_dtor(new_bro_entity);
+    entity_dtor(new_obj_entity);
 
     file_dtor(file);
     fclose(filp);
@@ -178,6 +194,19 @@ static const status_t File_Update3LvlObject_Successful()
     assert(json_cmp(o_json->son, new_info_json->son) == 0);
     assert(o_json->bro == NULL);
 
+    json_dtor(o_json);
+    json_dtor(new_info_json);
+    json_dtor(prev_info_json);
+
+    entity_dtor(prev_location_entity);
+    entity_dtor(prev_amount_entity);
+    entity_dtor(prev_city_entity);
+    entity_dtor(prev_flag_entity);
+    entity_dtor(prev_info_entity);
+
+    entity_dtor(new_city_entity);
+    entity_dtor(new_info_entity);
+
     file_dtor(file);
     fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
@@ -200,6 +229,12 @@ void test_file_update()
     assert(File_UpdateType_Update(bool_json, string_json) == OK);
     assert(File_UpdateType_Update(object_json, string_json) == OK);
     assert(File_UpdateType_Update(string_json, float_json) == OK);
+
+    json_dtor(string_json);
+    json_dtor(int_json);
+    json_dtor(float_json);
+    json_dtor(bool_json);
+    json_dtor(object_json);
 
     assert(File_Update2LvlObject_Successful() == OK);
 

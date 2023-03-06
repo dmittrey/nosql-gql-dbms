@@ -85,7 +85,6 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
 */
 status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const ret_json)
 {
-
     sect_ext_t *extents = get_sect_ext(file, fileoff);
     if (extents == NULL)
         return FAILED;
@@ -97,14 +96,14 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
     {
         json_t *bro_json = json_new();
         DO_OR_FAIL(file_read(file, ret_entity->fam_addr.bro_ptr, bro_json));
-        ret_json->bro = bro_json;
+        json_add_bro(ret_json, bro_json);
     }
 
     if (ret_entity->fam_addr.son_ptr != 0)
     {
         json_t *son_json = json_new();
         DO_OR_FAIL(file_read(file, ret_entity->fam_addr.son_ptr, son_json));
-        ret_json->son = son_json;
+        json_add_son(ret_json, son_json);
     }
 
     entity_dtor(ret_entity);
@@ -179,6 +178,7 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
 
     json_dtor(old_json);
     entity_dtor(old_entity);
+    entity_dtor(new_entity);
     return OK;
 }
 

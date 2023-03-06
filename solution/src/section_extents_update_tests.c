@@ -65,6 +65,7 @@ static status_t SectionExtents_UpdateBoundaryElement_ShiftPtrsAndUpdate()
 
     entity_dtor(entity);
     entity_dtor(r_entity);
+    entity_dtor(updated_entity);
 
     sect_ext_dtor(extents);
 
@@ -128,6 +129,7 @@ static status_t SectionExtents_UpdateInsideElementWithEqualSizeWithEnoughSpace_U
     entity_dtor(f_entity);
     entity_dtor(s_entity);
     entity_dtor(r_entity);
+    entity_dtor(updated_entity);
 
     sect_ext_dtor(extents);
 
@@ -201,6 +203,7 @@ static status_t SectionExtents_UpdateInsideElementWithLessSizeWithEnoughSpace_Up
     entity_dtor(f_entity);
     entity_dtor(s_entity);
     entity_dtor(r_entity);
+    entity_dtor(updated_entity);
 
     sect_ext_dtor(extents);
 
@@ -373,6 +376,7 @@ static status_t SectionExtents_UpdateInsideElementWithGreaterSizeWithNotEnoughSp
     entity_dtor(s_entity);
     entity_dtor(r_f_entity);
     entity_dtor(r_s_entity);
+    entity_dtor(updated_entity);
 
     sect_ext_dtor(extents);
 

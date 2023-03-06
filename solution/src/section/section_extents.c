@@ -109,9 +109,7 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
             section->header.lst_itm_ptr = prev_lst_itm_ptr;
             section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
 
-            entity_dtor(new_entity);
             entity_dtor(old_entity);
-
             return sect_head_sync(&section->header);
         }
     }
@@ -139,6 +137,7 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
                 section->header.lst_itm_ptr = prev_lst_itm_ptr;
                 section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
 
+                entity_dtor(old_entity);
                 return sect_head_sync(&section->header);
             }
         }
@@ -160,13 +159,12 @@ status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, con
             section->header.fst_rec_ptr = prev_fst_rec_ptr;
             section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
 
+            entity_dtor(old_entity);
             return OK;
         }
     }
 
-    entity_dtor(new_entity);
     entity_dtor(old_entity);
-
     return FAILED;
 }
 
