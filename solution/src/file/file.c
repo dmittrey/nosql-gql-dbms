@@ -2,8 +2,6 @@
 
 static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff);
 static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size);
-static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff);
-static status_t file_update_depth(file_t *const file, const fileoff_t fileoff, const json_t *const new_json);
 
 file_t *file_new()
 {
@@ -118,7 +116,7 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
 2) Сравнили ноду, если надо, то обновили
 3) Обновили поддерево
 */
-status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json)
+status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json, const fileoff_t dad_ptr, bool is_bro_upd, fileoff_t *cur_fileoff)
 {
     sect_ext_t *extents = get_sect_ext(file, fileoff);
     if (extents == NULL)
@@ -130,14 +128,53 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
     entity_t *old_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
 
-    if (json_cmp(old_json, new_json))
+    *cur_fileoff = fileoff;
+    ENTITY_INIT(new_entity, new_json, dad_ptr, old_entity->fam_addr.bro_ptr, old_entity->fam_addr.son_ptr);
+
+    if (json_cmp(old_json, new_json) != 0)
     {
-        DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
+        /*
+            - Если не можем обновить, то удалим сущность из секции
+            - Далее добавим сущность в первую свободную секцию
+            - Обновим дерево под ней
+        */
+        if (sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json, new_entity) == FAILED)
+        {
+            DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), NULL));
+
+            sect_ext_t *empty_sect_ext = find_sect_ext(file, entity_ph_size(new_entity));
+            if (empty_sect_ext == NULL)
+            {
+                empty_sect_ext = sect_ext_new();
+                DO_OR_FAIL(file_add_sect_ext(file, empty_sect_ext));
+            }
+            
+            sectoff_t save_addr;
+            DO_OR_FAIL(sect_ext_write(empty_sect_ext, new_json, new_entity, &save_addr));
+
+            *cur_fileoff = sect_head_get_fileoff(&empty_sect_ext->header, save_addr);
+        }
     }
 
+    fileoff_t bro_ptr = 0;
+    if (is_bro_upd && old_entity->fam_addr.bro_ptr != 0)
+    {
+        DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro, *cur_fileoff, true, &bro_ptr));
+    }
+
+    fileoff_t son_ptr = 0;
     if (old_entity->fam_addr.son_ptr != 0)
     {
-        DO_OR_FAIL(file_update_depth(file, old_entity->fam_addr.son_ptr, new_json->son));
+        DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son, *cur_fileoff, true, &son_ptr));
+    }
+
+    if (bro_ptr)
+    {
+        RA_FWRITE_OR_FAIL(&bro_ptr, sizeof(bro_ptr), *cur_fileoff + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, bro_ptr), file->filp);
+    }
+    if (son_ptr)
+    {
+        RA_FWRITE_OR_FAIL(&son_ptr, sizeof(son_ptr), *cur_fileoff + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
     }
 
     json_dtor(old_json);
@@ -151,7 +188,7 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
 3) Удалили дерево под ней
 4) Поменяли ссылку с отца на сына
 */
-status_t file_delete(file_t *const file, const fileoff_t fileoff)
+status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root)
 {
     // Find root section
     sect_ext_t *extents = get_sect_ext(file, fileoff);
@@ -164,14 +201,19 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff)
     entity_t *const del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
 
+    if (!is_root && del_entity->fam_addr.bro_ptr != 0)
+    {
+        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.bro_ptr, false));
+    }
+
     // Delete recursively under tree
     if (del_entity->fam_addr.son_ptr != 0)
     {
-        DO_OR_FAIL(file_delete_depth(file, del_entity->fam_addr.son_ptr));
+        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.son_ptr, false));
     }
 
     // If dad exist change dad -> son ptr
-    if (del_entity->fam_addr.dad_ptr != 0)
+    if (is_root && del_entity->fam_addr.dad_ptr != 0)
     {
         // Change dad -> son to bro_ptr
         if (del_entity->fam_addr.bro_ptr != 0)
@@ -244,67 +286,4 @@ static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size)
     }
 
     return cur_ext;
-}
-
-/*
-cur -> bro -> son
-*/
-static status_t file_update_depth(file_t *const file, const fileoff_t fileoff, const json_t *const new_json)
-{
-    sect_ext_t *extents = get_sect_ext(file, fileoff);
-    if (extents == NULL)
-    {
-        return FAILED;
-    }
-
-    json_t *old_json = json_new();
-    entity_t *old_entity = entity_new();
-    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
-
-    if (json_cmp(old_json, new_json))
-    {
-        DO_OR_FAIL(sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json));
-    }
-
-    if (old_entity->fam_addr.bro_ptr != 0)
-    {
-        DO_OR_FAIL(file_update_depth(file, old_entity->fam_addr.bro_ptr, new_json->bro));
-    }
-
-    if (old_entity->fam_addr.son_ptr != 0)
-    {
-        DO_OR_FAIL(file_update_depth(file, old_entity->fam_addr.son_ptr, new_json->son));
-    }
-
-    json_dtor(old_json);
-    entity_dtor(old_entity);
-    return OK;
-}
-
-/*
-cur -> bro -> son
-*/
-static status_t file_delete_depth(file_t *const file, const fileoff_t fileoff)
-{
-    sect_ext_t *extents = get_sect_ext(file, fileoff);
-    if (extents == NULL)
-    {
-        return FAILED;
-    }
-
-    entity_t *const del_entity = entity_new();
-    DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
-
-    if (del_entity->fam_addr.bro_ptr != 0)
-    {
-        DO_OR_FAIL(file_delete_depth(file, del_entity->fam_addr.bro_ptr));
-    }
-
-    if (del_entity->fam_addr.son_ptr != 0)
-    {
-        DO_OR_FAIL(file_delete_depth(file, del_entity->fam_addr.son_ptr));
-    }
-
-    entity_dtor(del_entity);
-    return OK;
 }

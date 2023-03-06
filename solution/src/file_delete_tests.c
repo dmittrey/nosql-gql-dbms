@@ -35,7 +35,7 @@ status_t File_DeleteType_ShiftPtrsAndClear(const json_t *const json)
     fileoff_t wrt_addr;
     DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
 
-    DO_OR_FAIL(file_delete(file, wrt_addr));
+    DO_OR_FAIL(file_delete(file, wrt_addr, true));
 
     assert(file->f_extent->header.filp == filp);
     assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
@@ -113,7 +113,7 @@ status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
     fileoff_t wrt_addr;
     DO_OR_FAIL(file_write(file, info_json, 0, &wrt_addr));
 
-    DO_OR_FAIL(file_delete(file, wrt_addr));
+    DO_OR_FAIL(file_delete(file, wrt_addr, true));
 
     assert(file->f_extent->header.filp == filp);
     assert(file->f_extent->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
@@ -201,7 +201,7 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     json_t *info_o_json = json_new();
     entity_t *info_o_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr), info_o_entity, info_o_json));
-    DO_OR_FAIL(file_delete(file, info_o_entity->fam_addr.son_ptr));
+    DO_OR_FAIL(file_delete(file, info_o_entity->fam_addr.son_ptr, true));
 
     DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr), info_o_entity, info_o_json));
 
@@ -301,7 +301,7 @@ status_t File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject()
     entity_t *city_o_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, info_o_entity->fam_addr.son_ptr), city_o_entity, city_o_json));
 
-    DO_OR_FAIL(file_delete(file, city_o_entity->fam_addr.son_ptr));
+    DO_OR_FAIL(file_delete(file, city_o_entity->fam_addr.son_ptr, true));
 
     DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, info_o_entity->fam_addr.son_ptr), city_o_entity, city_o_json));
 
