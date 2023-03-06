@@ -129,7 +129,7 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
 
     *cur_fileoff = fileoff;
-    ENTITY_INIT(new_entity, new_json, dad_ptr, old_entity->fam_addr.bro_ptr, old_entity->fam_addr.son_ptr);
+    ENTITY_INIT(new_entity, new_json, dad_ptr, 0, 0);
 
     if (json_cmp(old_json, new_json) != 0)
     {
@@ -157,13 +157,13 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
     }
 
     fileoff_t bro_ptr = 0;
-    if (is_bro_upd && old_entity->fam_addr.bro_ptr != 0)
+    if (is_bro_upd && new_json->bro != NULL)
     {
         DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro, *cur_fileoff, true, &bro_ptr));
     }
 
     fileoff_t son_ptr = 0;
-    if (old_entity->fam_addr.son_ptr != 0)
+    if (new_json->son != NULL)
     {
         DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son, *cur_fileoff, true, &son_ptr));
     }

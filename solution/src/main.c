@@ -21,6 +21,6 @@ int main(int argc, char **argv)
 
     test_file_write();
     test_file_read();
-    test_file_update();
     test_file_delete();
+    test_file_update();
 }

@@ -23,25 +23,160 @@
 
 static const char *test_file_name = "test.bin";
 
-status_t File_UpdateType_Update(json_t *const json, json_t *const new_json)
+static status_t File_UpdateType_Update(json_t *const json, json_t *const new_json)
 {
     FILE *filp = fopen(test_file_name, "w+");
 
     file_t *file = file_new();
     file_ctor(file, filp);
 
-    ENTITY_INIT(entity, json, 0, 0, 0);
-
     fileoff_t wrt_addr;
     DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
 
-    DO_OR_FAIL(file_update(file, wrt_addr, new_json));
+    DO_OR_FAIL(file_update(file, wrt_addr, new_json, 0, false, &wrt_addr));
 
     json_t * o_json = json_new();
-    entity_t * o_entity = entity_new();
-    DO_OR_FAIL(sect_ext_read(file->f_extent, sect_head_get_sectoff(&file->f_extent->header, wrt_addr), entity, json));
-    // Doesn't read json key!!!
+    DO_OR_FAIL(file_read(file, wrt_addr, o_json));
     assert(json_cmp(o_json, new_json) == 0);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
+    return OK;
+}
+
+/*
+{
+    "obj": {
+        "son" : "value"
+    },
+    "bro" : "example"
+}
+
+{
+    "obj": {
+        "bro" : "example"
+    },
+    "son" : "value"
+}
+*/
+static const status_t File_Update2LvlObject_Successful()
+{
+    STR_INIT(prev_son_str, "value");
+    JSON_VALUE_INIT(TYPE_STRING, prev_son_json, "son", prev_son_str);
+    ENTITY_INIT(prev_son_entity, prev_son_json, 0, 0, 0);
+
+    STR_INIT(prev_bro_str, "example");
+    JSON_VALUE_INIT(TYPE_STRING, prev_bro_json, "bro", prev_bro_str);
+    ENTITY_INIT(prev_bro_entity, prev_bro_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, prev_obj_json, "obj", NULL);
+    ENTITY_INIT(prev_obj_entity, prev_obj_json, 0, 0, 0);
+
+    json_add_bro(prev_obj_json, prev_bro_json);
+    json_add_son(prev_obj_json, prev_son_json);
+
+    STR_INIT(new_son_str, "value");
+    JSON_VALUE_INIT(TYPE_STRING, new_son_json, "son", new_son_str);
+    ENTITY_INIT(new_son_entity, new_son_json, 0, 0, 0);
+
+    STR_INIT(new_bro_str, "example");
+    JSON_VALUE_INIT(TYPE_STRING, new_bro_json, "bro", new_bro_str);
+    ENTITY_INIT(new_bro_entity, new_bro_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, new_obj_json, "obj", NULL);
+    ENTITY_INIT(new_obj_entity, new_obj_json, 0, 0, 0);
+
+    json_add_bro(new_obj_json, new_son_json);
+    json_add_son(new_obj_json, new_bro_json);
+
+    FILE *filp = fopen(test_file_name, "w+");
+
+    file_t *file = file_new();
+    file_ctor(file, filp);
+
+    fileoff_t wrt_addr;
+    DO_OR_FAIL(file_write(file, prev_obj_json, 0, &wrt_addr));
+
+    DO_OR_FAIL(file_update(file, wrt_addr, new_obj_json, 0, true, &wrt_addr));
+
+    json_t * o_json = json_new();
+    DO_OR_FAIL(file_read(file, wrt_addr, o_json));
+    assert(json_cmp(o_json, new_obj_json) == 0);
+    assert(json_cmp(o_json->bro, new_obj_json->bro) == 0);
+    assert(json_cmp(o_json->son, new_obj_json->son) == 0);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
+    return OK;
+}
+
+/*
+"info" : {
+    "city" : {
+        "location" : "Moscow",
+        "amount" : "50000"
+    },
+    "flag": true
+}
+*/
+/*
+"info" : {
+    "city" : "Moscow"
+}
+*/
+static const status_t File_Update3LvlObject_Successful()
+{
+    STR_INIT(prev_location_str, "Moscow");
+    JSON_VALUE_INIT(TYPE_STRING, prev_location_json, "location", prev_location_str);
+    ENTITY_INIT(prev_location_entity, prev_location_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_INT32, prev_amount_json, "amount", 50000);
+    ENTITY_INIT(prev_amount_entity, prev_amount_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, prev_city_json, "city", NULL);
+    ENTITY_INIT(prev_city_entity, prev_city_json, 0, 0, 0);
+
+    json_add_son(prev_city_json, prev_location_json);
+    json_add_son(prev_city_json, prev_amount_json);
+
+    JSON_VALUE_INIT(TYPE_BOOL, prev_flag_json, "flag", true);
+    ENTITY_INIT(prev_flag_entity, prev_flag_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, prev_info_json, "info", NULL);
+    ENTITY_INIT(prev_info_entity, prev_info_json, 0, 0, 0);
+
+    json_add_son(prev_info_json, prev_city_json);
+    json_add_son(prev_info_json, prev_flag_json);
+
+
+    STR_INIT(new_city_str, "Moscow");
+    JSON_VALUE_INIT(TYPE_STRING, new_city_json, "city", new_city_str);
+    ENTITY_INIT(new_city_entity, new_city_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_OBJECT, new_info_json, "info", NULL);
+    ENTITY_INIT(new_info_entity, new_info_json, 0, 0, 0);
+
+    json_add_son(new_info_json, new_city_json);
+    
+    FILE *filp = fopen(test_file_name, "w+");
+
+    file_t *file = file_new();
+    file_ctor(file, filp);
+
+    fileoff_t wrt_addr;
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, &wrt_addr));
+
+    DO_OR_FAIL(file_update(file, wrt_addr, new_info_json, 0, false, &wrt_addr));
+
+    json_t * o_json = json_new();
+    DO_OR_FAIL(file_read(file, wrt_addr, o_json));
+    assert(json_cmp(o_json, new_info_json) == 0);
+    assert(json_cmp(o_json->son, new_info_json->son) == 0);
+    assert(o_json->bro == NULL);
 
     file_dtor(file);
     fclose(filp);
@@ -54,9 +189,19 @@ status_t File_UpdateType_Update(json_t *const json, json_t *const new_json)
 void test_file_update()
 {
     STR_INIT(location_str, "Moscow");
-    JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
+    JSON_VALUE_INIT(TYPE_STRING, string_json, "location", location_str);
+    JSON_VALUE_INIT(TYPE_INT32, int_json, "int", 50000);
+    JSON_VALUE_INIT(TYPE_FLOAT, float_json, "float", 5.5);
+    JSON_VALUE_INIT(TYPE_BOOL, bool_json, "bool", 50000);
+    JSON_VALUE_INIT(TYPE_OBJECT, object_json, "object", NULL);
 
-    JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
+    assert(File_UpdateType_Update(int_json, string_json) == OK);
+    assert(File_UpdateType_Update(float_json, string_json) == OK);
+    assert(File_UpdateType_Update(bool_json, string_json) == OK);
+    assert(File_UpdateType_Update(object_json, string_json) == OK);
+    assert(File_UpdateType_Update(string_json, float_json) == OK);
 
-    File_UpdateType_Update(amount_json, location_json);
+    assert(File_Update2LvlObject_Successful() == OK);
+
+    assert(File_Update3LvlObject_Successful() == OK);
 }
