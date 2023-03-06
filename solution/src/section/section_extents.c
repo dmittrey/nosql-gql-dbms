@@ -12,7 +12,6 @@
 
 static status_t reduce_lst_itm_ptr_emt(sect_ext_t *section);
 static status_t reduce_fst_rec_ptr_emt(sect_ext_t *section);
-static status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection);
 
 sect_ext_t *sect_ext_new()
 {
@@ -315,7 +314,7 @@ status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const new_sect
     return OK;
 }
 
-static status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection)
+status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection)
 {
     for (size_t i = sizeof(sect_head_entity_t); i < section->header.lst_itm_ptr; i += sizeof(entity_t))
     {
