@@ -10,7 +10,7 @@
 2) Посмотреть обновление элемента внутри равного размера и хватает места
 3) Посмотреть обновление элемента внутри размера меньше и хватает места
 4) Посмотреть обновление элемента внутри размера больше и хватает места
-5) посмотреть обновление элемента когда не хватает места вставить
+5) Посмотреть обновление элемента когда не хватает места вставить
 */
 
 static const char *test_file_name = "test.bin";
@@ -31,14 +31,14 @@ static status_t SectionExtents_UpdateBoundaryElement_ShiftPtrsAndUpdate()
     string_t *str = string_new();
     string_ctor(str, "more_than_sixteen_elements_string", 33);
     JSON_VALUE_INIT(TYPE_STRING, updated_json, "value", str);
+    ENTITY_INIT(updated_entity, updated_json, 500, 200, 300);
 
-    DO_OR_FAIL(sect_ext_update(extents, save_json_addr, updated_json));
+    DO_OR_FAIL(sect_ext_update(extents, save_json_addr, updated_json, updated_entity));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, save_json_addr, r_entity, r_json));
 
-    // 8075 -> 8050
     assert(extents->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(entity_t) - string_get_size(updated_json->key) - string_get_size(updated_json->value.string_val)));
     assert(extents->header.next_ptr == 0);
     assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(entity_t));
@@ -95,7 +95,7 @@ static status_t SectionExtents_UpdateInsideElementWithEqualSizeWithEnoughSpace_U
     JSON_VALUE_INIT(TYPE_BOOL, updated_json, "value", true);
     ENTITY_INIT(updated_entity, updated_json, 500, 0, 0);
 
-    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, updated_json));
+    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, updated_json, updated_entity));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -160,7 +160,7 @@ static status_t SectionExtents_UpdateInsideElementWithLessSizeWithEnoughSpace_Up
     JSON_VALUE_INIT(TYPE_STRING, updated_json, "value", str);
     ENTITY_INIT(updated_entity, updated_json, 0, 0, 0);
 
-    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, updated_json));
+    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, updated_json, updated_entity));
 
     json_t *r_json = json_new();
     entity_t *r_entity = entity_new();
@@ -182,9 +182,9 @@ static status_t SectionExtents_UpdateInsideElementWithLessSizeWithEnoughSpace_Up
     assert(r_entity->key_size == updated_entity->key_size);
     assert(r_entity->val_ptr == SECTION_SIZE - entity_rec_size(updated_entity));
     assert(r_entity->val_size == updated_entity->val_size);
-    assert(r_entity->fam_addr.dad_ptr == f_entity->fam_addr.dad_ptr);
-    assert(r_entity->fam_addr.bro_ptr == f_entity->fam_addr.bro_ptr);
-    assert(r_entity->fam_addr.son_ptr == f_entity->fam_addr.son_ptr);
+    assert(r_entity->fam_addr.dad_ptr == updated_entity->fam_addr.dad_ptr);
+    assert(r_entity->fam_addr.bro_ptr == updated_entity->fam_addr.bro_ptr);
+    assert(r_entity->fam_addr.son_ptr == updated_entity->fam_addr.son_ptr);
     assert(r_entity->type == TYPE_STRING);
 
     assert(r_json->key->cnt == updated_json->key->cnt);
@@ -234,8 +234,8 @@ static status_t SectionExtents_UpdateInsideElementWithGreaterSizeWithEnoughSpace
     fileoff_t second_json_addr;
     DO_OR_FAIL(sect_ext_write(extents, second_json, s_entity, &second_json_addr));
 
-    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, third_json));
-    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, first_json));
+    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, third_json, th_entity));
+    DO_OR_FAIL(sect_ext_update(extents, first_json_addr, first_json, f_entity));
 
     json_t *r_f_json = json_new();
     entity_t *r_f_entity = entity_new();
@@ -320,8 +320,9 @@ static status_t SectionExtents_UpdateInsideElementWithGreaterSizeWithNotEnoughSp
     string_t *str = string_new();
     string_ctor(str, "example_word", 12);
     JSON_VALUE_INIT(TYPE_STRING, updated_json, "value", str);
+    ENTITY_INIT(updated_entity, updated_json, 500, 0, 0);
 
-    status_t update_status = sect_ext_update(extents, first_json_addr, updated_json);
+    status_t update_status = sect_ext_update(extents, first_json_addr, updated_json, updated_entity);
 
     json_t *r_f_json = json_new();
     entity_t *r_f_entity = entity_new();

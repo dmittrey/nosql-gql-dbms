@@ -33,19 +33,15 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, ent
 
     *save_addr = section->header.lst_itm_ptr;
 
-    DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -1 * json->key->cnt));
-    DO_OR_FAIL(sect_ext_wrt_rec(section, section->header.fst_rec_ptr, json->key->val, json->key->cnt));
-    entity->key_ptr = section->header.fst_rec_ptr;
+    DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -1 * entity_rec_size(entity)));
+    DO_OR_FAIL(sect_ext_wrt_rec(section, section->header.fst_rec_ptr + entity->val_size, json->key->val, json->key->cnt));
+    entity->key_ptr = section->header.fst_rec_ptr + entity->val_size;
 
-    if (entity->type != TYPE_OBJECT)
-    {
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -1 * json_val_size(json)));
-        DO_OR_FAIL(sect_ext_wrt_rec(section, section->header.fst_rec_ptr, json_val_ptr(json), json_val_size(json)));
-        entity->val_ptr = section->header.fst_rec_ptr;
-    }
+    DO_OR_FAIL(sect_ext_wrt_rec(section, section->header.fst_rec_ptr, json_val_ptr(json), json_val_size(json)));
+    entity->val_ptr = section->header.fst_rec_ptr;
 
+    DO_OR_FAIL(sect_ext_wrt_itm(section, section->header.lst_itm_ptr, entity));
     DO_OR_FAIL(sect_head_shift_lst_itm_ptr((sect_head_t *)section, sizeof(entity_t)));
-    DO_OR_FAIL(sect_ext_wrt_itm(section, *save_addr, entity));
 
     return OK;
 }
@@ -70,7 +66,7 @@ status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sectoff,
         string_ctor(o_json->value.string_val, val, o_entity->val_size);
         free(val);
     }
-    else if (o_json->type != TYPE_OBJECT)
+    else
     {
         DO_OR_FAIL(sect_ext_rd_rec(section, o_entity->val_ptr, o_entity->val_size, json_val_ptr(o_json)));
     }
@@ -83,51 +79,86 @@ status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sectoff,
 
 Иначе проверим вместимость по размеру старой записи(сумма размеров ключа и значения)
 */
-status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, const json_t *const new_json)
+status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, const json_t *const new_json, entity_t *const new_entity)
 {
     entity_t *old_entity = entity_new();
     DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, old_entity));
 
-    entity_t *new_entity = entity_new();
-    entity_ctor(new_entity, new_json, old_entity->fam_addr.dad_ptr, old_entity->fam_addr.bro_ptr, old_entity->fam_addr.son_ptr);
-
-    if (section->header.free_space + entity_ph_size(old_entity) - entity_ph_size(new_entity) >= 0)
+    if (new_entity->rec_size < old_entity->rec_size)
     {
-        if (sectoff + sizeof(entity_t) == section->header.lst_itm_ptr)
-        {
-            section->header.lst_itm_ptr -= entity_itm_size(old_entity);
-            section->header.fst_rec_ptr += entity_rec_size(old_entity);
-            section->header.free_space += entity_ph_size(old_entity);
+        new_entity->rec_size = old_entity->rec_size;
+    }
 
-            fileoff_t save_addr;
+    // If record is boundary
+    if (old_entity->key_ptr - old_entity->val_size == section->header.fst_rec_ptr)
+    {
+        // If we can insert
+        if (section->header.free_space + old_entity->rec_size >= new_entity->rec_size)
+        {
+            sectoff_t prev_lst_itm_ptr = section->header.lst_itm_ptr;
+            sectoff_t prev_fst_rec_ptr = section->header.fst_rec_ptr;
+
+            section->header.lst_itm_ptr = sectoff;
+            section->header.fst_rec_ptr += old_entity->rec_size;
+            section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
+
+            sectoff_t save_addr;
             DO_OR_FAIL(
                 sect_ext_write(section, new_json, new_entity, &save_addr));
+
+            section->header.lst_itm_ptr = prev_lst_itm_ptr;
+            section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
 
             entity_dtor(new_entity);
             entity_dtor(old_entity);
 
             return sect_head_sync(&section->header);
         }
-        else if (new_entity->rec_size <= old_entity->rec_size)
+    }
+    // If record is inner
+    else
+    {
+        // If we cannot insert record in gap
+        if (new_entity->rec_size > old_entity->rec_size)
         {
-            new_entity->rec_size = old_entity->rec_size;
+            // If we can insert record in free space
+            if (sectoff + entity_itm_size(old_entity) == section->header.lst_itm_ptr &&
+                section->header.free_space >= entity_rec_size(new_entity))
+            {
+                sect_ext_delete(section, sectoff, NULL);
 
-            sectoff_t prev_last_item_ptr = section->header.lst_itm_ptr;
-            sectoff_t prev_first_record_ptr = section->header.fst_rec_ptr;
+                sectoff_t prev_lst_itm_ptr = section->header.lst_itm_ptr;
+
+                section->header.lst_itm_ptr = sectoff;
+                section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
+
+                sectoff_t save_addr;
+                DO_OR_FAIL(
+                    sect_ext_write(section, new_json, new_entity, &save_addr));
+
+                section->header.lst_itm_ptr = prev_lst_itm_ptr;
+                section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
+
+                return sect_head_sync(&section->header);
+            }
+        }
+        // If we can insert record in gap
+        else
+        {
+            sectoff_t prev_lst_itm_ptr = section->header.lst_itm_ptr;
+            sectoff_t prev_fst_rec_ptr = section->header.fst_rec_ptr;
 
             section->header.lst_itm_ptr = sectoff;
             section->header.fst_rec_ptr = old_entity->key_ptr + old_entity->key_size;
+            section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
 
-            fileoff_t save_addr;
+            sectoff_t save_addr;
             DO_OR_FAIL(
                 sect_ext_write(section, new_json, new_entity, &save_addr));
 
-            section->header.lst_itm_ptr = prev_last_item_ptr;
-            section->header.fst_rec_ptr = prev_first_record_ptr;
+            section->header.lst_itm_ptr = prev_lst_itm_ptr;
+            section->header.fst_rec_ptr = prev_fst_rec_ptr;
             section->header.free_space = section->header.fst_rec_ptr - section->header.lst_itm_ptr;
-
-            entity_dtor(new_entity);
-            entity_dtor(old_entity);
 
             return OK;
         }
@@ -207,17 +238,23 @@ status_t sect_ext_rd_itm(const sect_ext_t *const section, const sectoff_t sectof
 
 status_t sect_ext_wrt_rec(sect_ext_t *const section, const sectoff_t sectoff, const void *const val, const size_t size)
 {
-    SAVE_FILP(section->header.filp, {
-        RA_FWRITE_OR_FAIL(val, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
-    });
+    if (size != 0)
+    {
+        SAVE_FILP(section->header.filp, {
+            RA_FWRITE_OR_FAIL(val, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
+        });
+    }
 
     return OK;
 }
 status_t sect_ext_rd_rec(const sect_ext_t *const section, const sectoff_t sectoff, const size_t size, void *const o_val)
 {
-    SAVE_FILP(section->header.filp, {
-        RA_FREAD_OR_FAIL(o_val, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
-    });
+    if (size != 0)
+    {
+        SAVE_FILP(section->header.filp, {
+            RA_FREAD_OR_FAIL(o_val, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
+        });
+    }
 
     return OK;
 }

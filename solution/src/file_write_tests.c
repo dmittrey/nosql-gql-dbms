@@ -367,7 +367,7 @@ static status_t File_WriteObject_AddSectionAndWriteComponents()
 
     assert(obj_o_entity->key_ptr == SECTION_SIZE - obj_entity->key_size);
     assert(obj_o_entity->key_size == obj_entity->key_size);
-    assert(obj_o_entity->val_ptr == 0);
+    assert(obj_o_entity->val_ptr == SECTION_SIZE - obj_entity->key_size);
     assert(obj_o_entity->val_size == 0);
     assert(obj_o_entity->rec_size == obj_entity->key_size);
     assert(obj_o_entity->type == obj_entity->type);
@@ -541,7 +541,7 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
 
     assert(obj_o_entity->key_ptr == SECTION_SIZE - obj_entity->key_size);
     assert(obj_o_entity->key_size == obj_entity->key_size);
-    assert(obj_o_entity->val_ptr == 0);
+    assert(obj_o_entity->val_ptr == SECTION_SIZE - obj_entity->key_size);
     assert(obj_o_entity->val_size == 0);
     assert(obj_o_entity->rec_size == obj_entity->key_size);
     assert(obj_o_entity->type == obj_entity->type);
@@ -666,7 +666,7 @@ static status_t File_WriteThreeLevelsObject_AddSectionWriteComponents()
 
     assert(info_o_entity->key_ptr == SECTION_SIZE - info_entity->key_size);
     assert(info_o_entity->key_size == info_entity->key_size);
-    assert(info_o_entity->val_ptr == 0);
+    assert(info_o_entity->val_ptr == SECTION_SIZE - info_entity->key_size);
     assert(info_o_entity->val_size == 0);
     assert(info_o_entity->rec_size == entity_rec_size(info_entity));
     assert(info_o_entity->type == info_entity->type);
@@ -680,7 +680,7 @@ static status_t File_WriteThreeLevelsObject_AddSectionWriteComponents()
 
     assert(city_o_entity->key_ptr == info_o_entity->key_ptr - city_entity->key_size);
     assert(city_o_entity->key_size == city_entity->key_size);
-    assert(city_o_entity->val_ptr == entity_rec_size(info_entity)- city_entity->key_size - city_entity->val_size);
+    assert(city_o_entity->val_ptr == info_o_entity->key_ptr - city_entity->key_size);
     assert(city_o_entity->val_size == city_entity->val_size);
     assert(city_o_entity->rec_size == city_entity->key_size + city_entity->val_size);
     assert(city_o_entity->type == city_entity->type);

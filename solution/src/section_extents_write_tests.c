@@ -342,7 +342,7 @@ static status_t SectionExtents_WriteObjectJsonValue_Successful()
     RA_FREAD_OR_FAIL(object_json_entity, sizeof(entity_t), object_json_addr, extents->header.filp);
     assert(object_json_entity->key_ptr == SECTION_SIZE - string_get_size(object_json->key));
     assert(object_json_entity->key_size == string_get_size(object_json->key));
-    assert(object_json_entity->val_ptr == 0);
+    assert(object_json_entity->val_ptr == SECTION_SIZE - string_get_size(object_json->key));
     assert(object_json_entity->val_size == 0);
     assert(object_json_entity->fam_addr.dad_ptr == 1000);
     assert(object_json_entity->fam_addr.bro_ptr == 0);

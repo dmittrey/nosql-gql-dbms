@@ -34,6 +34,11 @@ size_t entity_rec_size(const entity_t *const entity)
     return entity->key_size + entity->val_size;
 }
 
+size_t entity_rec_pool_size(const entity_t *const entity)
+{
+    return entity->rec_size;
+}
+
 size_t entity_ph_size(const entity_t *const entity)
 {
     return entity_itm_size(entity) + entity_rec_size(entity);

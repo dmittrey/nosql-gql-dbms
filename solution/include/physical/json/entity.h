@@ -32,7 +32,10 @@ void entity_ctor(entity_t *const entity, const json_t *const json, const fileoff
 void entity_dtor(entity_t *);
 
 size_t entity_itm_size(const entity_t *const entity);
+// Returns true entity rec size
 size_t entity_rec_size(const entity_t *const entity);
+// Returns cell for rec size(rec may be not equals val + key sizes after update)
+size_t entity_rec_pool_size(const entity_t *const entity);
 size_t entity_ph_size(const entity_t *const entity);
 
 entity_t *entity_clear(entity_t *const);

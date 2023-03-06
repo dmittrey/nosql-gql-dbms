@@ -215,7 +215,7 @@ static status_t SectionExtents_ReadObjectJson_Successful()
 
     assert(r_entity->key_ptr == SECTION_SIZE - string_get_size(json->key));
     assert(r_entity->key_size == string_get_size(json->key));
-    assert(r_entity->val_ptr == 0);
+    assert(r_entity->val_ptr == SECTION_SIZE - string_get_size(json->key));
     assert(r_entity->val_size == 0);
     assert(r_entity->fam_addr.dad_ptr == 500);
     assert(r_entity->fam_addr.bro_ptr == 0);

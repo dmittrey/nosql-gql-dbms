@@ -26,8 +26,8 @@ status_t sect_ext_rd_rec(const sect_ext_t *const, const sectoff_t, const size_t,
 
 status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, entity_t *const entity, sectoff_t *const save_addr);
 status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t entity_addr, entity_t *const o_entity, json_t *const o_json);
-status_t sect_ext_update(sect_ext_t *const, const sectoff_t, const json_t *const);
-status_t sect_ext_delete(sect_ext_t *const, const sectoff_t, entity_t *);
+status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, const json_t *const new_json, entity_t *const new_entity);
+status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t * del_entity);
 
 status_t sect_ext_sync(sect_ext_t *const);
 
