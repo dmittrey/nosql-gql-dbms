@@ -8,6 +8,7 @@ typedef struct
     query_t *query;
     sect_ext_t *cur_sect;
     json_col_t *cur_json_col;
+    bool is_loaded_cur_sect;
 } iter_t;
 
 iter_t *iter_new();
