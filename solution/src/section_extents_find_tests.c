@@ -15,7 +15,10 @@
 static const char *test_file_name = "test.bin";
 
 /*
-Выборка из нескольких элементов
+1) Выборка из нескольких элементов с несколькими условиями
+2) Выборка из нескольких элементов с одним условием
+3) Выборка из одного элемента с одним условием
+4) Выборка из пустоты
 */
 
 static status_t SectionExtents_FindFromSeveralQSeveral_ReturnSeveral()
