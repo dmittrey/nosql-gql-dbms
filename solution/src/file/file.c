@@ -147,7 +147,7 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
                 empty_sect_ext = sect_ext_new();
                 DO_OR_FAIL(file_add_sect_ext(file, empty_sect_ext));
             }
-            
+
             sectoff_t save_addr;
             DO_OR_FAIL(sect_ext_write(empty_sect_ext, new_json, new_entity, &save_addr));
 
@@ -230,6 +230,18 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root)
 
     entity_dtor(del_entity);
     return OK;
+}
+
+/*
+1) Получили массив json'ов которые удовлетворяют хотя бы одному условию
+2) Итерируемся по каждому
+    - Прочитали по ссылке на родителя
+    - Прогнали по всем условиям
+    - Если соответствует то сохранили в o_obj_col
+*/
+status_t file_find(file_t *const file, const query_t *const query, json_col_t *const o_obj_col)
+{
+    
 }
 
 /*

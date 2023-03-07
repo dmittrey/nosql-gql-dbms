@@ -4,15 +4,6 @@
 
 typedef struct
 {
-    json_t *pointer;
-} iter_t;
-
-iter_t *iter_new();
-
-void iter_dtor(iter_t *);
-
-typedef struct
-{
     json_t *f_json;
     json_t *l_json;
     size_t count;
