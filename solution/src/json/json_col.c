@@ -63,6 +63,11 @@ void json_col_del_fst(json_col_t *json_col)
 {
     if (json_col->f_json == json_col->l_json)
     {
+        if (json_col->f_json != NULL)
+        {
+            json_dtor(json_col->f_json);
+        }
+
         json_col->f_json = NULL;
         json_col->l_json = NULL;
     }

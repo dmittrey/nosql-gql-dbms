@@ -25,6 +25,8 @@ static status_t SectionExtents_LoadEmpty_ReturnEmptyCol()
     assert(collection->f_json == NULL);
     assert(collection->l_json == NULL);
 
+    json_col_dtor(collection);
+
     sect_ext_dtor(extents);
 
     fclose(filp);
@@ -77,6 +79,7 @@ static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
     assert(json_cmp(collection->f_json, prev_location_json) == 0);
     json_col_del_fst(collection);
     assert(json_cmp(collection->f_json, prev_amount_json) == 0);
+    json_col_del_fst(collection);
 
     json_col_dtor(collection);
 
