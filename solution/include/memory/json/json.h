@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "table.h"
 
+struct entity_t;
+
 #define JSON_VALUE_INIT_TYPE_INT32(JSON_NAME, KEY, VAL) \
     json_t *JSON_NAME = json_new();                     \
     json_ctor(JSON_NAME, TYPE_INT32, KEY, strlen(KEY)); \
@@ -53,6 +55,8 @@ typedef struct json_t
     struct json_t *bro; // next json with same parent
     struct json_t *son;
     uint64_t type; // Тип значения
+    // Указатель на сущность в физ. представлении
+    struct entity_t *entity;
     // Указатель на следующий json в секции
     struct json_t *next;
 } json_t;

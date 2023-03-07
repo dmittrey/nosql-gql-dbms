@@ -15,7 +15,7 @@ typedef struct
     fileoff_t son_ptr;
 } tplgy_addr;
 
-typedef struct
+typedef struct entity_t
 {
     sectoff_t key_ptr;
     size_t key_size;

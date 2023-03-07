@@ -326,8 +326,8 @@ status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collec
         json_t *o_json = json_new();
         entity_t *o_entity = entity_new();
         DO_OR_FAIL(sect_ext_read(section, i, o_entity, o_json));
-        entity_dtor(o_entity);
 
+        o_json->entity = o_entity;
         json_col_add(collection, o_json);
     }
 
