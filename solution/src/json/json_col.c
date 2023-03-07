@@ -97,6 +97,7 @@ void json_col_add_lk_set(json_col_t *collection, json_t *json)
         if (cur->next == NULL)
         {
             cur->next = json;
+            break;
         }
 
         cur = cur->next;

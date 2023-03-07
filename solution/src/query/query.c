@@ -38,12 +38,32 @@ bool query_check_or(const query_t *const query, const json_t *const json)
     return false;
 }
 
-bool query_check_and(const query_t *const query, const json_t *const json)
+// Iterate over bro's and find all consitional satisfies
+/*
+Проходимся по всем условиям, для каждого условия:
+    - Проходимся по json и всем его братьям, если удовлетворяем, идем к след условию
+*/
+bool query_check_and(const query_t *const query, const json_t *const dad_json)
 {
     const query_item_t *cur_query_itm = query->f_query_itm;
     while (cur_query_itm != NULL)
     {
-        if (query_item_check(cur_query_itm, json) == false)
+        const json_t *temp = dad_json->son;
+        bool is_satisfies = false;
+
+        while (temp != NULL)
+        {
+            if (query_item_check(cur_query_itm, temp) == true)
+            {
+                is_satisfies = true;
+                break;
+            }
+
+            temp = temp->bro;
+        }
+
+        // Если горизонтально не нашли объекта, который удовлетворяет условию
+        if (is_satisfies == false)
             return false;
 
         cur_query_itm = cur_query_itm->next;
