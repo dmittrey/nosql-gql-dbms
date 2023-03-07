@@ -253,13 +253,12 @@ status_t file_find(file_t *const file, const query_t *const query, json_col_t *c
         {
             if (!json_col_add_lk_set(o_obj_col, dad_json))
             {
-                while (dad_json != NULL)
-                {
-                    json_t *bro = dad_json->bro;
-                    json_dtor(dad_json);
-                    dad_json = bro;
-                }
+                json_dtor_with_bro(dad_json);
             }
+        }
+        else
+        {
+            json_dtor_with_bro(dad_json);
         }
 
         json_col_del_fst(temp);

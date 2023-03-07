@@ -20,7 +20,7 @@ void json_col_dtor(json_col_t *collection)
     {
         json_t *cur = collection->f_json;
         collection->f_json = collection->f_json->next;
-        json_dtor(cur);
+        json_dtor_with_bro(cur);
     }
 
     free(collection);

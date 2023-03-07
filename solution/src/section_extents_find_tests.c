@@ -68,8 +68,9 @@ static status_t SectionExtents_FindFromSeveralQSeveral_ReturnSeveral()
     json_col_del_fst(collection);
     assert(json_cmp(collection->f_json, prev_amount_json) == 0);
 
-    json_col_dtor(collection);
     query_dtor(query);
+
+    json_col_dtor(collection);
 
     json_dtor(prev_info_json);
 
@@ -119,8 +120,9 @@ static status_t SectionExtents_FindFromSeveral_ReturnSeveral()
     assert(json_cmp(collection->l_json, prev_amount_json) == 0);
     assert(collection->count == 2);
 
-    json_col_dtor(collection);
     query_dtor(query);
+
+    json_col_dtor(collection);
 
     json_dtor(prev_info_json);
 

@@ -66,6 +66,16 @@ void json_dtor(json_t *json)
     free(json);
 }
 
+void json_dtor_with_bro(json_t *json)
+{
+    while (json != NULL)
+    {
+        json_t *bro = json->bro;
+        json_dtor(json);
+        json = bro;
+    }
+}
+
 void *json_val_ptr(const json_t *const json)
 {
     switch (json->type)

@@ -64,8 +64,9 @@ static status_t File_FindFromSeveralQSeveral_ReturnSeveral()
     assert(json_cmp(collection->l_json, prev_city_json) == 0);
     assert(collection->count == 1);
 
-    json_col_dtor(collection);
     query_dtor(query);
+
+    json_col_dtor(collection);
 
     json_dtor(prev_info_json);
 
@@ -115,8 +116,9 @@ static status_t File_FindFromSeveral_ReturnSeveral()
     assert(json_cmp(collection->l_json, prev_city_json) == 0);
     assert(collection->count == 2);
 
-    json_col_dtor(collection);
     query_dtor(query);
+
+    json_col_dtor(collection);
 
     json_dtor(prev_info_json);
 
@@ -164,8 +166,9 @@ static status_t File_FindFromOne_ReturnOne()
     assert(json_cmp(collection->l_json, prev_city_json) == 0);
     assert(collection->count == 1);
 
-    json_col_dtor(collection);
     query_dtor(query);
+
+    json_col_dtor(collection);
 
     json_dtor(prev_info_json);
     
@@ -199,9 +202,10 @@ static status_t File_FindFromEmpty_ReturnEmpty()
     assert(collection->f_json == NULL);
     assert(collection->l_json == NULL);
     assert(collection->count == 0);
-
-    json_col_dtor(collection);
+    
     query_dtor(query);
+    
+    json_col_dtor(collection);
 
     file_dtor(file);
     fclose(filp);

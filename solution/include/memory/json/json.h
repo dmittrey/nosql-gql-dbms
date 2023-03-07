@@ -65,6 +65,7 @@ json_t *json_new();
 
 void json_ctor(json_t *const, const json_type_t, const char *const, const size_t);
 void json_dtor(json_t *);
+void json_dtor_with_bro(json_t *json);
 
 void *json_val_ptr(const json_t *const);
 size_t json_val_size(const json_t *const);
