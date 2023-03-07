@@ -57,6 +57,12 @@ void json_dtor(json_t *json)
     {
         string_dtor(json->value.string_val);
     }
+
+    if (json->entity != NULL)
+    {
+        entity_dtor(json->entity);
+    }
+    
     free(json);
 }
 

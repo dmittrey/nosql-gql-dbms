@@ -24,19 +24,17 @@ static status_t File_FindFromSeveralQSeveral_ReturnSeveral()
 
     STR_INIT(prev_location_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, prev_location_json, "location", prev_location_str);
-    ENTITY_INIT(prev_location_entity, prev_location_json, 0, 0, 0);
 
     JSON_VALUE_INIT(TYPE_INT32, prev_amount_json, "amount", 50000);
-    ENTITY_INIT(prev_amount_entity, prev_amount_json, 0, 0, 0);
+
+    JSON_VALUE_INIT(TYPE_INT32, prev_amount_json_1, "amount", 50000);
 
     JSON_VALUE_INIT(TYPE_OBJECT, prev_city_json, "city", NULL);
-    ENTITY_INIT(prev_city_entity, prev_city_json, 0, 0, 0);
 
     json_add_son(prev_city_json, prev_location_json);
-    json_add_son(prev_city_json, prev_amount_json);
+    json_add_son(prev_city_json, prev_amount_json_1);
 
     JSON_VALUE_INIT(TYPE_OBJECT, prev_info_json, "info", NULL);
-    ENTITY_INIT(prev_info_entity, prev_info_json, 0, 0, 0);
 
     json_add_son(prev_info_json, prev_city_json);
     json_add_son(prev_info_json, prev_amount_json);
@@ -66,6 +64,15 @@ static status_t File_FindFromSeveralQSeveral_ReturnSeveral()
     assert(json_cmp(collection->l_json, prev_city_json) == 0);
     assert(collection->count == 1);
 
+    json_col_dtor(collection);
+    query_dtor(query);
+
+    json_dtor(prev_info_json);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -75,19 +82,16 @@ static status_t File_FindFromSeveral_ReturnSeveral()
 
     STR_INIT(prev_location_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, prev_location_json, "location", prev_location_str);
-    ENTITY_INIT(prev_location_entity, prev_location_json, 0, 0, 0);
 
     JSON_VALUE_INIT(TYPE_INT32, prev_amount_json, "amount", 50000);
-    ENTITY_INIT(prev_amount_entity, prev_amount_json, 0, 0, 0);
+    JSON_VALUE_INIT(TYPE_INT32, prev_amount_json_1, "amount", 50000);
 
     JSON_VALUE_INIT(TYPE_OBJECT, prev_city_json, "city", NULL);
-    ENTITY_INIT(prev_city_entity, prev_city_json, 0, 0, 0);
 
     json_add_son(prev_city_json, prev_location_json);
-    json_add_son(prev_city_json, prev_amount_json);
+    json_add_son(prev_city_json, prev_amount_json_1);
 
     JSON_VALUE_INIT(TYPE_OBJECT, prev_info_json, "info", NULL);
-    ENTITY_INIT(prev_info_entity, prev_info_json, 0, 0, 0);
 
     json_add_son(prev_info_json, prev_city_json);
     json_add_son(prev_info_json, prev_amount_json);
@@ -111,6 +115,15 @@ static status_t File_FindFromSeveral_ReturnSeveral()
     assert(json_cmp(collection->l_json, prev_city_json) == 0);
     assert(collection->count == 2);
 
+    json_col_dtor(collection);
+    query_dtor(query);
+
+    json_dtor(prev_info_json);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -120,19 +133,15 @@ static status_t File_FindFromOne_ReturnOne()
 
     STR_INIT(prev_location_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, prev_location_json, "location", prev_location_str);
-    ENTITY_INIT(prev_location_entity, prev_location_json, 0, 0, 0);
 
     JSON_VALUE_INIT(TYPE_INT32, prev_amount_json, "amount", 50000);
-    ENTITY_INIT(prev_amount_entity, prev_amount_json, 0, 0, 0);
 
     JSON_VALUE_INIT(TYPE_OBJECT, prev_city_json, "city", NULL);
-    ENTITY_INIT(prev_city_entity, prev_city_json, 0, 0, 0);
 
     json_add_son(prev_city_json, prev_location_json);
     json_add_son(prev_city_json, prev_amount_json);
 
     JSON_VALUE_INIT(TYPE_OBJECT, prev_info_json, "info", NULL);
-    ENTITY_INIT(prev_info_entity, prev_info_json, 0, 0, 0);
 
     json_add_son(prev_info_json, prev_city_json);
 
@@ -154,6 +163,15 @@ static status_t File_FindFromOne_ReturnOne()
     assert(json_cmp(collection->f_json, prev_city_json) == 0);
     assert(json_cmp(collection->l_json, prev_city_json) == 0);
     assert(collection->count == 1);
+
+    json_col_dtor(collection);
+    query_dtor(query);
+
+    json_dtor(prev_info_json);
+    
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
@@ -181,6 +199,13 @@ static status_t File_FindFromEmpty_ReturnEmpty()
     assert(collection->f_json == NULL);
     assert(collection->l_json == NULL);
     assert(collection->count == 0);
+
+    json_col_dtor(collection);
+    query_dtor(query);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }

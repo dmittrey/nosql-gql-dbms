@@ -18,8 +18,9 @@ void json_col_dtor(json_col_t *collection)
 {
     while (collection->f_json != NULL)
     {
-        json_dtor(collection->f_json);
+        json_t *cur = collection->f_json;
         collection->f_json = collection->f_json->next;
+        json_dtor(cur);
     }
 
     free(collection);
@@ -75,7 +76,7 @@ void json_col_del_fst(json_col_t *json_col)
     json_col->count -= 1;
 }
 
-void json_col_add_lk_set(json_col_t *collection, json_t *json)
+bool json_col_add_lk_set(json_col_t *collection, json_t *json)
 {
 
     json_t *cur = collection->f_json;
@@ -85,14 +86,14 @@ void json_col_add_lk_set(json_col_t *collection, json_t *json)
         collection->f_json = json;
         collection->l_json = json;
         collection->count += 1;
-        return;
+        return true;
     }
 
     while (cur != NULL)
     {
         // Если нашли, то выходим не добавив
         if (json_cmp(json, cur) == 0)
-            return;
+            return false;
 
         if (cur->next == NULL)
         {
@@ -105,4 +106,5 @@ void json_col_add_lk_set(json_col_t *collection, json_t *json)
 
     collection->l_json = json;
     collection->count += 1;
+    return true;
 }

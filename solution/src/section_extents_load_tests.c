@@ -25,6 +25,11 @@ static status_t SectionExtents_LoadEmpty_ReturnEmptyCol()
     assert(collection->f_json == NULL);
     assert(collection->l_json == NULL);
 
+    sect_ext_dtor(extents);
+
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -64,14 +69,28 @@ static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
     DO_OR_FAIL(sect_ext_load(file->f_extent, collection));
 
     assert(json_cmp(collection->f_json, prev_info_json) == 0);
-    collection->f_json = collection->f_json->next;
+    json_col_del_fst(collection);
     assert(json_cmp(collection->f_json, prev_city_json) == 0);
-    collection->f_json = collection->f_json->next;
+    json_col_del_fst(collection);
     assert(json_cmp(collection->f_json, prev_flag_json) == 0);
-    collection->f_json = collection->f_json->next;
+    json_col_del_fst(collection);
     assert(json_cmp(collection->f_json, prev_location_json) == 0);
-    collection->f_json = collection->f_json->next;
+    json_col_del_fst(collection);
     assert(json_cmp(collection->f_json, prev_amount_json) == 0);
+
+    json_col_dtor(collection);
+
+    json_dtor(prev_info_json);
+
+    entity_dtor(prev_location_entity);
+    entity_dtor(prev_amount_entity);
+    entity_dtor(prev_city_entity);
+    entity_dtor(prev_flag_entity);
+    entity_dtor(prev_info_entity);
+
+    file_dtor(file);
+    fclose(filp);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }

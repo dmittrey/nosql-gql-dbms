@@ -7,6 +7,13 @@ query_t *query_new()
 
 void query_dtor(query_t *query)
 {
+    while (query->f_query_itm != NULL)
+    {
+        query_item_t *cur = query->f_query_itm;
+        query->f_query_itm = query->f_query_itm->next;
+        query_item_dtor(cur);
+    }
+
     free(query);
 }
 
