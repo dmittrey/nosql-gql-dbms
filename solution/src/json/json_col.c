@@ -74,3 +74,34 @@ void json_col_del_fst(json_col_t *json_col)
 
     json_col->count -= 1;
 }
+
+void json_col_add_lk_set(json_col_t *collection, json_t *json)
+{
+
+    json_t *cur = collection->f_json;
+
+    if (cur == NULL)
+    {
+        collection->f_json = json;
+        collection->l_json = json;
+        collection->count += 1;
+        return;
+    }
+
+    while (cur != NULL)
+    {
+        // Если нашли, то выходим не добавив
+        if (json_cmp(json, cur) == 0)
+            return;
+
+        if (cur->next == NULL)
+        {
+            cur->next = json;
+        }
+
+        cur = cur->next;
+    }
+
+    collection->l_json = json;
+    collection->count += 1;
+}

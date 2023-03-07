@@ -241,7 +241,23 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root)
 */
 status_t file_find(file_t *const file, const query_t *const query, json_col_t *const o_obj_col)
 {
-    
+    json_col_t *temp = json_col_new();
+    DO_OR_FAIL(sect_ext_find(file->f_extent, query, temp));
+
+    while (temp->f_json != NULL)
+    {
+        json_t *dad_json = json_new();
+        DO_OR_FAIL(file_read(file, temp->f_json->entity->fam_addr.dad_ptr, dad_json));
+
+        if (query_check_and(query, dad_json))
+        {
+            json_col_add_lk_set(o_obj_col, dad_json);
+        }
+
+        temp->f_json = temp->f_json->next;
+    }
+
+    return OK;
 }
 
 /*
