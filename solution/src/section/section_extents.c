@@ -3,8 +3,6 @@
 #include "utils.h"
 #include "table.h"
 
-#include "memory/json/json_col.h"
-
 #include "memory/section/header.h"
 #include "memory/section/extents.h"
 
@@ -219,22 +217,22 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, ent
     return OK;
 }
 
-status_t sect_ext_find(sect_ext_t *const section, const query_t *const query, json_col_t *const o_json_col)
+status_t sect_ext_find(sect_ext_t *const section, const query_t *const query, list_json_t *const o_json_list)
 {
-    DO_OR_FAIL(sect_ext_load(section, o_json_col));
+    DO_OR_FAIL(sect_ext_load(section, o_json_list));
 
-    if (o_json_col->count == 0)
+    if (o_json_list->count == 0)
     {
         return OK;
     }
 
     // Доходим до первого проверенного cur
-    while (!query_check_or(query, o_json_col->f_json))
+    while (!query_check_or(query, o_json_list->head))
     {
-        json_col_del_fst(o_json_col);
+        list_json_t_del_fst(o_json_list);
     }
 
-    json_t *cur = o_json_col->f_json;
+    json_t *cur = o_json_list->head;
     json_t *next = cur->next;
 
     while (next != NULL)
@@ -242,7 +240,7 @@ status_t sect_ext_find(sect_ext_t *const section, const query_t *const query, js
         // Если не подошел, то сдвинем next
         if (!query_check_or(query, next))
         {
-            json_col_del_nxt(o_json_col, cur);
+            list_json_t_del_nxt(o_json_list, cur);
         }
         // Если подошел, то next "проверенный", двигаем оба
         else
@@ -319,7 +317,7 @@ status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const new_sect
     return OK;
 }
 
-status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection)
+status_t sect_ext_load(const sect_ext_t *const section, list_json_t *const collection)
 {
     for (size_t i = sizeof(sect_head_entity_t); i < section->header.lst_itm_ptr; i += sizeof(entity_t))
     {
@@ -328,7 +326,7 @@ status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collec
         DO_OR_FAIL(sect_ext_read(section, i, o_entity, o_json));
 
         o_json->entity = o_entity;
-        json_col_add(collection, o_json);
+        list_json_t_add(collection, o_json);
     }
 
     return OK;

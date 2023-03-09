@@ -7,7 +7,7 @@ typedef struct
     file_t *file;
     query_t *query;
     sect_ext_t *cur_sect;
-    json_col_t *cur_json_col;
+    list_json_t *cur_json_col;
     bool is_loaded_cur_sect;
 } iter_t;
 

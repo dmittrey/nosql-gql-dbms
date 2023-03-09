@@ -3,8 +3,6 @@
 
 #include "memory/string.h"
 
-#include "memory/json/json_col.h"
-
 #include "memory/file/file.h"
 
 #include "memory/section/extents.h"
@@ -58,19 +56,19 @@ static status_t SectionExtents_FindFromSeveralQSeveral_ReturnSeveral()
     query_item_add(query, amount_query);
     query_item_add(query, location_query);
 
-    json_col_t *collection = json_col_new();
+    list_json_t *collection = list_json_t_new();
     DO_OR_FAIL(sect_ext_find(file->f_extent, query, collection));
 
     assert(collection->count == 3);
-    assert(json_cmp(collection->f_json, prev_amount_json) == 0);
-    json_col_del_fst(collection);
-    assert(json_cmp(collection->f_json, prev_location_json) == 0);
-    json_col_del_fst(collection);
-    assert(json_cmp(collection->f_json, prev_amount_json) == 0);
+    assert(json_cmp(collection->head, prev_amount_json) == 0);
+    list_json_t_del_fst(collection);
+    assert(json_cmp(collection->head, prev_location_json) == 0);
+    list_json_t_del_fst(collection);
+    assert(json_cmp(collection->head, prev_amount_json) == 0);
 
     query_dtor(query);
 
-    json_col_dtor(collection);
+    list_json_t_dtor(collection);
 
     json_dtor(prev_info_json);
 
@@ -113,16 +111,16 @@ static status_t SectionExtents_FindFromSeveral_ReturnSeveral()
     query_t *query = query_new();
     query_item_add(query, amount_query);
 
-    json_col_t *collection = json_col_new();
+    list_json_t *collection = list_json_t_new();
     DO_OR_FAIL(sect_ext_find(file->f_extent, query, collection));
 
-    assert(json_cmp(collection->f_json, prev_amount_json) == 0);
-    assert(json_cmp(collection->l_json, prev_amount_json) == 0);
+    assert(json_cmp(collection->head, prev_amount_json) == 0);
+    assert(json_cmp(collection->tail, prev_amount_json) == 0);
     assert(collection->count == 2);
 
     query_dtor(query);
 
-    json_col_dtor(collection);
+    list_json_t_dtor(collection);
 
     json_dtor(prev_info_json);
 
@@ -163,16 +161,16 @@ static status_t SectionExtents_FindFromOne_ReturnOne()
     query_t *query = query_new();
     query_item_add(query, amount_query);
 
-    json_col_t *collection = json_col_new();
+    list_json_t *collection = list_json_t_new();
     DO_OR_FAIL(sect_ext_find(file->f_extent, query, collection));
 
-    assert(json_cmp(collection->f_json, prev_amount_json) == 0);
-    assert(json_cmp(collection->l_json, prev_amount_json) == 0);
+    assert(json_cmp(collection->head, prev_amount_json) == 0);
+    assert(json_cmp(collection->tail, prev_amount_json) == 0);
     assert(collection->count == 1);
 
     query_dtor(query);
 
-    json_col_dtor(collection);
+    list_json_t_dtor(collection);
 
     json_dtor(prev_info_json);
 
@@ -196,16 +194,16 @@ static status_t SectionExtents_FindFromEmpty_ReturnEmpty()
     query_t *query = query_new();
     query_item_add(query, amount_query);
 
-    json_col_t *collection = json_col_new();
+    list_json_t *collection = list_json_t_new();
     DO_OR_FAIL(sect_ext_find(extents, query, collection));
 
-    assert(collection->f_json == NULL);
-    assert(collection->l_json == NULL);
+    assert(collection->head == NULL);
+    assert(collection->tail == NULL);
     assert(collection->count == 0);
 
     query_dtor(query);
 
-    json_col_dtor(collection);
+    list_json_t_dtor(collection);
 
     sect_ext_dtor(extents);
 

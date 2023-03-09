@@ -62,7 +62,7 @@ void json_dtor(json_t *json)
     {
         entity_dtor(json->entity);
     }
-    
+
     free(json);
 }
 
@@ -220,3 +220,5 @@ int json_cmp(const json_t *const json_1, const json_t *const json_2)
     }
     return 1;
 }
+
+LIST_DEFINE(json_t, json_dtor, json_cmp);

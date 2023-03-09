@@ -14,3 +14,19 @@ void attr_dtor(attr_t *attr)
 {
     free(attr);
 }
+
+int attr_cmp(attr_t *const a1, attr_t *const a2)
+{
+    int str_cmp = string_cmp(a1->name, a2->name);
+
+    if (str_cmp == 0)
+    {
+        return a1->type != a2->type;
+    }
+    else
+    {
+        return str_cmp;
+    }
+}
+
+LIST_DEFINE(attr_t, attr_dtor, attr_cmp);

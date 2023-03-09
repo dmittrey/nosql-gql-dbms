@@ -239,19 +239,19 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root)
     - Прогнали по всем условиям
     - Если соответствует то сохранили в o_obj_col
 */
-status_t file_find(file_t *const file, const query_t *const query, json_col_t *const o_obj_col)
+status_t file_find(file_t *const file, const query_t *const query, list_json_t *const o_obj_col)
 {
-    json_col_t *temp = json_col_new();
+    list_json_t *temp = list_json_t_new();
     DO_OR_FAIL(sect_ext_find(file->f_extent, query, temp));
 
-    while (temp->f_json != NULL)
+    while (temp->head != NULL)
     {
         json_t *dad_json = json_new();
-        DO_OR_FAIL(file_read(file, temp->f_json->entity->fam_addr.dad_ptr, dad_json));
+        DO_OR_FAIL(file_read(file, temp->head->entity->fam_addr.dad_ptr, dad_json));
 
         if (query_check_and(query, dad_json))
         {
-            if (!json_col_add_lk_set(o_obj_col, dad_json))
+            if (!list_json_t_add_lk_set(o_obj_col, dad_json))
             {
                 json_dtor_with_bro(dad_json);
             }
@@ -261,10 +261,10 @@ status_t file_find(file_t *const file, const query_t *const query, json_col_t *c
             json_dtor_with_bro(dad_json);
         }
 
-        json_col_del_fst(temp);
+        list_json_t_del_fst(temp);
     }
 
-    json_col_dtor(temp);
+    list_json_t_dtor(temp);
 
     return OK;
 }

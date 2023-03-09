@@ -3,8 +3,6 @@
 #include "utils.h"
 #include "table.h"
 
-#include "memory/json/json_col.h"
-
 #include "memory/section/header.h"
 
 #include "memory/query/query.h"
@@ -32,9 +30,9 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, ent
 status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t entity_addr, entity_t *const o_entity, json_t *const o_json);
 status_t sect_ext_update(sect_ext_t *const section, const sectoff_t sectoff, const json_t *const new_json, entity_t *const new_entity);
 status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, entity_t *del_entity);
-status_t sect_ext_find(sect_ext_t *const section, const query_t* const query, json_col_t *const o_json_col);
+status_t sect_ext_find(sect_ext_t *const section, const query_t* const query, list_json_t *const o_json_col);
 
 status_t sect_ext_sync(sect_ext_t *const);
 
-status_t sect_ext_load(const sect_ext_t *const section, json_col_t *const collection);
+status_t sect_ext_load(const sect_ext_t *const section, list_json_t *const collection);
 status_t sect_ext_add_next(sect_ext_t *const section, sect_ext_t *const);

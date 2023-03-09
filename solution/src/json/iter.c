@@ -14,12 +14,12 @@ void iter_ctor(iter_t *const iter, file_t *file, query_t *query)
     iter->file = file;
     iter->query = query;
     iter->cur_sect = file->f_extent;
-    iter->cur_json_col = json_col_new();
+    iter->cur_json_col = list_json_t_new();
 }
 void iter_dtor(iter_t *iter)
 {
     query_dtor(iter->query);
-    json_col_dtor(iter->cur_json_col);
+    list_json_t_dtor(iter->cur_json_col);
     free(iter);
 }
 
@@ -42,9 +42,9 @@ status_t iter_next(iter_t *const iter)
         DO_OR_FAIL(find_st);
     }
 
-    if (iter->cur_json_col->f_json != NULL)
+    if (iter->cur_json_col->head != NULL)
     {
-        iter->cur_json_col->f_json = iter->cur_json_col->f_json->next;
+        iter->cur_json_col->head = iter->cur_json_col->tail->next;
     }
     else
     {
@@ -55,5 +55,5 @@ status_t iter_next(iter_t *const iter)
 }
 json_t *iter_get(iter_t *const iter)
 {
-    return iter->cur_json_col->f_json;
+    return iter->cur_json_col->head;
 }

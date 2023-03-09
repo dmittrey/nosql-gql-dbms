@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "table.h"
+#include "list.h"
 
 struct entity_t;
 
@@ -78,3 +79,5 @@ void json_add_nxt(json_t *const json, json_t *const nxt);
 void json_print(const json_t *const);
 
 int json_cmp(const json_t *const json_1, const json_t *const json_2);
+
+LIST_DECLARE(json_t);

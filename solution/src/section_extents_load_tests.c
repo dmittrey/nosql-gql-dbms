@@ -1,8 +1,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include "memory/json/json_col.h"
-
 #include "memory/file/file.h"
 
 #include "memory/section/extents.h"
@@ -19,13 +17,13 @@ static status_t SectionExtents_LoadEmpty_ReturnEmptyCol()
     sect_ext_t *extents = sect_ext_new();
     sect_ext_ctor(extents, 0, filp);
 
-    json_col_t *collection = json_col_new();
+    list_json_t *collection = list_json_t_new();
     DO_OR_FAIL(sect_ext_load(extents, collection));
 
-    assert(collection->f_json == NULL);
-    assert(collection->l_json == NULL);
+    assert(collection->head == NULL);
+    assert(collection->tail == NULL);
 
-    json_col_dtor(collection);
+    list_json_t_dtor(collection);
 
     sect_ext_dtor(extents);
 
@@ -67,21 +65,21 @@ static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
     fileoff_t save_json_fileoff;
     DO_OR_FAIL(file_write(file, prev_info_json, 0, &save_json_fileoff));
 
-    json_col_t *collection = json_col_new();
+    list_json_t *collection = list_json_t_new();
     DO_OR_FAIL(sect_ext_load(file->f_extent, collection));
 
-    assert(json_cmp(collection->f_json, prev_info_json) == 0);
-    json_col_del_fst(collection);
-    assert(json_cmp(collection->f_json, prev_city_json) == 0);
-    json_col_del_fst(collection);
-    assert(json_cmp(collection->f_json, prev_flag_json) == 0);
-    json_col_del_fst(collection);
-    assert(json_cmp(collection->f_json, prev_location_json) == 0);
-    json_col_del_fst(collection);
-    assert(json_cmp(collection->f_json, prev_amount_json) == 0);
-    json_col_del_fst(collection);
+    assert(json_cmp(collection->head, prev_info_json) == 0);
+    list_json_t_del_fst(collection);
+    assert(json_cmp(collection->head, prev_city_json) == 0);
+    list_json_t_del_fst(collection);
+    assert(json_cmp(collection->head, prev_flag_json) == 0);
+    list_json_t_del_fst(collection);
+    assert(json_cmp(collection->head, prev_location_json) == 0);
+    list_json_t_del_fst(collection);
+    assert(json_cmp(collection->head, prev_amount_json) == 0);
+    list_json_t_del_fst(collection);
 
-    json_col_dtor(collection);
+    list_json_t_dtor(collection);
 
     json_dtor(prev_info_json);
 
