@@ -1,4 +1,4 @@
-#include "memory/attribute/attr.h"
+#include "memory/type/attr.h"
 
 attr_t *attr_new()
 {
