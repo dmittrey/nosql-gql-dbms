@@ -221,4 +221,4 @@ int json_cmp(const json_t *const json_1, const json_t *const json_2)
     return 1;
 }
 
-LIST_DEFINE(json_t, json_dtor, json_cmp);
+LIST_DEFINE(json_t, json_dtor_with_bro, json_cmp);

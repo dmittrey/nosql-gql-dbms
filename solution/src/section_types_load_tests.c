@@ -63,6 +63,8 @@ status_t SectionTypes_LoadTypeWithoutAttributes_LoadType()
 
     type_dtor(wr_type);
 
+    list_type_t_dtor(t_list);
+
     sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -123,8 +125,9 @@ status_t SectionTypes_LoadTypeWithAllAttributes_LoadType()
     assert(attr_cmp(t_list->head->attr_list->head, float_attr) == 0);
     list_attr_t_del_fst(t_list->head->attr_list);
 
-
     type_dtor(wr_type);
+
+    list_type_t_dtor(t_list);
 
     sect_type_dtor(types);
     fclose(file);

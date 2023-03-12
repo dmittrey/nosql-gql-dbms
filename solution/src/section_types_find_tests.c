@@ -24,14 +24,15 @@ status_t SectionTypes_FindFromEmptySection_FindNothing()
 
     list_type_t *t_list = list_type_t_new();
 
-    STR_INIT(t_name, "example");
-    sect_type_find(types, t_name, t_list);
+    STR_INIT(q_name, "example");
+    sect_type_find(types, q_name, t_list);
 
     assert(t_list->head == NULL);
     assert(t_list->tail == NULL);
     assert(t_list->count == 0);
 
     list_type_t_dtor(t_list);
+    string_dtor(q_name);
 
     sect_type_dtor(types);
     fclose(file);
@@ -61,6 +62,9 @@ status_t SectionTypes_FindOneTypeFromOneEmpty_FindNothing()
     assert(t_list->head->foff_ptr == sizeof(sect_head_entity_t));
 
     type_dtor(wr_type);
+
+    list_type_t_dtor(t_list);
+    string_dtor(q_name);
 
     sect_type_dtor(types);
     fclose(file);
@@ -96,6 +100,9 @@ status_t SectionTypes_FindOneTypeFromSeveral_FindNothing()
     type_dtor(V_type);
     type_dtor(K_type);
     type_dtor(T_type);
+
+    list_type_t_dtor(t_list);
+    string_dtor(q_name);
 
     sect_type_dtor(types);
     fclose(file);

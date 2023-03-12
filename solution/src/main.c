@@ -35,12 +35,12 @@ int main(int argc, char **argv)
     test_extents_delete();
 
     test_extents_load();
-    // test_extents_find(); 119
+    test_extents_find(); 
 
     test_file_write();
     test_file_read();
     test_file_delete();
     test_file_update();
 
-    // test_file_find();
+    test_file_find();
 }

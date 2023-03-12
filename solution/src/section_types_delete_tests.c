@@ -40,6 +40,9 @@ status_t SectionTypes_DeleteTypeWithoutAttributesOnBorder_DeleteAndShiftPtrs()
 
     type_dtor(wr_type);
 
+    type_entity_dtor(zero_ent);
+    type_entity_dtor(temp_ent);
+
     sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -77,6 +80,9 @@ status_t SectionTypes_DeleteInnerTypeWithoutAttributes_Delete()
 
     type_dtor(V_type);
     type_dtor(K_type);
+
+    type_entity_dtor(zero_ent);
+    type_entity_dtor(temp_ent);
 
     sect_type_dtor(types);
     fclose(file);
@@ -116,6 +122,9 @@ status_t SectionTypes_DeleteInnerTypeWithoutAttributesAndAfterBorder_DeleteAllAn
 
     type_dtor(V_type);
     type_dtor(K_type);
+
+    type_entity_dtor(zero_ent);
+    type_entity_dtor(temp_ent);
 
     sect_type_dtor(types);
     fclose(file);
@@ -171,6 +180,9 @@ status_t SectionTypes_DeleteTypeWithAttributesOnBorder_DeleteAndShiftPtrs()
     assert(memcmp(zero_ent, temp_ent, sizeof(type_entity_t)) == 0);
 
     type_dtor(wr_type);
+
+    type_entity_dtor(zero_ent);
+    type_entity_dtor(temp_ent);
 
     sect_type_dtor(types);
     fclose(file);

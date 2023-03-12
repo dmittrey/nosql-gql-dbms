@@ -13,6 +13,7 @@ void attr_ctor(attr_t *const attr, string_t *const name, const json_type_t type)
 
 void attr_dtor(attr_t *attr)
 {
+    string_dtor(attr->name);
     free(attr);
 }
 

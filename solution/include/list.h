@@ -25,9 +25,9 @@
     {                                                                             \
         while (collection->head != NULL)                                          \
         {                                                                         \
-            TYPE *cur = collection->head;                                         \
-            collection->head = collection->head->next;                            \
-            DTOR_FUNC(cur);                                                       \
+            TYPE *nxt = collection->head->next;                                   \
+            DTOR_FUNC(collection->head);                                          \
+            collection->head = nxt;                                               \
         }                                                                         \
                                                                                   \
         free(collection);                                                         \
@@ -59,6 +59,7 @@
         }                                                                         \
         else if (col->count == 1)                                                 \
         {                                                                         \
+            DTOR_FUNC(col->head);                                                 \
             col->head = NULL;                                                     \
             col->tail = NULL;                                                     \
         }                                                                         \

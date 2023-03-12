@@ -43,6 +43,7 @@ status_t sect_type_write(sect_type_t *const section, const type_t *const type)
         return FAILED;
 
     type_entity_t *entity = type_entity_new();
+    attr_entity_t *cur_entity = attr_entity_new();
 
     DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, -1 * type->name->cnt));
     DO_OR_FAIL(sect_type_wrt(section, section->header.fst_rec_ptr, type->name->val, type->name->cnt));
@@ -56,7 +57,6 @@ status_t sect_type_write(sect_type_t *const section, const type_t *const type)
     cur = type->attr_list->head;
     while (cur != NULL)
     {
-        attr_entity_t *cur_entity = attr_entity_new();
         attr_entity_ctor(cur_entity, cur);
 
         DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, -1 * cur->name->cnt));
@@ -71,6 +71,8 @@ status_t sect_type_write(sect_type_t *const section, const type_t *const type)
         cur = cur->next;
     }
 
+    type_entity_dtor(entity);
+    attr_entity_dtor(cur_entity);
     return OK;
 }
 
@@ -106,6 +108,9 @@ status_t sect_type_delete(sect_type_t *const section, const sectoff_t del_soff)
     reduce_lst_itm_ptr_emt(section);
     reduce_fst_rec_ptr_emt(section);
 
+    type_dtor(t);
+    type_entity_dtor(t_ent);
+
     free(itm_zero);
     free(rec_zero);
     return OK;
@@ -119,6 +124,7 @@ status_t sect_type_read(sect_type_t *const section, sectoff_t sctoff, type_t *co
 
     string_t *t_name = string_new();
     string_ctor(t_name, t_name_c, o_type_ent->name_size);
+    free(t_name_c);
     list_attr_t *atr_list = list_attr_t_new();
     type_ctor_foff(o_type, t_name, atr_list, sect_head_get_fileoff(&section->header, sctoff));
     sctoff += sizeof(type_entity_t);
@@ -133,10 +139,14 @@ status_t sect_type_read(sect_type_t *const section, sectoff_t sctoff, type_t *co
         attr_t *a = attr_new();
         string_t *a_name = string_new();
         string_ctor(a_name, a_name_c, a_ent->name_size);
+        free(a_name_c);
         attr_ctor(a, a_name, a_ent->attr_type);
 
         list_attr_t_add(o_type->attr_list, a);
     }
+    attr_entity_dtor(a_ent);
+
+    return OK;
 }
 
 status_t sect_type_find(sect_type_t *const section, string_t *const type_name, list_type_t *const o_type_list)
@@ -177,10 +187,13 @@ status_t sect_type_load(sect_type_t *const section, list_type_t *const o_type_li
         type_entity_t *t_ent = type_entity_new();
 
         sect_type_read(section, cur_sctoff, t, t_ent);
+        type_entity_dtor(t_ent);
 
         list_type_t_add(o_type_list, t);
         cur_sctoff += sizeof(type_entity_t) + t->attr_list->count * sizeof(attr_entity_t);
     }
+
+    return OK;
 }
 
 status_t sect_type_rd_ent(sect_type_t *const section, const sectoff_t sectoff, type_entity_t *const o_ent)

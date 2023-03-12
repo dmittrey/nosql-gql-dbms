@@ -151,6 +151,7 @@ status_t SectionTypes_WriteAllAttributesType_Successful()
     type_dtor(wr_type);
 
     type_entity_dtor(rd_type_ent);
+    attr_entity_dtor(rd_attr_ent);
 
     sect_type_dtor(types);
     fclose(file);
