@@ -28,6 +28,19 @@ void file_dtor(file_t *file)
     free(file);
 }
 
+status_t file_add_type(file_t *const file, const type_t* const type)
+{
+
+}
+status_t file_delete_type(file_t *const file, const string_t *const name)
+{
+
+}
+status_t file_find_type(file_t *const file, const string_t *const name, type_t* const o_type)
+{
+    
+}
+
 /*
 cur -> bro -> son
 */

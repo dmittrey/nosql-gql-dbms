@@ -5,6 +5,8 @@
 
 #include "physical/file/header.h"
 
+#include "memory/type/type.h"
+
 typedef struct
 {
     file_head_t header;
@@ -16,6 +18,10 @@ file_t *file_new();
 
 void file_ctor(file_t *const, FILE *const);
 void file_dtor(file_t *);
+
+status_t file_add_type(file_t *const file, const type_t* const type);
+status_t file_delete_type(file_t *const file, const string_t *const name);
+status_t file_find_type(file_t *const file, const string_t *const name, type_t* const o_type);
 
 status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t *const write_addr);
 status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const ret_json);
