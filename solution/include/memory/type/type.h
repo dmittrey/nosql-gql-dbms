@@ -23,5 +23,6 @@ void type_ctor_foff(type_t *const, string_t *name, list_attr_t *const attr_list,
 void type_dtor(type_t *);
 
 int type_cmp(const type_t *const t1, const type_t *const t2);
+void type_cpy(type_t *const dest, type_t *const src);
 
 LIST_DECLARE(type_t);

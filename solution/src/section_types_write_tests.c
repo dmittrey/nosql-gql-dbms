@@ -56,7 +56,8 @@ status_t SectionTypes_WriteEmptyType_Successful()
     list_attr_t *wr_attr_list = list_attr_t_new();
 
     type_ctor(wr_type, type_name, wr_attr_list);
-    sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, wr_type, &wrt_adr);
 
     // Assert ptrs shifts
     assert(types->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(type_entity_t) - wr_type->name->cnt);
@@ -113,7 +114,8 @@ status_t SectionTypes_WriteAllAttributesType_Successful()
     list_attr_t_add(wr_attr_list, float_attr);
 
     type_ctor(wr_type, type_name, wr_attr_list);
-    sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, wr_type, &wrt_adr);
 
     // Assert ptrs shifts
     assert(types->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(type_entity_t) - 1 * sizeof(char) - 4 * sizeof(attr_entity_t) - 4 * 4 * sizeof(char));
@@ -194,7 +196,8 @@ status_t SectionTypes_WriteAllAttributesTypeWithNotEnoughSpaceSection_Successful
     list_attr_t_add(wr_attr_list, float_attr);
 
     type_ctor(wr_type, type_name, wr_attr_list);
-    status_t wr_status = sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    status_t wr_status = sect_type_write(types, wr_type, &wrt_adr);
 
     type_dtor(wr_type);
 

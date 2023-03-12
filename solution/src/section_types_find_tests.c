@@ -49,21 +49,21 @@ status_t SectionTypes_FindOneTypeFromOneEmpty_FindNothing()
     sect_type_ctor(types, 0, file);
 
     TYPE_INIT(wr_type, "V");
-    sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, wr_type, &wrt_adr);
 
-    list_type_t *t_list = list_type_t_new();
+    type_t *t = type_new();
 
     STR_INIT(q_name, "V");
-    sect_type_find(types, q_name, t_list);
+    sect_type_find(types, q_name, t);
 
-    assert(string_cmp(t_list->head->name, q_name) == 0);
-    assert(t_list->head->attr_list->count == 0);
-    assert(t_list->count == 1);
-    assert(t_list->head->foff_ptr == sizeof(sect_head_entity_t));
+    assert(string_cmp(t->name, q_name) == 0);
+    assert(t->attr_list->count == 0);
+    assert(t->foff_ptr == sizeof(sect_head_entity_t));
 
     type_dtor(wr_type);
+    type_dtor(t);
 
-    list_type_t_dtor(t_list);
     string_dtor(q_name);
 
     sect_type_dtor(types);
@@ -80,28 +80,28 @@ status_t SectionTypes_FindOneTypeFromSeveral_FindNothing()
     sect_type_t *types = sect_type_new();
     sect_type_ctor(types, 0, file);
 
+    sectoff_t wrt_adr;
     TYPE_INIT(V_type, "V");
-    sect_type_write(types, V_type);
+    sect_type_write(types, V_type, &wrt_adr);
     TYPE_INIT(T_type, "T");
-    sect_type_write(types, T_type);
+    sect_type_write(types, T_type, &wrt_adr);
     TYPE_INIT(K_type, "K");
-    sect_type_write(types, K_type);
+    sect_type_write(types, K_type, &wrt_adr);
 
-    list_type_t *t_list = list_type_t_new();
+    type_t *t = type_new();
 
     STR_INIT(q_name, "K");
-    sect_type_find(types, q_name, t_list);
+    sect_type_find(types, q_name, t);
 
-    assert(string_cmp(t_list->head->name, q_name) == 0);
-    assert(t_list->head->attr_list->count == 0);
-    assert(t_list->count == 1);
-    assert(t_list->head->foff_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(type_entity_t));
+    assert(string_cmp(t->name, q_name) == 0);
+    assert(t->attr_list->count == 0);
+    assert(t->foff_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(type_entity_t));
 
     type_dtor(V_type);
     type_dtor(K_type);
     type_dtor(T_type);
-
-    list_type_t_dtor(t_list);
+    type_dtor(t);
+    
     string_dtor(q_name);
 
     sect_type_dtor(types);

@@ -51,7 +51,8 @@ status_t SectionTypes_LoadTypeWithoutAttributes_LoadType()
     list_attr_t *wr_attr_list = list_attr_t_new();
 
     type_ctor(wr_type, type_name, wr_attr_list);
-    sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, wr_type, &wrt_adr);
 
     list_type_t *t_list = list_type_t_new();
 
@@ -104,7 +105,8 @@ status_t SectionTypes_LoadTypeWithAllAttributes_LoadType()
     list_attr_t_add(wr_attr_list, float_attr);
 
     type_ctor(wr_type, type_name, wr_attr_list);
-    sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, wr_type, &wrt_adr);
 
     list_type_t *t_list = list_type_t_new();
 

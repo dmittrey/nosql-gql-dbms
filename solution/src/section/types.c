@@ -29,7 +29,7 @@ void sect_type_dtor(sect_type_t *section)
 1) Проверить можно ли разместить тип
 2) Если можем, то размещаем
 */
-status_t sect_type_write(sect_type_t *const section, const type_t *const type)
+status_t sect_type_write(sect_type_t *const section, const type_t *const type, sectoff_t *const o_wrt_soff)
 {
     size_t attrs_size = 0;
     attr_t *cur = type->attr_list->head;
@@ -52,6 +52,7 @@ status_t sect_type_write(sect_type_t *const section, const type_t *const type)
     entity->attr_cnt = type->attr_list->count;
 
     DO_OR_FAIL(sect_type_wrt(section, section->header.lst_itm_ptr, entity, sizeof(type_entity_t)));
+    *o_wrt_soff = section->header.lst_itm_ptr;
     DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, sizeof(type_entity_t)));
 
     cur = type->attr_list->head;
@@ -149,30 +150,25 @@ status_t sect_type_read(sect_type_t *const section, sectoff_t sctoff, type_t *co
     return OK;
 }
 
-status_t sect_type_find(sect_type_t *const section, string_t *const type_name, list_type_t *const o_type_list)
+status_t sect_type_find(sect_type_t *const section, string_t *const type_name, type_t *const o_type)
 {
-    sect_type_load(section, o_type_list);
+    list_type_t *type_list = list_type_t_new();
+    sect_type_load(section, type_list);
 
-    if (o_type_list->count == 0)
-        return OK;
-
-    type_t *t_cur = o_type_list->head;
-    while (t_cur->next != NULL)
+    while (type_list->head != NULL)
     {
-        if (string_cmp(t_cur->next->name, type_name) != 0)
+        if (string_cmp(type_list->head->name, type_name) == 0)
         {
-            list_type_t_del_nxt(o_type_list, t_cur);
+            type_cpy(o_type, type_list->head);
+            break;
         }
         else
         {
-            t_cur = t_cur->next;
+            list_type_t_del_fst(type_list);
         }
     }
 
-    if (o_type_list->head != NULL && string_cmp(o_type_list->head->name, type_name) != 0)
-    {
-        list_type_t_del_fst(o_type_list);
-    }
+    list_type_t_dtor(type_list);
 
     return OK;
 }

@@ -24,9 +24,10 @@ status_t SectionTypes_DeleteTypeWithoutAttributesOnBorder_DeleteAndShiftPtrs()
     sect_type_ctor(types, 0, file);
 
     TYPE_INIT(wr_type, "V");
-    sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, wr_type, &wrt_adr);
 
-    sect_type_delete(types, sizeof(sect_head_entity_t));
+    sect_type_delete(types, wrt_adr);
 
     assert(types->header.lst_itm_ptr == sizeof(sect_head_entity_t));
     assert(types->header.fst_rec_ptr == SECTION_SIZE);
@@ -58,10 +59,11 @@ status_t SectionTypes_DeleteInnerTypeWithoutAttributes_Delete()
     sect_type_ctor(types, 0, file);
 
     TYPE_INIT(V_type, "V");
-    sect_type_write(types, V_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, V_type, &wrt_adr);
 
     TYPE_INIT(K_type, "K");
-    sect_type_write(types, K_type);
+    sect_type_write(types, K_type, &wrt_adr);
 
     sect_type_delete(types, sizeof(sect_head_entity_t));
 
@@ -99,10 +101,11 @@ status_t SectionTypes_DeleteInnerTypeWithoutAttributesAndAfterBorder_DeleteAllAn
     sect_type_ctor(types, 0, file);
 
     TYPE_INIT(V_type, "V");
-    sect_type_write(types, V_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, V_type, &wrt_adr);
 
     TYPE_INIT(K_type, "K");
-    sect_type_write(types, K_type);
+    sect_type_write(types, K_type, &wrt_adr);
 
     sect_type_delete(types, sizeof(sect_head_entity_t));
     sect_type_delete(types, sizeof(sect_head_entity_t) + sizeof(type_entity_t));
@@ -165,7 +168,8 @@ status_t SectionTypes_DeleteTypeWithAttributesOnBorder_DeleteAndShiftPtrs()
     list_attr_t_add(wr_attr_list, float_attr);
 
     type_ctor(wr_type, type_name, wr_attr_list);
-    sect_type_write(types, wr_type);
+    sectoff_t wrt_adr;
+    sect_type_write(types, wr_type, &wrt_adr);
 
     sect_type_delete(types, sizeof(sect_head_entity_t));
 
