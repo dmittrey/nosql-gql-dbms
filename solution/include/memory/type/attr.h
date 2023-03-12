@@ -13,7 +13,7 @@ typedef struct attr_t
 
 attr_t *attr_new();
 
-void attr_ctor(attr_t *const, const json_type_t);
+void attr_ctor(attr_t *const, string_t *const, const json_type_t);
 void attr_dtor(attr_t *);
 
 int attr_cmp(attr_t *const, attr_t *const);

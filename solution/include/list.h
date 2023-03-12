@@ -79,6 +79,7 @@
         {                                                                         \
             ent->next = nxt->next;                                                \
             DTOR_FUNC(nxt);                                                       \
+            col->count -= 1;                                                      \
         }                                                                         \
     }                                                                             \
                                                                                   \

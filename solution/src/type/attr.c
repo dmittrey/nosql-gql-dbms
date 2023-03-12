@@ -5,8 +5,9 @@ attr_t *attr_new()
     return calloc(1, sizeof(attr_t));
 }
 
-void attr_ctor(attr_t *const attr, const json_type_t type)
+void attr_ctor(attr_t *const attr, string_t *const name, const json_type_t type)
 {
+    attr->name = name;
     attr->type = type;
 }
 

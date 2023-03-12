@@ -12,7 +12,7 @@
 typedef struct sect_ext_t
 {
     sect_head_t header;
-    json_t *f_json;
+    json_t *f_json; // Need refactor???
     struct sect_ext_t *next;
 } sect_ext_t;
 
