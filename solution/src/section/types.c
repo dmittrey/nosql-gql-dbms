@@ -127,7 +127,7 @@ status_t sect_type_read(sect_type_t *const section, sectoff_t sctoff, type_t *co
     string_ctor(t_name, t_name_c, o_type_ent->name_size);
     free(t_name_c);
     list_attr_t *atr_list = list_attr_t_new();
-    type_ctor_foff(o_type, t_name, atr_list, sect_head_get_fileoff(&section->header, sctoff));
+    type_ctor_soff(o_type, t_name, atr_list, sctoff);
     sctoff += sizeof(type_entity_t);
 
     attr_entity_t *a_ent = attr_entity_new();
@@ -150,7 +150,7 @@ status_t sect_type_read(sect_type_t *const section, sectoff_t sctoff, type_t *co
     return OK;
 }
 
-status_t sect_type_find(sect_type_t *const section, string_t *const type_name, type_t *const o_type)
+status_t sect_type_find(sect_type_t *const section, const string_t *const type_name, type_t *const o_type)
 {
     list_type_t *type_list = list_type_t_new();
     sect_type_load(section, type_list);
@@ -171,6 +171,11 @@ status_t sect_type_find(sect_type_t *const section, string_t *const type_name, t
     list_type_t_dtor(type_list);
 
     return OK;
+}
+
+status_t sect_types_sync(sect_type_t *const section)
+{
+    return sect_head_sync(&section->header);
 }
 
 status_t sect_type_load(sect_type_t *const section, list_type_t *const o_type_list)

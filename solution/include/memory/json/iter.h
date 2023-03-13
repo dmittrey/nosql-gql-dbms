@@ -13,7 +13,7 @@ typedef struct
 
 iter_t *iter_new();
 
-void iter_ctor(iter_t *const, file_t *, query_t *);
+void iter_ctor(iter_t *const, file_t *const, query_t *const);
 void iter_dtor(iter_t *);
 
 status_t iter_next(iter_t *const);

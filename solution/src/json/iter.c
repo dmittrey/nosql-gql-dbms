@@ -9,7 +9,7 @@ iter_t *iter_new()
     return memset(my_malloc(iter_t), 0, sizeof(iter_t));
 }
 
-void iter_ctor(iter_t *const iter, file_t *file, query_t *query)
+void iter_ctor(iter_t *const iter, file_t *const file, query_t *const query)
 {
     iter->file = file;
     iter->query = query;

@@ -1,7 +1,9 @@
 #include "memory/file/file.h"
 
 static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff);
-static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size);
+static sect_ext_t *find_sect_ext(const file_t *const file, const size_t entity_size);
+
+static sect_type_t *find_sect_type(const file_t *const file, const size_t type_size);
 
 file_t *file_new()
 {
@@ -28,17 +30,65 @@ void file_dtor(file_t *file)
     free(file);
 }
 
-status_t file_add_type(file_t *const file, const type_t* const type)
+status_t file_add_type(file_t *const file, const type_t *const type)
 {
+    sect_type_t *types = find_sect_type(file, type_ph_sz(type));
+    if (types == NULL)
+    {
+        types = sect_type_new();
+        DO_OR_FAIL(file_add_sect_types(file, types));
+    }
 
+    sectoff_t wrt_adr;
+    return sect_type_write(types, type, &wrt_adr);
 }
+
+/*
+Идем по секциям типов, если нашли тип, то удалили его по отступу
+*/
 status_t file_delete_type(file_t *const file, const string_t *const name)
 {
+    sect_type_t *del_types = NULL;
+    type_t *del_type = type_new();
 
+    if (file_find_type(file, name, del_type, del_types) == OK)
+    {
+        sect_type_delete(del_types, del_type->soff_ptr);
+        return OK;
+    }
+    else
+    {
+        return FAILED;
+    }
 }
-status_t file_find_type(file_t *const file, const string_t *const name, type_t* const o_type)
+status_t file_find_type(file_t *const file, const string_t *const name, type_t *const o_type, sect_type_t *o_types)
 {
-    
+    type_t *f_type = type_new();
+
+    type_t *zr_type = type_new();
+
+    sect_type_t *types = file->f_types;
+    while (types != NULL)
+    {
+        DO_OR_FAIL(sect_type_find(types, name, f_type));
+        // Нашли
+        if (memcpy(f_type, zr_type, sizeof(type_t)) != 0)
+        {
+            o_types = types;
+            type_cpy(o_type, f_type);
+            break;
+        }
+
+        types = types->next;
+    }
+
+    type_dtor(f_type);
+    type_dtor(zr_type);
+
+    if (o_types == NULL)
+        return FAILED;
+    else
+        return OK;
 }
 
 /*
@@ -302,13 +352,30 @@ status_t file_add_sect_ext(file_t *const file, sect_ext_t *new_extents)
     }
     cur->next = new_extents;
     cur->header.next_ptr = new_extents->header.sect_off;
-    sect_ext_sync(cur);
-    return OK;
+    return sect_ext_sync(cur);
 }
-status_t file_read_sect_ext(file_t *const file, const fileoff_t fileoff, sect_ext_t *const r_sect_ext)
+
+/*
+Add empty types section to end of file
+*/
+status_t file_add_sect_types(file_t *const file, sect_type_t *new_types)
 {
-    RA_FREAD_OR_FAIL(r_sect_ext, sizeof(r_sect_ext), fileoff, file->filp);
-    return OK;
+    DO_OR_FAIL(sect_type_ctor(new_types, file->header.lst_sect_ptr, file->filp));
+    file->header.lst_sect_ptr += SECTION_SIZE;
+    if (file->f_types == NULL)
+    {
+        file->f_types = new_types;
+        return OK;
+    }
+
+    sect_type_t *cur = file->f_types;
+    while (cur->next != NULL)
+    {
+        cur = cur->next;
+    }
+    cur->next = new_types;
+    cur->header.next_ptr = new_types->header.sect_off;
+    return sect_types_sync(cur);
 }
 
 static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff)
@@ -327,7 +394,8 @@ static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff)
 
     return r_sect_ext;
 }
-static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size)
+
+static sect_ext_t *find_sect_ext(const file_t *const file, const size_t entity_size)
 {
     sect_ext_t *cur_ext = file->f_extent;
     while (cur_ext != NULL && cur_ext->header.free_space < entity_size)
@@ -336,4 +404,15 @@ static sect_ext_t *find_sect_ext(const file_t *const file, size_t entity_size)
     }
 
     return cur_ext;
+}
+
+static sect_type_t *find_sect_type(const file_t *const file, const size_t type_size)
+{
+    sect_type_t *cur_types = file->f_types;
+    while (cur_types != NULL && cur_types->header.free_space < type_size)
+    {
+        cur_types = cur_types->next;
+    }
+
+    return cur_types;
 }
