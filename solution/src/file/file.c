@@ -10,12 +10,22 @@ file_t *file_new()
     return my_malloc(file_t);
 }
 
+static status_t file_head_sync(const file_t *const file)
+{
+    SAVE_FILP(file->filp,
+              RA_FWRITE_OR_FAIL(&file->header, sizeof(file_head_t), 0, file->filp));
+
+    return OK;
+}
+
 void file_ctor(file_t *const file, FILE *const filp)
 {
     file->header.lst_sect_ptr = sizeof(file_head_t);
     file->f_extent = NULL;
     file->f_types = NULL;
     file->filp = filp;
+
+    file_head_sync(file);
 }
 void file_dtor(file_t *file)
 {
@@ -52,7 +62,9 @@ status_t file_add_type(file_t *const file, const type_t *const type)
     }
 
     sectoff_t wrt_adr;
-    return sect_type_write(types, type, &wrt_adr);
+    DO_OR_FAIL(sect_type_write(types, type, &wrt_adr));
+
+    return file_head_sync(file);
 }
 
 /*
@@ -63,17 +75,17 @@ status_t file_delete_type(file_t *const file, const string_t *const name)
     sect_type_t *del_types = NULL;
     type_t *del_type = type_new();
 
-    if (file_find_type(file, name, del_type, del_types) == OK)
+    if (file_find_type(file, name, del_type, &del_types) == OK)
     {
         sect_type_delete(del_types, del_type->soff_ptr);
-        return OK;
+        return file_head_sync(file);
     }
     else
     {
         return FAILED;
     }
 }
-status_t file_find_type(file_t *const file, const string_t *const name, type_t *const o_type, sect_type_t *o_types)
+status_t file_find_type(file_t *const file, const string_t *const name, type_t *const o_type, sect_type_t **o_types)
 {
     type_t *f_type = type_new();
 
@@ -84,9 +96,9 @@ status_t file_find_type(file_t *const file, const string_t *const name, type_t *
     {
         DO_OR_FAIL(sect_type_find(types, name, f_type));
         // Нашли
-        if (memcpy(f_type, zr_type, sizeof(type_t)) != 0)
+        if (memcmp(f_type, zr_type, sizeof(type_t)) != 0)
         {
-            o_types = types;
+            *o_types = types;
             type_cpy(o_type, f_type);
             break;
         }
@@ -148,7 +160,7 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
 
     entity_dtor(entity);
 
-    return OK;
+    return file_head_sync(file);
 }
 /*
 1) Прочитать секцию с нодой
@@ -182,7 +194,8 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
     }
 
     entity_dtor(ret_entity);
-    return OK;
+
+    return file_head_sync(file);
 }
 
 /*
@@ -254,7 +267,8 @@ status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *
     json_dtor(old_json);
     entity_dtor(old_entity);
     entity_dtor(new_entity);
-    return OK;
+
+    return file_head_sync(file);
 }
 
 /*
@@ -304,7 +318,8 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root)
     }
 
     entity_dtor(del_entity);
-    return OK;
+
+    return file_head_sync(file);
 }
 
 /*
@@ -364,7 +379,9 @@ status_t file_add_sect_ext(file_t *const file, sect_ext_t *new_extents)
     }
     cur->next = new_extents;
     cur->header.next_ptr = new_extents->header.sect_off;
-    return sect_ext_sync(cur);
+    DO_OR_FAIL(sect_ext_sync(cur));
+
+    return file_head_sync(file);
 }
 
 /*
@@ -387,7 +404,9 @@ status_t file_add_sect_types(file_t *const file, sect_type_t *new_types)
     }
     cur->next = new_types;
     cur->header.next_ptr = new_types->header.sect_off;
-    return sect_types_sync(cur);
+    DO_OR_FAIL(sect_types_sync(cur));
+
+    return file_head_sync(file);
 }
 
 static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff)
@@ -420,14 +439,14 @@ static sect_ext_t *find_sect_ext(const file_t *const file, const size_t entity_s
 
 static sect_type_t *find_sect_type(const file_t *const file, const size_t type_size)
 {
-    if (file->f_types == NULL)
-        return NULL;
-
     sect_type_t *cur_types = file->f_types;
-    while (cur_types != NULL && cur_types->header.free_space < type_size)
+    while (cur_types != NULL)
     {
+        if (cur_types->header.free_space >= type_size)
+            return cur_types;
+
         cur_types = cur_types->next;
     }
 
-    return cur_types;
+    return NULL;
 }

@@ -11,7 +11,7 @@ status_t user_delete_type(file_t *const file, const string_t *const name)
 status_t user_find_type(file_t *const file, const string_t *const name, type_t *const o_type)
 {
     sect_type_t* del_types = NULL;
-    return file_find_type(file, name, o_type, del_types);
+    return file_find_type(file, name, o_type, &del_types);
 }
 
 status_t user_write(file_t *const file, const json_t *const json)

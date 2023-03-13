@@ -124,7 +124,6 @@ status_t SectionTypes_WriteAllAttributesType_Successful()
 
     type_entity_t *rd_type_ent = type_entity_new();
     sect_type_rd_ent(types, sizeof(sect_head_entity_t), rd_type_ent);
-
     assert(rd_type_ent->attr_cnt == wr_type->attr_list->count);
     assert(rd_type_ent->name_ptr == SECTION_SIZE - 1 * sizeof(char));
     assert(rd_type_ent->name_size == wr_type->name->cnt);

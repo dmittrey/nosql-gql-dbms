@@ -4,6 +4,11 @@
 
 #include "memory/json/json.h"
 
+#define ATR_INIT(VAR_NAME, NAME, TYPE)         \
+    attr_t *VAR_NAME = attr_new();       \
+    STR_INIT(VAR_NAME##_atr_name, NAME); \
+    attr_ctor(VAR_NAME, VAR_NAME##_atr_name, TYPE);
+
 typedef struct attr_t
 {
     string_t *name;

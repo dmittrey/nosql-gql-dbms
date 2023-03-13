@@ -42,13 +42,22 @@ void type_cpy(type_t *const dest, type_t *const src)
     string_ctor(dest->name, src->name->val, src->name->cnt);
     dest->soff_ptr = src->soff_ptr;
 
-    list_attr_t *atr_lst = list_attr_t_new();
+    dest->attr_list = list_attr_t_new();
     attr_t *cur_atr = src->attr_list->head;
     while (cur_atr != NULL)
     {
-        list_attr_t_add(atr_lst, cur_atr);
+        type_add_atr(dest, cur_atr);
+        cur_atr = cur_atr->next;
     }
-    dest->attr_list = atr_lst;
+
+    src->attr_list->head = NULL;
+    src->attr_list->tail = NULL;
+    src->attr_list->count = 0;
+}
+
+void type_add_atr(type_t *const t, attr_t *const a)
+{
+    list_attr_t_add(t->attr_list, a);
 }
 
 size_t type_ph_sz(const type_t *const type)
@@ -59,6 +68,7 @@ size_t type_ph_sz(const type_t *const type)
     while (cur_atr != NULL)
     {
         size += cur_atr->name->cnt * sizeof(char);
+        cur_atr = cur_atr->next;
     }
 
     return size;

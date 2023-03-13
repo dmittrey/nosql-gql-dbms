@@ -19,6 +19,7 @@ void test_extents_find();
 void test_file_find();
 
 void test_file_add_type();
+void test_file_delete_type();
 
 void test_header();
 
@@ -47,4 +48,5 @@ int main(int argc, char **argv)
     test_file_find();
 
     test_file_add_type();
+    test_file_delete_type();
 }

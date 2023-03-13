@@ -25,6 +25,8 @@ void type_dtor(type_t *);
 int type_cmp(const type_t *const t1, const type_t *const t2);
 void type_cpy(type_t *const dest, type_t *const src);
 
-size_t type_ph_sz(const type_t* const type);
+void type_add_atr(type_t *const, attr_t *const);
+
+size_t type_ph_sz(const type_t *const type);
 
 LIST_DECLARE(type_t);
