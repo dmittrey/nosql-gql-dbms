@@ -331,10 +331,13 @@ status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root)
     - Прогнали по всем условиям
     - Если соответствует то сохранили в o_obj_col
 */
-status_t file_find(file_t *const file, const query_t *const query, list_json_t *const o_obj_col)
+status_t file_find(file_t *const file, sect_ext_t *section, const query_t *const query, list_json_t *const o_obj_col)
 {
+    if (section == NULL)
+        return OK;
+
     list_json_t *temp = list_json_t_new();
-    DO_OR_FAIL(sect_ext_find(file->f_extent, query, temp));
+    DO_OR_FAIL(sect_ext_find(section, query, temp));
 
     while (temp->head != NULL)
     {

@@ -60,6 +60,8 @@ typedef struct json_t
     struct entity_t *entity;
     // Указатель на следующий json в секции
     struct json_t *next;
+    // Адрес в файле
+    fileoff_t foff;
 } json_t;
 
 json_t *json_new();

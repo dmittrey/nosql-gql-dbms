@@ -58,7 +58,7 @@ static status_t File_FindFromSeveralQSeveral_ReturnSeveral()
 
     list_json_t *collection = list_json_t_new();
 
-    DO_OR_FAIL(file_find(file, query, collection));
+    DO_OR_FAIL(file_find(file, file->f_extent, query, collection));
 
     assert(json_cmp(collection->head, prev_city_json) == 0);
     assert(json_cmp(collection->tail, prev_city_json) == 0);
@@ -109,7 +109,7 @@ static status_t File_FindFromSeveral_ReturnSeveral()
     query_item_add(query, amount_query);
 
     list_json_t *collection = list_json_t_new();
-    DO_OR_FAIL(file_find(file, query, collection));
+    DO_OR_FAIL(file_find(file, file->f_extent, query, collection));
 
     assert(json_cmp(collection->head, prev_info_json) == 0);
     assert(json_cmp(collection->tail, prev_city_json) == 0);
@@ -158,7 +158,7 @@ static status_t File_FindFromOne_ReturnOne()
     query_item_add(query, amount_query);
 
     list_json_t *collection = list_json_t_new();
-    DO_OR_FAIL(file_find(file, query, collection));
+    DO_OR_FAIL(file_find(file, file->f_extent, query, collection));
 
     assert(json_cmp(collection->head, prev_city_json) == 0);
     assert(json_cmp(collection->tail, prev_city_json) == 0);
@@ -169,7 +169,7 @@ static status_t File_FindFromOne_ReturnOne()
     list_json_t_dtor(collection);
 
     json_dtor(prev_info_json);
-    
+
     file_dtor(file);
     DO_OR_FAIL(remove(test_file_name));
 
@@ -194,14 +194,14 @@ static status_t File_FindFromEmpty_ReturnEmpty()
     query_item_add(query, amount_query);
 
     list_json_t *collection = list_json_t_new();
-    DO_OR_FAIL(file_find(file, query, collection));
+    DO_OR_FAIL(file_find(file, file->f_extent, query, collection));
 
     assert(collection->head == NULL);
     assert(collection->tail == NULL);
     assert(collection->count == 0);
-    
+
     query_dtor(query);
-    
+
     list_json_t_dtor(collection);
 
     file_dtor(file);

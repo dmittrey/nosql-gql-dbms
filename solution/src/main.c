@@ -23,6 +23,8 @@ void test_file_delete_type();
 
 void test_header();
 
+void test_iter();
+
 int main(int argc, char **argv)
 {
     test_header();
@@ -49,4 +51,6 @@ int main(int argc, char **argv)
 
     test_file_add_type();
     test_file_delete_type();
+
+    test_iter();
 }

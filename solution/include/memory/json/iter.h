@@ -2,19 +2,18 @@
 
 #include "memory/file/file.h"
 
-typedef struct
-{
-    file_t *file;
-    query_t *query;
-    sect_ext_t *cur_sect;
-    list_json_t *cur_json_col;
-    bool is_loaded_cur_sect;
-} iter_t;
+struct iter_t;
 
-iter_t *iter_new();
+struct iter_t *iter_new();
 
-void iter_ctor(iter_t *const, file_t *const, query_t *const);
-void iter_dtor(iter_t *);
+void iter_ctor(struct iter_t *const, file_t *const, query_t *const);
+void iter_dtor(struct iter_t *);
 
-status_t iter_next(iter_t *const);
-json_t *iter_get(iter_t *const);
+/* Calc next value in iterator */
+void iter_next(struct iter_t *const iter);
+
+/* Check if next value exist */
+bool iter_is_avail(struct iter_t *const);
+
+/* Take cur value from iterator */
+json_t *iter_get(struct iter_t *const);
