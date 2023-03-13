@@ -40,6 +40,11 @@ status_t Iter_FetchFromEmptyFile_IterContainsNothing()
     assert(iter_get(iter) == NULL);
     assert(iter_is_avail(iter) == false);
 
+    iter_dtor(iter);
+
+    file_dtor(file);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 
@@ -85,6 +90,13 @@ status_t Iter_FetchFromFileWithOneTargetJson_IterContainsOneElem()
     iter_next(iter);
     assert(iter_is_avail(iter) == false);
     assert(iter_get(iter) == NULL);
+
+    json_dtor(prev_info_json);
+
+    iter_dtor(iter);
+
+    file_dtor(file);
+    DO_OR_FAIL(remove(test_file_name));
     
     return OK;
 }
@@ -135,6 +147,13 @@ status_t Iter_FetchFromFileWithTwoTargetJson_IterContainsTwoElem()
     iter_next(iter);
     assert(iter_is_avail(iter) == false);
     assert(iter_get(iter) == NULL);
+
+    json_dtor(prev_info_json);
+
+    iter_dtor(iter);
+
+    file_dtor(file);
+    DO_OR_FAIL(remove(test_file_name));
     
     return OK;
 }

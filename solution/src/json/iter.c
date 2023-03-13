@@ -39,11 +39,12 @@ void iter_dtor(iter_t *iter)
 
 void iter_next(iter_t *const iter)
 {
-    if (iter->cur_json_col->head->next != NULL)
+    if (iter->cur_json_col->head != NULL)
     {
         list_json_t_del_fst(iter->cur_json_col);
     }
-    else
+
+    if (iter->cur_json_col->head == NULL)
     {
         while (iter->cur_sect != NULL && iter->cur_json_col->count == 0)
         {

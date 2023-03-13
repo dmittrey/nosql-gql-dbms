@@ -37,6 +37,7 @@ status_t user_update(file_t *const file, query_t *const query, const json_t *con
         file_update(file, iter_get(iter)->foff, new_json, 0, false, &upd_fileoff);
         iter_next(iter);
     }
+    iter_dtor(iter);
 
     return OK;
 }
@@ -51,6 +52,7 @@ status_t user_delete(file_t *const file, query_t *const query)
         file_delete(file, iter_get(iter)->foff, true);
         iter_next(iter);
     }
+    iter_dtor(iter);
 
     return OK;
 }
