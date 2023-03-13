@@ -106,6 +106,9 @@ status_t File_AddTypeWithAttrIntoEmptyFile_Successful()
 
     type_dtor(V_type);
 
+    type_entity_dtor(rd_type_ent);
+    attr_entity_dtor(rd_attr_ent);
+
     file_dtor(file);
     DO_OR_FAIL(remove(test_file_name));
 

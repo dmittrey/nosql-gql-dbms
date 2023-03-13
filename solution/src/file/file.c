@@ -78,10 +78,12 @@ status_t file_delete_type(file_t *const file, const string_t *const name)
     if (file_find_type(file, name, del_type, &del_types) == OK)
     {
         sect_type_delete(del_types, del_type->soff_ptr);
+        type_dtor(del_type);
         return file_head_sync(file);
     }
     else
     {
+        type_dtor(del_type);
         return FAILED;
     }
 }
