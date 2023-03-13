@@ -408,6 +408,9 @@ static sect_ext_t *find_sect_ext(const file_t *const file, const size_t entity_s
 
 static sect_type_t *find_sect_type(const file_t *const file, const size_t type_size)
 {
+    if (file->f_types == NULL)
+        return NULL;
+
     sect_type_t *cur_types = file->f_types;
     while (cur_types != NULL && cur_types->header.free_space < type_size)
     {
