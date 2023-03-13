@@ -90,7 +90,6 @@ static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
     entity_dtor(prev_info_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;

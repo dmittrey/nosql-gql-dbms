@@ -73,7 +73,6 @@ static status_t SectionExtents_FindFromSeveralQSeveral_ReturnSeveral()
     json_dtor(prev_info_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -125,7 +124,6 @@ static status_t SectionExtents_FindFromSeveral_ReturnSeveral()
     json_dtor(prev_info_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -175,7 +173,6 @@ static status_t SectionExtents_FindFromOne_ReturnOne()
     json_dtor(prev_info_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;

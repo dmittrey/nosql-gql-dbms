@@ -14,6 +14,7 @@ void file_ctor(file_t *const file, FILE *const filp)
 {
     file->header.lst_sect_ptr = sizeof(file_head_t);
     file->f_extent = NULL;
+    file->f_types = NULL;
     file->filp = filp;
 }
 void file_dtor(file_t *file)
@@ -26,6 +27,17 @@ void file_dtor(file_t *file)
         sect_ext_dtor(cur_extent);
         cur_extent = next_extent;
     }
+
+    sect_type_t *cur_type = file->f_types;
+    sect_type_t *next_type = NULL;
+    while (cur_type != NULL)
+    {
+        next_type = cur_type->next;
+        sect_type_dtor(cur_type);
+        cur_type = next_type;
+    }
+
+    fclose(file->filp);
 
     free(file);
 }

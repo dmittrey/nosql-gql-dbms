@@ -49,7 +49,6 @@ static status_t File_ReadInt_Successful()
     json_dtor(o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -84,7 +83,6 @@ static status_t File_ReadString_Successful()
     json_dtor(o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -117,7 +115,6 @@ static status_t File_ReadBool_Successful()
     json_dtor(o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -150,7 +147,6 @@ static status_t File_ReadFloat_Successful()
     json_dtor(o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -175,7 +171,6 @@ static status_t File_ReadFromZeroPtr_Failed()
     json_dtor(o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return read_status;
@@ -212,7 +207,6 @@ static status_t File_ReadObjectWithComponentsFromSameSect_Successful()
     json_dtor(city_o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -247,7 +241,6 @@ static status_t File_ReadObjectWithComponentsFromVariousSect_Successful()
     json_dtor(city_o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -292,7 +285,6 @@ static status_t File_ReadThreeLvlObject_Successful()
     json_dtor(info_o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;

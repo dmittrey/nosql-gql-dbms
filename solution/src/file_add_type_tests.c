@@ -27,6 +27,11 @@ status_t File_AddTypeIntoEmptyFile_Successful()
     TYPE_INIT(V_type, "V");
     file_add_type(file, V_type);
 
+    type_dtor(V_type);
+
+    file_dtor(file);
+    DO_OR_FAIL(remove(test_file_name));
+
     return OK;
 }
 

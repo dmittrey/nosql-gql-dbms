@@ -74,7 +74,6 @@ static status_t File_WriteString_AddSectionAndWrite()
     entity_dtor(o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -125,7 +124,6 @@ static status_t File_WriteInt32_AddSectionAndWrite()
     entity_dtor(o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -176,7 +174,6 @@ static status_t File_WriteBool_AddSectionAndWrite()
     entity_dtor(o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -227,7 +224,6 @@ static status_t File_WriteFloat_AddSectionAndWrite()
     entity_dtor(o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -303,7 +299,6 @@ static status_t File_WriteTwoStrings_AddSectionAndWriteTwoObjectsInOneSect()
     entity_dtor(s_o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -409,7 +404,6 @@ static status_t File_WriteObject_AddSectionAndWriteComponents()
     entity_dtor(son_o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -462,7 +456,6 @@ static status_t File_WriteObjectInFileWithExistExtentsion_WriteComponents()
     entity_dtor(obj_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -596,7 +589,6 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
     entity_dtor(son_o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -750,7 +742,6 @@ static status_t File_WriteThreeLevelsObject_AddSectionWriteComponents()
     entity_dtor(info_o_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;

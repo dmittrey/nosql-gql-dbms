@@ -42,7 +42,6 @@ static status_t File_UpdateType_Update(json_t *const json, json_t *const new_jso
     json_dtor(o_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -124,7 +123,6 @@ static const status_t File_Update2LvlObject_Successful()
     entity_dtor(new_obj_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -208,7 +206,6 @@ static const status_t File_Update3LvlObject_Successful()
     entity_dtor(new_info_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;

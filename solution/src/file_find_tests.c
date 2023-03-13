@@ -71,7 +71,6 @@ static status_t File_FindFromSeveralQSeveral_ReturnSeveral()
     json_dtor(prev_info_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -123,7 +122,6 @@ static status_t File_FindFromSeveral_ReturnSeveral()
     json_dtor(prev_info_json);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -173,7 +171,6 @@ static status_t File_FindFromOne_ReturnOne()
     json_dtor(prev_info_json);
     
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -208,7 +205,6 @@ static status_t File_FindFromEmpty_ReturnEmpty()
     list_json_t_dtor(collection);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;

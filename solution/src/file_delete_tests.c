@@ -66,7 +66,6 @@ status_t File_DeleteType_ShiftPtrsAndClear(const json_t *const json)
     entity_dtor(entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -149,7 +148,6 @@ status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
     entity_dtor(info_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -242,7 +240,6 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     entity_dtor(info_entity);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -339,7 +336,6 @@ status_t File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject()
     sect_ext_dtor(sect_ext_aftr_wrt);
 
     file_dtor(file);
-    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
