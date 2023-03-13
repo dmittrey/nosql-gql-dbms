@@ -27,11 +27,12 @@ status_t SectionTypes_FindFromEmptySection_FindNothing()
     STR_INIT(q_name, "example");
     sect_type_find(types, q_name, t);
 
-    void *t_zero = my_malloc_array(char, sizeof(type_t));
+    void *t_zero = type_new();
 
-    assert(memcmp(t_zero, t, sizeof(type_t)) == 0); 
+    assert(memcmp(t_zero, t, sizeof(type_t)) == 0);
 
     type_dtor(t);
+    type_dtor(t_zero);
     string_dtor(q_name);
 
     sect_type_dtor(types);
@@ -101,7 +102,7 @@ status_t SectionTypes_FindOneTypeFromSeveral_FindNothing()
     type_dtor(K_type);
     type_dtor(T_type);
     type_dtor(t);
-    
+
     string_dtor(q_name);
 
     sect_type_dtor(types);
