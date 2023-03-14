@@ -15,7 +15,7 @@
 
 typedef struct attr_t
 {
-    string_t *name; // TODO Убрать имя
+    string_t *name;
     json_type_t type;
     struct attr_t *next;
 } attr_t;
