@@ -47,7 +47,11 @@ status_t user_update(file_t *const file, query_t *const query, const json_t *con
     fileoff_t upd_fileoff;
     while (iter_is_avail(iter))
     {
-        file_update(file, iter_get(iter)->foff, new_json, 0, false, &upd_fileoff);
+        json_t *json = iter_get(iter);
+        if (json_is_apply_type(new_json, json->obj_type))
+        {
+            file_update(file, iter_get(iter)->foff, new_json, 0, false, &upd_fileoff);
+        }
         iter_next(iter);
     }
     iter_dtor(iter);
