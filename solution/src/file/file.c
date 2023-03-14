@@ -77,7 +77,7 @@ status_t file_delete_type(file_t *const file, const string_t *const name)
 
     if (file_find_type(file, name, del_type, &del_types) == OK)
     {
-        sect_type_delete(del_types, del_type->soff_ptr);
+        sect_type_delete(del_types, sect_head_get_sectoff(&del_types->header, del_type->foff_ptr));
         type_dtor(del_type);
         return file_head_sync(file);
     }
@@ -120,9 +120,10 @@ status_t file_find_type(file_t *const file, const string_t *const name, type_t *
 /*
 cur -> bro -> son
 */
-status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t *const write_addr)
+status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t type_foff, fileoff_t *const write_addr)
 {
     ENTITY_INIT(entity, json, dad_fileoff, 0, 0);
+    entity->type_ptr = type_foff;
 
     sect_ext_t *extents = find_sect_ext(file, entity_ph_size(entity));
     if (extents == NULL)
@@ -131,8 +132,6 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
         DO_OR_FAIL(file_add_sect_ext(file, extents));
     }
 
-    size_t entity_size = entity_ph_size(entity);
-    size_t a = entity_itm_size(entity);
     sect_ext_write(extents, json, entity, write_addr);
 
     *write_addr += extents->header.sect_off;
@@ -140,14 +139,14 @@ status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_
     fileoff_t bro_offset = 0;
     if (json->bro != NULL)
     {
-        DO_OR_FAIL(file_write(file, json->bro, dad_fileoff, &bro_offset));
+        DO_OR_FAIL(file_write(file, json->bro, dad_fileoff, type_foff, &bro_offset));
         entity->fam_addr.bro_ptr = bro_offset;
     }
 
     fileoff_t son_offset = 0;
     if (json->son != NULL)
     {
-        DO_OR_FAIL(file_write(file, json->son, *write_addr, &son_offset));
+        DO_OR_FAIL(file_write(file, json->son, *write_addr, type_foff, &son_offset));
         entity->fam_addr.son_ptr = son_offset;
     }
 

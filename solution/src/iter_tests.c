@@ -17,7 +17,7 @@ static const char *test_file_name = "test.bin";
 2) Сделать выборку из 1 по 1
 3) Сделать выборку из нескольких по 1
 
-Суть в том, чтобы поиграться с get, 
+Суть в том, чтобы поиграться с get,
 */
 
 status_t Iter_FetchFromEmptyFile_IterContainsNothing()
@@ -34,7 +34,7 @@ status_t Iter_FetchFromEmptyFile_IterContainsNothing()
 
     query_t *query = query_new();
     query_item_add(query, amount_query);
-    
+
     iter_ctor(iter, file, query);
 
     assert(iter_get(iter) == NULL);
@@ -73,7 +73,7 @@ status_t Iter_FetchFromFileWithOneTargetJson_IterContainsOneElem()
     json_add_son(prev_info_json, prev_amount_json);
 
     fileoff_t save_json_fileoff;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, &save_json_fileoff));
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &save_json_fileoff));
 
     STR_INIT(amount_q_key, "amount");
     QUERY_ITEM_INIT(TYPE_INT32, amount_query, amount_q_key, 50000);
@@ -97,7 +97,7 @@ status_t Iter_FetchFromFileWithOneTargetJson_IterContainsOneElem()
 
     file_dtor(file);
     DO_OR_FAIL(remove(test_file_name));
-    
+
     return OK;
 }
 
@@ -126,7 +126,7 @@ status_t Iter_FetchFromFileWithTwoTargetJson_IterContainsTwoElem()
     json_add_son(prev_info_json, prev_amount_json);
 
     fileoff_t save_json_fileoff;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, &save_json_fileoff));
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &save_json_fileoff));
 
     STR_INIT(amount_q_key, "amount");
     QUERY_ITEM_INIT(TYPE_INT32, amount_query, amount_q_key, 50000);
@@ -154,7 +154,7 @@ status_t Iter_FetchFromFileWithTwoTargetJson_IterContainsTwoElem()
 
     file_dtor(file);
     DO_OR_FAIL(remove(test_file_name));
-    
+
     return OK;
 }
 

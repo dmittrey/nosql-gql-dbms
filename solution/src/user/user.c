@@ -25,7 +25,7 @@ status_t user_write(file_t *const file, const json_t *const json, const string_t
     if (is_apply)
     {
         fileoff_t wrt_adr;
-        return file_write(file, json, 0, &wrt_adr);
+        return file_write(file, json, 0, t->foff_ptr, &wrt_adr);
     }
     else
     {

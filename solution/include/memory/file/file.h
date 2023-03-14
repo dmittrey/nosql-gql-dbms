@@ -26,7 +26,7 @@ status_t file_add_type(file_t *const file, const type_t* const type);
 status_t file_delete_type(file_t *const file, const string_t *const name);
 status_t file_find_type(file_t *const file, const string_t *const name, type_t *const o_type, sect_type_t **o_types);
 
-status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t *const write_addr);
+status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t type_foff, fileoff_t *const write_addr);
 status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const ret_json);
 status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json, const fileoff_t dad_ptr, bool is_bro_upd, fileoff_t *cur_fileoff);
 status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root);

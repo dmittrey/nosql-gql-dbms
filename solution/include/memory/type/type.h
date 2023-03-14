@@ -13,13 +13,13 @@ typedef struct type_t
     string_t *name;
     list_attr_t *attr_list;
     struct type_t *next;
-    fileoff_t soff_ptr;
+    fileoff_t foff_ptr;
 } type_t;
 
 type_t *type_new();
 
 void type_ctor(type_t *const, string_t *name, list_attr_t *const attr_list);
-void type_ctor_soff(type_t *const, string_t *name, list_attr_t *const attr_list, sectoff_t soff);
+void type_ctor_foff(type_t *const, string_t *name, list_attr_t *const attr_list, sectoff_t foff);
 void type_dtor(type_t *);
 
 int type_cmp(const type_t *const t1, const type_t *const t2);

@@ -127,7 +127,7 @@ status_t sect_type_read(sect_type_t *const section, sectoff_t sctoff, type_t *co
     string_ctor(t_name, t_name_c, o_type_ent->name_size);
     free(t_name_c);
     list_attr_t *atr_list = list_attr_t_new();
-    type_ctor_soff(o_type, t_name, atr_list, sctoff);
+    type_ctor_foff(o_type, t_name, atr_list, sect_head_get_fileoff(&section->header, sctoff));
     sctoff += sizeof(type_entity_t);
 
     attr_entity_t *a_ent = attr_entity_new();

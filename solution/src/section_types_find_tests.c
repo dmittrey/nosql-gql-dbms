@@ -60,7 +60,7 @@ status_t SectionTypes_FindOneTypeFromOneEmpty_FindNothing()
 
     assert(string_cmp(t->name, q_name) == 0);
     assert(t->attr_list->count == 0);
-    assert(t->soff_ptr == sizeof(sect_head_entity_t));
+    assert(t->foff_ptr == sizeof(sect_head_entity_t));
 
     type_dtor(wr_type);
     type_dtor(t);
@@ -96,7 +96,7 @@ status_t SectionTypes_FindOneTypeFromSeveral_FindNothing()
 
     assert(string_cmp(t->name, q_name) == 0);
     assert(t->attr_list->count == 0);
-    assert(t->soff_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(type_entity_t));
+    assert(t->foff_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(type_entity_t));
 
     type_dtor(V_type);
     type_dtor(K_type);

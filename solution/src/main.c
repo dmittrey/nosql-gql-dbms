@@ -25,6 +25,8 @@ void test_header();
 
 void test_iter();
 
+void bench_write();
+
 int main(int argc, char **argv)
 {
     test_header();
@@ -53,4 +55,6 @@ int main(int argc, char **argv)
     test_file_delete_type();
 
     test_iter();
+
+    bench_write();
 }

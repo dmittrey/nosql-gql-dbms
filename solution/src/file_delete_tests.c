@@ -30,7 +30,7 @@ status_t File_DeleteType_ShiftPtrsAndClear(const json_t *const json)
     ENTITY_INIT(entity, json, 0, 0, 0);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, json, 0, 0, &wrt_addr));
 
     DO_OR_FAIL(file_delete(file, wrt_addr, true));
 
@@ -107,7 +107,7 @@ status_t File_DeleteFirstLevelFromObjectNode_ShiftPtrsAndClearObject()
     json_add_son(info_json, flag_json);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, info_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, info_json, 0, 0, &wrt_addr));
 
     DO_OR_FAIL(file_delete(file, wrt_addr, true));
 
@@ -191,7 +191,7 @@ status_t File_DeleteSecondLevelFromObjectNode_ShiftPtrsAndClearObject()
     json_add_son(info_json, flag_json);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, info_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, info_json, 0, 0, &wrt_addr));
 
     json_t *info_o_json = json_new();
     entity_t *info_o_entity = entity_new();
@@ -283,7 +283,7 @@ status_t File_DeleteThirdLevelFromObjectNode_ShiftPtrsAndClearObject()
     json_add_son(info_json, flag_json);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, info_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, info_json, 0, 0, &wrt_addr));
 
     sect_ext_t *sect_ext_aftr_wrt = memcpy(my_malloc(sect_ext_t), file->f_extent, sizeof(sect_ext_t));
 

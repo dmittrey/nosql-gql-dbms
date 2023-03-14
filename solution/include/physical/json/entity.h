@@ -24,6 +24,7 @@ typedef struct entity_t
     uint64_t type;
     size_t rec_size;
     tplgy_addr fam_addr;
+    fileoff_t type_ptr;
 } entity_t;
 
 entity_t *entity_new();

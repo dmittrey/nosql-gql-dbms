@@ -35,7 +35,7 @@ static status_t File_WriteString_AddSectionAndWrite()
     ENTITY_INIT(entity, json, 0, 0, 0);
 
     fileoff_t wrt_addr;
-    file_write(file, json, 0, &wrt_addr);
+    file_write(file, json, 0, 0, &wrt_addr);
 
     // Проверка создания новой секции
     assert(file->filp == filp);
@@ -90,7 +90,7 @@ static status_t File_WriteInt32_AddSectionAndWrite()
     ENTITY_INIT(entity, json, 0, 0, 0);
 
     fileoff_t wrt_addr;
-    file_write(file, json, 0, &wrt_addr);
+    file_write(file, json, 0, 0, &wrt_addr);
 
     // Проверка создания новой секции
     assert(file->filp == filp);
@@ -140,7 +140,7 @@ static status_t File_WriteBool_AddSectionAndWrite()
     ENTITY_INIT(entity, json, 0, 0, 0);
 
     fileoff_t wrt_addr;
-    file_write(file, json, 0, &wrt_addr);
+    file_write(file, json, 0, 0, &wrt_addr);
 
     // Проверка создания новой секции
     assert(file->filp == filp);
@@ -190,7 +190,7 @@ static status_t File_WriteFloat_AddSectionAndWrite()
     ENTITY_INIT(entity, json, 0, 0, 0);
 
     fileoff_t wrt_addr;
-    file_write(file, json, 0, &wrt_addr);
+    file_write(file, json, 0, 0, &wrt_addr);
 
     // Проверка создания новой секции
     assert(file->filp == filp);
@@ -245,9 +245,9 @@ static status_t File_WriteTwoStrings_AddSectionAndWriteTwoObjectsInOneSect()
     ENTITY_INIT(s_entity, s_json, 0, 0, 0);
 
     fileoff_t f_wrt_addr;
-    file_write(file, f_json, 0, &f_wrt_addr);
+    file_write(file, f_json, 0, 0, &f_wrt_addr);
     fileoff_t s_wrt_addr;
-    file_write(file, s_json, 0, &s_wrt_addr);
+    file_write(file, s_json, 0, 0, &s_wrt_addr);
 
     // Проверка создания новой секции
     assert(file->filp == filp);
@@ -334,7 +334,7 @@ static status_t File_WriteObject_AddSectionAndWriteComponents()
     json_add_son(obj_json, son_json);
 
     fileoff_t obj_wrt_addr;
-    file_write(file, obj_json, 0, &obj_wrt_addr);
+    file_write(file, obj_json, 0, 0, &obj_wrt_addr);
 
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
@@ -434,7 +434,7 @@ static status_t File_WriteObjectInFileWithExistExtentsion_WriteComponents()
     json_add_son(obj_json, s_json);
 
     fileoff_t obj_wrt_addr;
-    file_write(file, obj_json, 0, &obj_wrt_addr);
+    file_write(file, obj_json, 0, 0, &obj_wrt_addr);
 
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
@@ -481,7 +481,7 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
 
     sect_ext_t *extension = sect_ext_new();
     file_add_sect_ext(file, extension);
-    sect_head_shift_lst_itm_ptr((sect_head_t *)extension, 8000);
+    sect_head_shift_lst_itm_ptr((sect_head_t *)extension, 7950);
 
     STR_INIT(son_str, "value");
     JSON_VALUE_INIT(TYPE_STRING, son_json, "son", son_str);
@@ -498,7 +498,7 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
     json_add_son(obj_json, son_json);
 
     fileoff_t obj_wrt_addr;
-    file_write(file, obj_json, 0, &obj_wrt_addr);
+    file_write(file, obj_json, 0, 0, &obj_wrt_addr);
 
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + 2 * SECTION_SIZE);
@@ -507,9 +507,9 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
     size_t b = entity_ph_size(obj_entity);
     size_t c = entity_ph_size(bro_entity);
     assert(file->f_extent->header.filp == filp);
-    assert(file->f_extent->header.free_space == SECTION_SIZE - 8000 - sizeof(sect_head_entity_t) - entity_ph_size(obj_entity) - entity_ph_size(bro_entity));
+    assert(file->f_extent->header.free_space == SECTION_SIZE - 7950 - sizeof(sect_head_entity_t) - entity_ph_size(obj_entity) - entity_ph_size(bro_entity));
     assert(file->f_extent->header.fst_rec_ptr == SECTION_SIZE - entity_rec_size(obj_entity) - entity_rec_size(bro_entity));
-    assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + 8000 + entity_itm_size(obj_entity) + entity_itm_size(bro_entity));
+    assert(file->f_extent->header.lst_itm_ptr == sizeof(sect_head_entity_t) + 7950 + entity_itm_size(obj_entity) + entity_itm_size(bro_entity));
     assert(file->f_extent->header.next_ptr == sizeof(file_head_t) + SECTION_SIZE);
     assert(file->f_extent->header.sect_off == sizeof(file_head_t));
 
@@ -539,7 +539,7 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
     assert(obj_o_entity->rec_size == obj_entity->key_size);
     assert(obj_o_entity->type == obj_entity->type);
     assert(obj_o_entity->fam_addr.dad_ptr == 0);
-    assert(obj_o_entity->fam_addr.bro_ptr == sizeof(file_head_t) + sizeof(sect_head_entity_t) + 8000 + sizeof(entity_t));
+    assert(obj_o_entity->fam_addr.bro_ptr == sizeof(file_head_t) + sizeof(sect_head_entity_t) + 7950 + sizeof(entity_t));
     assert(obj_o_entity->fam_addr.son_ptr == sizeof(file_head_t) + SECTION_SIZE + sizeof(sect_head_entity_t));
 
     assert(obj_o_json->key->cnt == obj_json->key->cnt);
@@ -639,7 +639,7 @@ static status_t File_WriteThreeLevelsObject_AddSectionWriteComponents()
     json_add_son(info_json, flag_json);
 
     fileoff_t info_wrt_addr;
-    file_write(file, info_json, 0, &info_wrt_addr);
+    file_write(file, info_json, 0, 0, &info_wrt_addr);
 
     assert(file->filp == filp);
     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);

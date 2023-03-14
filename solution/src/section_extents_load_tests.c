@@ -63,7 +63,7 @@ static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
     file_ctor(file, filp);
 
     fileoff_t save_json_fileoff;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, &save_json_fileoff));
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &save_json_fileoff));
 
     list_json_t *collection = list_json_t_new();
     DO_OR_FAIL(sect_ext_load(file->f_extent, collection));

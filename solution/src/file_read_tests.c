@@ -32,9 +32,9 @@ static status_t File_ReadInt_Successful()
     JSON_VALUE_INIT(TYPE_INT32, json, "value", 5);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, json, 0, 0, &wrt_addr));
 
-    json_t* o_json = json_new();
+    json_t *o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
 
     assert(o_json->key->cnt == json->key->cnt);
@@ -65,9 +65,9 @@ static status_t File_ReadString_Successful()
     JSON_VALUE_INIT(TYPE_STRING, json, "value", str);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, json, 0, 0, &wrt_addr));
 
-    json_t* o_json = json_new();
+    json_t *o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
 
     assert(o_json->key->cnt == json->key->cnt);
@@ -98,9 +98,9 @@ static status_t File_ReadBool_Successful()
     JSON_VALUE_INIT(TYPE_BOOL, json, "value", true);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, json, 0, 0, &wrt_addr));
 
-    json_t* o_json = json_new();
+    json_t *o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
 
     assert(o_json->key->cnt == json->key->cnt);
@@ -130,9 +130,9 @@ static status_t File_ReadFloat_Successful()
     JSON_VALUE_INIT(TYPE_FLOAT, json, "value", 5.5);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, json, 0, 0, &wrt_addr));
 
-    json_t* o_json = json_new();
+    json_t *o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
 
     assert(o_json->key->cnt == json->key->cnt);
@@ -162,9 +162,9 @@ static status_t File_ReadFromZeroPtr_Failed()
     JSON_VALUE_INIT(TYPE_FLOAT, json, "value", 5.5);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, json, 0, 0, &wrt_addr));
 
-    json_t* o_json = json_new();
+    json_t *o_json = json_new();
     status_t read_status = file_read(file, 0, o_json);
 
     json_dtor(json);
@@ -198,9 +198,9 @@ static status_t File_ReadObjectWithComponentsFromSameSect_Successful()
     json_add_son(city_json, amount_json);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, city_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, city_json, 0, 0, &wrt_addr));
 
-    json_t* city_o_json = json_new();
+    json_t *city_o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, city_o_json));
 
     json_dtor(city_json);
@@ -219,7 +219,7 @@ static status_t File_ReadObjectWithComponentsFromVariousSect_Successful()
     file_t *file = file_new();
     file_ctor(file, filp);
 
-    sect_ext_t* f_sect = sect_ext_new();
+    sect_ext_t *f_sect = sect_ext_new();
     file_add_sect_ext(file, f_sect);
     sect_head_shift_lst_itm_ptr(&f_sect->header, 8000);
 
@@ -232,9 +232,9 @@ static status_t File_ReadObjectWithComponentsFromVariousSect_Successful()
     json_add_son(city_json, amount_json);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, city_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, city_json, 0, 0, &wrt_addr));
 
-    json_t* city_o_json = json_new();
+    json_t *city_o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, city_o_json));
 
     json_dtor(city_json);
@@ -276,9 +276,9 @@ static status_t File_ReadThreeLvlObject_Successful()
     json_add_son(info_json, flag_json);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, info_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, info_json, 0, 0, &wrt_addr));
 
-    json_t* info_o_json = json_new();
+    json_t *info_o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, info_o_json));
 
     json_dtor(info_json);

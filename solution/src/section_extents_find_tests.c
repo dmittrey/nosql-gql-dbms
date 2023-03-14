@@ -43,7 +43,7 @@ static status_t SectionExtents_FindFromSeveralQSeveral_ReturnSeveral()
     file_ctor(file, filp);
 
     fileoff_t save_json_fileoff;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, &save_json_fileoff));
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &save_json_fileoff));
 
     STR_INIT(amount_q_key, "amount");
     QUERY_ITEM_INIT(TYPE_INT32, amount_query, amount_q_key, 50000);
@@ -102,7 +102,7 @@ static status_t SectionExtents_FindFromSeveral_ReturnSeveral()
     file_ctor(file, filp);
 
     fileoff_t save_json_fileoff;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, &save_json_fileoff));
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &save_json_fileoff));
 
     STR_INIT(amount_q_key, "amount");
     QUERY_ITEM_INIT(TYPE_INT32, amount_query, amount_q_key, 50000);
@@ -151,7 +151,7 @@ static status_t SectionExtents_FindFromOne_ReturnOne()
     file_ctor(file, filp);
 
     fileoff_t save_json_fileoff;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, &save_json_fileoff));
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &save_json_fileoff));
 
     STR_INIT(amount_q_key, "amount");
     QUERY_ITEM_INIT(TYPE_INT32, amount_query, amount_q_key, 50000);

@@ -31,11 +31,11 @@ static status_t File_UpdateType_Update(json_t *const json, json_t *const new_jso
     file_ctor(file, filp);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, json, 0, 0, &wrt_addr));
 
     DO_OR_FAIL(file_update(file, wrt_addr, new_json, 0, false, &wrt_addr));
 
-    json_t * o_json = json_new();
+    json_t *o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
     assert(json_cmp(o_json, new_json) == 0);
 
@@ -98,7 +98,7 @@ static const status_t File_Update2LvlObject_Successful()
     file_ctor(file, filp);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, prev_obj_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, prev_obj_json, 0, 0, &wrt_addr));
 
     DO_OR_FAIL(file_update(file, wrt_addr, new_obj_json, 0, true, &wrt_addr));
 
@@ -166,7 +166,6 @@ static const status_t File_Update3LvlObject_Successful()
     json_add_son(prev_info_json, prev_city_json);
     json_add_son(prev_info_json, prev_flag_json);
 
-
     STR_INIT(new_city_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, new_city_json, "city", new_city_str);
     ENTITY_INIT(new_city_entity, new_city_json, 0, 0, 0);
@@ -175,18 +174,18 @@ static const status_t File_Update3LvlObject_Successful()
     ENTITY_INIT(new_info_entity, new_info_json, 0, 0, 0);
 
     json_add_son(new_info_json, new_city_json);
-    
+
     FILE *filp = fopen(test_file_name, "w+");
 
     file_t *file = file_new();
     file_ctor(file, filp);
 
     fileoff_t wrt_addr;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, &wrt_addr));
+    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &wrt_addr));
 
     DO_OR_FAIL(file_update(file, wrt_addr, new_info_json, 0, false, &wrt_addr));
 
-    json_t * o_json = json_new();
+    json_t *o_json = json_new();
     DO_OR_FAIL(file_read(file, wrt_addr, o_json));
     assert(json_cmp(o_json, new_info_json) == 0);
     assert(json_cmp(o_json->son, new_info_json->son) == 0);
@@ -210,7 +209,6 @@ static const status_t File_Update3LvlObject_Successful()
 
     return OK;
 }
-
 
 void test_file_update()
 {
