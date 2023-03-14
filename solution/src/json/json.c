@@ -63,6 +63,11 @@ void json_dtor(json_t *json)
         entity_dtor(json->entity);
     }
 
+    if (json->obj_type != NULL)
+    {
+        type_dtor(json->obj_type);
+    }
+
     free(json);
 }
 

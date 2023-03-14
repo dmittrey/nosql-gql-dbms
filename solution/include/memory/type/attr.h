@@ -1,8 +1,12 @@
 #pragma once
 
+#include "utils.h"
+#include "table.h"
 #include "list.h"
 
-#include "memory/json/json.h"
+#include "memory/string.h"
+
+#include "memory/json/json_type.h"
 
 #define ATR_INIT(VAR_NAME, NAME, TYPE)         \
     attr_t *VAR_NAME = attr_new();       \
@@ -11,7 +15,7 @@
 
 typedef struct attr_t
 {
-    string_t *name;
+    string_t *name; // TODO Убрать имя
     json_type_t type;
     struct attr_t *next;
 } attr_t;

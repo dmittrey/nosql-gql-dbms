@@ -4,6 +4,8 @@
 #include "table.h"
 #include "list.h"
 
+#include "memory/type/type.h"
+
 struct entity_t;
 
 #define JSON_VALUE_INIT_TYPE_INT32(JSON_NAME, KEY, VAL) \
@@ -33,15 +35,6 @@ struct entity_t;
 #define JSON_VALUE_INIT(TYPE, JSON_NAME, KEY, VAL) \
     JSON_VALUE_INIT_##TYPE(JSON_NAME, KEY, VAL)
 
-typedef enum
-{
-    TYPE_INT32 = 0,
-    TYPE_FLOAT,
-    TYPE_STRING,
-    TYPE_BOOL,
-    TYPE_OBJECT
-} json_type_t;
-
 typedef struct json_t
 {
     string_t *key;
@@ -58,10 +51,12 @@ typedef struct json_t
     uint64_t type; // Тип значения
     // Указатель на сущность в физ. представлении
     struct entity_t *entity;
-    // Указатель на следующий json в секции
-    struct json_t *next;
+    // Тип(Набор атрибутов) ноды(только для TYPE_OBJECT)
+    type_t *obj_type;
     // Адрес в файле
     fileoff_t foff;
+    // Указатель на следующий json в секции
+    struct json_t *next;
 } json_t;
 
 json_t *json_new();
