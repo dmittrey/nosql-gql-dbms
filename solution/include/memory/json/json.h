@@ -77,4 +77,6 @@ void json_print(const json_t *const);
 
 int json_cmp(const json_t *const json_1, const json_t *const json_2);
 
+bool json_is_apply_type(const json_t *const json, const type_t* const type);
+
 LIST_DECLARE(json_t);

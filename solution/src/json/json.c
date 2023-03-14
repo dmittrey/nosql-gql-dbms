@@ -226,4 +226,45 @@ int json_cmp(const json_t *const json_1, const json_t *const json_2)
     return 1;
 }
 
+/*
+Type fields are required
+*/
+bool json_is_apply_type(const json_t *const json, const type_t *const type)
+{
+    if (json->type == TYPE_OBJECT)
+    {
+        attr_t *cur_atr = type->attr_list->head;
+
+        json_t *cur_son = json->son;
+        while (cur_son != NULL && cur_atr != NULL)
+        {
+            if (string_cmp(cur_atr->name, cur_son->key) == 0)
+            {
+                if (cur_atr->type != cur_son->type)
+                {
+                    return FAILED;
+                }
+                else
+                {
+                    cur_atr = cur_atr->next;
+                }
+            }
+
+            cur_son = cur_son->next;
+        }
+
+        // Что-то не вошло в object json
+        if (cur_atr != NULL)
+        {
+            return FAILED;
+        }
+
+        return OK;
+    }
+    else
+    {
+        return FAILED;
+    }
+}
+
 LIST_DEFINE(json_t, json_dtor_with_bro, json_cmp);
