@@ -180,6 +180,7 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
 
     entity_t *ret_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), ret_entity, ret_json));
+    ret_json->entity = ret_entity;
 
     if (ret_entity->fam_addr.bro_ptr != 0)
     {
@@ -194,8 +195,6 @@ status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const re
         DO_OR_FAIL(file_read(file, ret_entity->fam_addr.son_ptr, son_json));
         json_add_son(ret_json, son_json);
     }
-
-    entity_dtor(ret_entity);
 
     return file_head_sync(file);
 }

@@ -48,6 +48,8 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, ent
 
 status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sectoff, entity_t *const o_entity, json_t *const o_json)
 {
+    o_json->foff = sect_head_get_fileoff(&section->header, sectoff);
+    
     DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, o_entity));
 
     // Key parsing
