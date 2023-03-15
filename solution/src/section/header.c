@@ -5,7 +5,7 @@
 
 sect_head_t *sect_head_new()
 {
-    return memset(my_malloc(sect_head_t), 0, sizeof(sect_head_t));
+    return my_calloc(sect_head_t);
 }
 
 status_t sect_head_ctor(sect_head_t *const header, const fileoff_t offset, FILE *const filp)
@@ -20,9 +20,18 @@ status_t sect_head_ctor(sect_head_t *const header, const fileoff_t offset, FILE 
     return sect_head_sync(header);
 }
 
-void sect_head_dtor(sect_head_t *header)
+status_t sect_head_dtor(sect_head_t *header)
 {
+    header->free_space = 0;
+    header->next_ptr = 0;
+    header->lst_itm_ptr = 0;
+    header->fst_rec_ptr = 0;
+    
+    DO_OR_FAIL(sect_head_sync(header));
+
     free(header);
+
+    return OK;
 }
 
 status_t sect_head_sync(sect_head_t *const header)
@@ -49,19 +58,19 @@ status_t sect_head_shift_frp(sect_head_t *const header, const size_t shift)
     return sect_head_sync(header);
 }
 
-status_t sect_head_cmpress_lip(sect_head_t *header, size_t itm_size)
+status_t sect_head_cmprs_lip(sect_head_t *header, size_t itm_size)
 {
     void *rd_data = my_malloc_array(char, itm_size);
     void *zr_data = memset(my_malloc_array(char, itm_size), 0, itm_size);
 
-    sect_head_rd(header, header->lst_itm_ptr - itm_size, itm_size, rd_data);
+    sect_head_read(header, header->lst_itm_ptr - itm_size, itm_size, rd_data);
 
     while (header->lst_itm_ptr != sizeof(sect_head_entity_t) && memcmp(rd_data, zr_data, itm_size) == 0)
     {
         header->lst_itm_ptr -= itm_size;
         header->free_space += itm_size;
 
-        sect_head_rd(header, header->lst_itm_ptr - itm_size, itm_size, rd_data);
+        sect_head_read(header, header->lst_itm_ptr - itm_size, itm_size, rd_data);
     }
 
     free(rd_data);
@@ -70,12 +79,12 @@ status_t sect_head_cmpress_lip(sect_head_t *header, size_t itm_size)
     return sect_head_sync(header);
 }
 
-status_t sect_head_cmpress_frp(sect_head_t *header)
+status_t sect_head_cmprs_frp(sect_head_t *header)
 {
     char chr;
     while (true)
     {
-        sect_head_rd(header, header->fst_rec_ptr, sizeof(char), &chr);
+        sect_head_read(header, header->fst_rec_ptr, sizeof(char), &chr);
 
         if (header->fst_rec_ptr == SECTION_SIZE || chr != 0)
             break;
@@ -87,7 +96,7 @@ status_t sect_head_cmpress_frp(sect_head_t *header)
     return sect_head_sync(header);
 }
 
-status_t sect_head_rd(sect_head_t *header, sectoff_t sectoff, size_t sz, void *o_data)
+status_t sect_head_read(sect_head_t *header, sectoff_t sectoff, size_t sz, void *o_data)
 {
     SAVE_FILP(header->filp, {
         RA_FREAD_OR_FAIL(o_data, sz, sect_head_get_fileoff(header, sectoff), header->filp);
@@ -96,7 +105,7 @@ status_t sect_head_rd(sect_head_t *header, sectoff_t sectoff, size_t sz, void *o
     return OK;
 }
 
-status_t sect_head_wrt(sect_head_t *header, sectoff_t sectoff, size_t sz, void *data)
+status_t sect_head_write(sect_head_t *header, sectoff_t sectoff, size_t sz, void *data)
 {
     if (sz != 0)
     {
