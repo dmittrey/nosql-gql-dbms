@@ -1,6 +1,5 @@
+#include "memory/section/types_p.h"
 #include "memory/section/types.h"
-
-#include <string.h>
 
 #include "physical/section/header.h"
 
@@ -45,7 +44,7 @@ status_t sect_type_write(sect_type_t *const section, const type_t *const type, s
     type_entity_t *entity = type_entity_new();
     attr_entity_t *cur_entity = attr_entity_new();
 
-    DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, -1 * type->name->cnt));
+    DO_OR_FAIL(sect_head_shift_frp(&section->header, -1 * type->name->cnt));
     DO_OR_FAIL(sect_type_wrt(section, section->header.fst_rec_ptr, type->name->val, type->name->cnt));
     entity->name_size = type->name->cnt;
     entity->name_ptr = section->header.fst_rec_ptr;
@@ -53,21 +52,21 @@ status_t sect_type_write(sect_type_t *const section, const type_t *const type, s
 
     DO_OR_FAIL(sect_type_wrt(section, section->header.lst_itm_ptr, entity, sizeof(type_entity_t)));
     *o_wrt_soff = section->header.lst_itm_ptr;
-    DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, sizeof(type_entity_t)));
+    DO_OR_FAIL(sect_head_shift_lip(&section->header, sizeof(type_entity_t)));
 
     cur = type->attr_list->head;
     while (cur != NULL)
     {
         attr_entity_ctor(cur_entity, cur);
 
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, -1 * cur->name->cnt));
+        DO_OR_FAIL(sect_head_shift_frp(&section->header, -1 * cur->name->cnt));
         DO_OR_FAIL(sect_type_wrt(section, section->header.fst_rec_ptr, cur->name->val, cur->name->cnt));
         cur_entity->name_size = cur->name->cnt;
         cur_entity->name_ptr = section->header.fst_rec_ptr;
         cur_entity->attr_type = cur->type;
 
         DO_OR_FAIL(sect_type_wrt(section, section->header.lst_itm_ptr, cur_entity, sizeof(type_entity_t)));
-        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, sizeof(type_entity_t)));
+        DO_OR_FAIL(sect_head_shift_lip(&section->header, sizeof(type_entity_t)));
 
         cur = cur->next;
     }
@@ -95,8 +94,8 @@ status_t sect_type_delete(sect_type_t *const section, const sectoff_t del_soff)
 
     if (del_soff + sizeof(type_entity_t) + t->attr_list->count * sizeof(attr_entity_t) == section->header.lst_itm_ptr)
     {
-        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * itm_size));
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, rec_size));
+        DO_OR_FAIL(sect_head_shift_lip(&section->header, -1 * itm_size));
+        DO_OR_FAIL(sect_head_shift_frp(&section->header, rec_size));
     }
 
     // Set null rec fields

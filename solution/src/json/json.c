@@ -226,6 +226,19 @@ int json_cmp(const json_t *const json_1, const json_t *const json_2)
     return 1;
 }
 
+int json_cmp_wth_foff(const json_t *const json_1, const json_t *const json_2)
+{
+    int cmp = json_cmp(json_1, json_2);
+    if (cmp != 0)
+    {
+        return cmp;
+    }
+    else
+    {
+        return json_1->foff != json_2->foff;
+    }
+}
+
 /*
 Type fields are required
 */
@@ -267,4 +280,4 @@ bool json_is_apply_type(const json_t *const json, const type_t *const type)
     }
 }
 
-LIST_DEFINE(json_t, json_dtor_with_bro, json_cmp);
+LIST_DEFINE(json_t, json_dtor_with_bro, json_cmp_wth_foff);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "memory/type/type.h"
+#include "table.h"
 
 // Контракт (Все атрибуты в той же секции)
 

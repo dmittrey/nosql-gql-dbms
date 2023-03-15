@@ -1,10 +1,11 @@
 #include <assert.h>
-#include <string.h>
-
-#include "memory/section/extents.h"
 
 #include "physical/json/entity.h"
-#include "physical/section/extents.h"
+
+#include "physical/section/header.h"
+
+#include "memory/section/extents_p.h"
+#include "memory/section/extents.h"
 /*
 1) Удаление TYPE_OBJECT на границе
 2) Удаление TYPE_STRING на границе

@@ -1,10 +1,14 @@
 #include <assert.h>
-#include <string.h>
-
-#include "memory/section/extents.h"
 
 #include "physical/json/entity.h"
-#include "physical/section/extents.h"
+
+#include "physical/section/header.h"
+
+#include "memory/section/extents_p.h"
+#include "memory/section/extents.h"
+
+static const char *test_file_name = "test.bin";
+
 /*
 1) Посмотреть обновление граничного элементы
 2) Посмотреть обновление элемента внутри равного размера и хватает места
@@ -12,8 +16,6 @@
 4) Посмотреть обновление элемента внутри размера больше и хватает места
 5) Посмотреть обновление элемента когда не хватает места вставить
 */
-
-static const char *test_file_name = "test.bin";
 
 static status_t SectionExtents_UpdateBoundaryElement_ShiftPtrsAndUpdate()
 {

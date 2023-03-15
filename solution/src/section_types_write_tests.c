@@ -1,11 +1,14 @@
 #include <assert.h>
-#include <string.h>
 
-#include "memory/section/types.h"
 #include "memory/type/type.h"
 
-#include "physical/section/types.h"
 #include "physical/type/type.h"
+#include "physical/type/attr.h"
+
+#include "physical/section/header.h"
+
+#include "memory/section/types_p.h"
+#include "memory/section/types.h"
 
 static const char *test_file_name = "test.bin";
 
@@ -28,7 +31,7 @@ status_t SectionTypes_Ctor_InvokeHeaderCtor()
     assert(types->header.lst_itm_ptr == sizeof(sect_head_entity_t));
     assert(types->header.fst_rec_ptr == SECTION_SIZE);
 
-    sect_head_entity_t *header = sect_head_entity_new();
+    sect_head_entity_t *header = my_malloc(sect_head_entity_t);
     FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), types->header.filp);
 
     assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
@@ -37,7 +40,7 @@ status_t SectionTypes_Ctor_InvokeHeaderCtor()
     assert(header->fst_rec_ptr == SECTION_SIZE);
 
     sect_type_dtor(types);
-    sect_head_entity_dtor(header);
+    free(header);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
@@ -168,7 +171,7 @@ status_t SectionTypes_WriteAllAttributesTypeWithNotEnoughSpaceSection_Successful
     sect_type_t *types = sect_type_new();
     sect_type_ctor(types, 0, file);
 
-    sect_head_shift_lst_itm_ptr(&types->header, 8100);
+    sect_head_shift_lip(&types->header, 8100);
 
     type_t *wr_type = type_new();
     STR_INIT(type_name, "V");

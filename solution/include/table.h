@@ -1,6 +1,6 @@
 #pragma once
 
-#include <inttypes.h>
+#include <stddef.h>
 
 #define SECTION_SIZE 8192
 

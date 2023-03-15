@@ -1,12 +1,8 @@
 #include <assert.h>
 
-#include "string.h"
-
 #include "memory/file/file.h"
 
-#include "memory/type/type.h"
-
-#include "memory/section/types.h"
+#include "memory/section/types_p.h"
 
 static const char *test_file_name = "test.bin";
 
@@ -124,7 +120,7 @@ status_t File_AddTypeIntoFileWithFilledSection_Successful()
 
     sect_type_t *fil_types = sect_type_new();
     file_add_sect_types(file, fil_types);
-    sect_head_shift_lst_itm_ptr(&fil_types->header, 8160);
+    sect_head_shift_lip(&fil_types->header, 8160);
 
     TYPE_INIT(V_type, "V");
     file_add_type(file, V_type);

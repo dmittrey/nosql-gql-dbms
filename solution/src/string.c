@@ -1,8 +1,4 @@
-#include <string.h>
-
 #include "utils.h"
-
-#include "memory/string.h"
 
 string_t *string_new()
 {

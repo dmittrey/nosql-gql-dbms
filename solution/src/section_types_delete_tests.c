@@ -1,11 +1,12 @@
 #include <assert.h>
-#include <string.h>
 
-#include "memory/section/types.h"
 #include "memory/type/type.h"
-
-#include "physical/section/types.h"
 #include "physical/type/type.h"
+
+#include "physical/section/header.h"
+
+#include "memory/section/types_p.h"
+#include "memory/section/types.h"
 
 static const char *test_file_name = "test.bin";
 

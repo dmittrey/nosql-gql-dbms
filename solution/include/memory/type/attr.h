@@ -4,8 +4,6 @@
 #include "table.h"
 #include "list.h"
 
-#include "memory/string.h"
-
 #include "memory/json/json_type.h"
 
 #define ATR_INIT(VAR_NAME, NAME, TYPE)         \

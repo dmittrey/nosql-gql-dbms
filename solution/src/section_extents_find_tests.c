@@ -1,14 +1,9 @@
 #include <assert.h>
-#include <string.h>
-
-#include "memory/string.h"
 
 #include "memory/file/file.h"
 
+#include "memory/section/extents_p.h"
 #include "memory/section/extents.h"
-
-#include "physical/json/entity.h"
-#include "physical/section/extents.h"
 
 static const char *test_file_name = "test.bin";
 

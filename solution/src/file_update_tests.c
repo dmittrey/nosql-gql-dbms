@@ -1,13 +1,6 @@
 #include <assert.h>
 
-#include "string.h"
-
 #include "memory/file/file.h"
-
-#include "memory/json/json.h"
-#include "physical/json/entity.h"
-
-#include "memory/section/extents.h"
 
 /*
 1) Обновить строку

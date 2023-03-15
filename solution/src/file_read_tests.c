@@ -1,13 +1,8 @@
 #include <assert.h>
 
-#include "string.h"
-
 #include "memory/file/file.h"
 
-#include "memory/json/json.h"
-#include "physical/json/entity.h"
-
-#include "memory/section/extents.h"
+#include "memory/section/extents_p.h"
 
 /*
 1) Чтение инта
@@ -221,7 +216,7 @@ static status_t File_ReadObjectWithComponentsFromVariousSect_Successful()
 
     sect_ext_t *f_sect = sect_ext_new();
     file_add_sect_ext(file, f_sect);
-    sect_head_shift_lst_itm_ptr(&f_sect->header, 8000);
+    sect_head_shift_lip(&f_sect->header, 8000);
 
     JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
     STR_INIT(name_str, "Moscow");

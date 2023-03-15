@@ -1,13 +1,8 @@
 #include <assert.h>
 
-#include "string.h"
-
 #include "memory/file/file.h"
 
-#include "memory/json/json.h"
-#include "physical/json/entity.h"
-
-#include "memory/section/extents.h"
+#include "memory/section/extents_p.h"
 
 /*
 1) Запись строки
@@ -481,7 +476,7 @@ static status_t File_WriteObjectInFileWithExistFilledExtentsion_AddSectionWriteC
 
     sect_ext_t *extension = sect_ext_new();
     file_add_sect_ext(file, extension);
-    sect_head_shift_lst_itm_ptr((sect_head_t *)extension, 7950);
+    sect_head_shift_lip((sect_head_t *)extension, 7950);
 
     STR_INIT(son_str, "value");
     JSON_VALUE_INIT(TYPE_STRING, son_json, "son", son_str);

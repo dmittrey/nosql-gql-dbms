@@ -5,6 +5,7 @@
 
 #include "memory/section/header.h"
 #include "memory/section/extents.h"
+#include "memory/section/extents_p.h"
 
 #include "physical/section/header.h"
 
@@ -33,7 +34,7 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, ent
 
     *save_addr = section->header.lst_itm_ptr;
 
-    DO_OR_FAIL(sect_head_shift_fst_rec_ptr((sect_head_t *)section, -1 * entity_rec_size(entity)));
+    DO_OR_FAIL(sect_head_shift_frp((sect_head_t *)section, -1 * entity_rec_size(entity)));
     DO_OR_FAIL(sect_ext_wrt_rec(section, section->header.fst_rec_ptr + entity->val_size, json->key->val, json->key->cnt));
     entity->key_ptr = section->header.fst_rec_ptr + entity->val_size;
 
@@ -41,7 +42,7 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, ent
     entity->val_ptr = section->header.fst_rec_ptr;
 
     DO_OR_FAIL(sect_ext_wrt_itm(section, section->header.lst_itm_ptr, entity));
-    DO_OR_FAIL(sect_head_shift_lst_itm_ptr((sect_head_t *)section, sizeof(entity_t)));
+    DO_OR_FAIL(sect_head_shift_lip((sect_head_t *)section, sizeof(entity_t)));
 
     return OK;
 }
@@ -49,7 +50,7 @@ status_t sect_ext_write(sect_ext_t *const section, const json_t *const json, ent
 status_t sect_ext_read(const sect_ext_t *const section, const sectoff_t sectoff, entity_t *const o_entity, json_t *const o_json)
 {
     o_json->foff = sect_head_get_fileoff(&section->header, sectoff);
-    
+
     DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, o_entity));
 
     // Key parsing
@@ -185,8 +186,8 @@ status_t sect_ext_delete(sect_ext_t *const section, const sectoff_t sectoff, ent
     {
         DO_OR_FAIL(sect_ext_rd_itm(section, sectoff, del_entity));
 
-        DO_OR_FAIL(sect_head_shift_lst_itm_ptr(&section->header, -1 * entity_itm_size(del_entity)));
-        DO_OR_FAIL(sect_head_shift_fst_rec_ptr(&section->header, entity_rec_size(del_entity)));
+        DO_OR_FAIL(sect_head_shift_lip(&section->header, -1 * entity_itm_size(del_entity)));
+        DO_OR_FAIL(sect_head_shift_frp(&section->header, entity_rec_size(del_entity)));
     }
 
     // Save old entity
@@ -229,9 +230,14 @@ status_t sect_ext_find(sect_ext_t *const section, const query_t *const query, li
     }
 
     // Доходим до первого проверенного cur
-    while (!query_check_or(query, o_json_list->head))
+    while (o_json_list->head != NULL && !query_check_or(query, o_json_list->head))
     {
         list_json_t_del_fst(o_json_list);
+    }
+
+    if (o_json_list->head == NULL)
+    {
+        return OK;
     }
 
     json_t *cur = o_json_list->head;

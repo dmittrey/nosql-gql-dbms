@@ -1,5 +1,8 @@
 #include "memory/file/file.h"
 
+#include "memory/section/extents_p.h"
+#include "memory/section/types_p.h"
+
 static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff);
 static sect_ext_t *find_sect_ext(const file_t *const file, const size_t entity_size);
 

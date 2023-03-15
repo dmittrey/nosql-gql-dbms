@@ -3,27 +3,23 @@
 #include "utils.h"
 #include "table.h"
 
-typedef struct
-{
-    sectoff_t free_space;
-    fileoff_t next_ptr;    // Nullable
-    sectoff_t lst_itm_ptr; // Pointer to first free cell(after items)
-    sectoff_t fst_rec_ptr; // Pointer to last free cell(before records)
-    fileoff_t sect_off;    // Section offset from file start
-    FILE *filp;
-} sect_head_t;
+struct sect_head_t;
 
-sect_head_t *sect_head_new();
+struct sect_head_t *sect_head_new();
 
-status_t sect_head_ctor(sect_head_t *const, const fileoff_t, FILE *const);
-void sect_head_dtor(sect_head_t *);
+status_t sect_head_ctor(struct sect_head_t *const, const fileoff_t, FILE *const);
+void sect_head_dtor(struct sect_head_t *);
 
-status_t sect_head_shift_lst_itm_ptr(sect_head_t *const, const size_t);
-status_t sect_head_shift_fst_rec_ptr(sect_head_t *const, const size_t);
+status_t sect_head_sync(struct sect_head_t *const);
 
-status_t sect_head_sync(sect_head_t *const);
+status_t sect_head_shift_lip(struct sect_head_t *const, const size_t);
+status_t sect_head_shift_frp(struct sect_head_t *const, const size_t);
 
-fileoff_t sect_head_get_fileoff(const sect_head_t *const, const sectoff_t);
-sectoff_t sect_head_get_sectoff(const sect_head_t *const header, const fileoff_t offset);
+status_t sect_head_cmpress_lip(struct sect_head_t *, size_t);
+status_t sect_head_cmpress_frp(struct sect_head_t *);
 
-status_t sect_head_add_next(sect_head_t *const);
+status_t sect_head_rd(struct sect_head_t *, sectoff_t, size_t, void *);
+status_t sect_head_wrt(struct sect_head_t *, sectoff_t, size_t, void *);
+
+fileoff_t sect_head_get_fileoff(const struct sect_head_t *const, const sectoff_t);
+sectoff_t sect_head_get_sectoff(const struct sect_head_t *const, const fileoff_t);

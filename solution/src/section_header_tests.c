@@ -1,10 +1,11 @@
 #include <assert.h>
 
-#include "utils.h"
-#include "table.h"
+#include "physical/json/entity.h"
 
-#include "memory/section/header.h"
 #include "physical/section/header.h"
+#include "memory/section/header.h"
+
+#include "memory/section/extents_p.h"
 
 static const char *test_file_name = "test.bin";
 
@@ -59,7 +60,7 @@ static status_t SectionHeader_ShiftLastItemPtr_Successful()
     sect_head_t *header = sect_head_new();
     sect_head_ctor(header, 0, file);
 
-    status_t perform_result = sect_head_shift_lst_itm_ptr(header, shift);
+    status_t perform_result = sect_head_shift_lip(header, shift);
 
     assert(perform_result == OK);
     assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + shift);
@@ -84,7 +85,7 @@ static status_t SectionHeader_ShiftFirstRecordPtr_Successful()
     sect_head_t *header = sect_head_new();
     sect_head_ctor(header, 0, file);
 
-    status_t perform_result = sect_head_shift_fst_rec_ptr(header, shift);
+    status_t perform_result = sect_head_shift_frp(header, shift);
 
     assert(perform_result == OK);
     assert(header->fst_rec_ptr == SECTION_SIZE + shift);

@@ -10,7 +10,3 @@ typedef struct
     sectoff_t lst_itm_ptr;
     sectoff_t fst_rec_ptr;
 } sect_head_entity_t;
-
-sect_head_entity_t *sect_head_entity_new();
-
-void sect_head_entity_dtor(sect_head_entity_t *);

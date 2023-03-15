@@ -3,6 +3,7 @@
 #include "memory/json/iter.h"
 
 #include "memory/section/extents.h"
+#include "memory/section/extents_p.h"
 
 typedef struct iter_t
 {
@@ -32,7 +33,6 @@ void iter_ctor(iter_t *const iter, file_t *const file, query_t *const query)
 }
 void iter_dtor(iter_t *iter)
 {
-    query_dtor(iter->query);
     list_json_t_dtor(iter->cur_json_col);
     free(iter);
 }
