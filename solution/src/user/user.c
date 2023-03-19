@@ -13,5 +13,5 @@ Status user_read_type(struct File *const file, const String *const name, Type *c
 {
     Sectoff t_soff;
     struct Sect_types *sect;
-    return file_find_type(file, name, o_type, &t_soff, sect);
+    return file_find_type(file, name, o_type, &t_soff, &sect);
 }

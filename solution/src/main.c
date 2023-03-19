@@ -16,6 +16,7 @@ void test_types_load();
 void test_types_find();
 
 void test_file_add_type();
+void test_file_delete_type();
 
 // void test_file_write();
 // void test_file_read();
@@ -23,8 +24,6 @@ void test_file_add_type();
 // void test_file_delete();
 
 // void test_file_find();
-
-// void test_file_delete_type();
 
 // void test_iter();
 
@@ -52,6 +51,7 @@ int main(int argc, char **argv)
     test_types_find();
 
     test_file_add_type();
+    test_file_delete_type();
 
     // test_file_write();
     // test_file_read();
@@ -59,8 +59,6 @@ int main(int argc, char **argv)
     // test_file_update();
 
     // test_file_find();
-
-    // test_file_delete_type();
 
     // test_iter();
 

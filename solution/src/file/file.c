@@ -60,7 +60,7 @@ Status file_delete_type(File *const file, const String *const name)
     Type *del_type = type_new();
 
     // Find type soff and type section
-    if (file_find_type(file, name, del_type, &del_soff, del_sect) == OK)
+    if (file_find_type(file, name, del_type, &del_soff, &del_sect) == OK)
     {
         // Delete type
         DO_OR_FAIL(sect_types_delete(del_sect, del_soff));
@@ -74,7 +74,7 @@ Status file_delete_type(File *const file, const String *const name)
         return FAILED;
     }
 }
-Status file_find_type(File *const file, const String *const name, Type *const o_type, Sectoff *const o_adr, Sect_types *o_sect)
+Status file_find_type(File *const file, const String *const name, Type *const o_type, Sectoff *const o_adr, Sect_types **o_sect_ptr)
 {
     Sect_types *types = file->f_types->head;
     Sectoff soff;
@@ -83,7 +83,7 @@ Status file_find_type(File *const file, const String *const name, Type *const o_
         if (sect_types_find(types, name, o_type, &soff) == OK)
         {
             *o_adr = soff;
-            o_sect = types;
+            *o_sect_ptr = types;
             return OK;
         }
         types = types->next;

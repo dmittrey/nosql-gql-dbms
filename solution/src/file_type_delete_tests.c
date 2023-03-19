@@ -1,136 +1,168 @@
-// #include <assert.h>
+#include <assert.h>
 
-// #include "memory/file/file.h"
+#include "file/file.h"
+#include "file/file_p.h"
 
-// #include "memory/section/types_p.h"
+static const char *test_file_name = "test.bin";
 
-// static const char *test_file_name = "test.bin";
+/*
+1) Удаление без атрибутов из сущ секции
+2) Удаление с атрибутами из сущ секции
+3) Удаление без атрибутов из несущ секции
+*/
 
-// /*
-// 1) Удаление без атрибутов из сущ секции
-// 2) Удаление с атрибутами из сущ секции
-// 3) Удаление без атрибутов из несущ секции
-// */
+static Status File_DeleteTypeWithoutAtr_Successful()
+{
+    FILE *filp = fopen(test_file_name, "w+");
 
-// status_t File_DeleteTypeWithoutAtr_Successful()
-// {
-//     FILE *filp = fopen(test_file_name, "w+");
+    File *file = file_new();
+    file_ctor(file, filp);
 
-//     file_t *file = file_new();
-//     file_ctor(file, filp);
+    Fileoff wrt_adr;
+    TYPE_INIT(V_type, "V");
+    file_add_type(file, V_type, &wrt_adr);
 
-//     TYPE_INIT(V_type, "V");
-//     file_add_type(file, V_type);
+    file_delete_type(file, V_type->name);
 
-//     STR_INIT(q_name, "V");
-//     file_delete_type(file, q_name);
+    assert(file->header.lst_sect_ptr == sizeof(File_head_entity) + SECTION_SIZE);
 
-//     // Assert add types section
-//     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
-//     assert(file->f_types->next == 0);
+    File_head_entity *file_head_entity = my_malloc(File_head_entity);
+    file_head_read((File_head *)file, 0, sizeof(File_head_entity), file_head_entity);
+    assert(file_head_entity->lst_sect_ptr == sizeof(File_head_entity) + SECTION_SIZE);
+    free(file_head_entity);
 
-//     // Assert add type into section
-//     assert(file->f_types->header.fst_rec_ptr == SECTION_SIZE);
-//     assert(file->f_types->header.lst_itm_ptr == sizeof(sect_head_entity_t));
-//     assert(file->f_types->header.free_space == file->f_types->header.fst_rec_ptr - file->f_types->header.lst_itm_ptr);
-//     assert(file->f_types->header.next_ptr == 0);
-//     assert(file->f_types->header.sect_off == sizeof(file_head_t));
+    assert(file->f_types->head->header.free_space == SECTION_SIZE - sizeof(Sect_head_entity));
+    assert(file->f_types->head->header.next_ptr == 0); // Next section is undefined
+    assert(file->f_types->head->header.lst_itm_ptr == sizeof(Sect_head_entity));
+    assert(file->f_types->head->header.fst_rec_ptr == SECTION_SIZE);
+    assert(file->f_types->head->header.file_offset == sizeof(File_head_entity));
 
-//     type_dtor(V_type);
+    Sect_head_entity *head_entity = my_malloc(Sect_head_entity);
+    sect_head_read((Sect_head *)file->f_types->head, 0, sizeof(Sect_head_entity), head_entity);
+    assert(head_entity->free_space == SECTION_SIZE - sizeof(Sect_head_entity));
+    assert(head_entity->next_ptr == 0); // Next section is undefined
+    assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
+    assert(head_entity->fst_rec_ptr == SECTION_SIZE);
+    free(head_entity);
 
-//     string_dtor(q_name);
+    type_dtor(V_type);
 
-//     file_dtor(file);
-//     DO_OR_FAIL(remove(test_file_name));
+    file_dtor(file);
+    DO_OR_FAIL(remove(test_file_name));
 
-//     return OK;
-// }
+    return OK;
+}
 
-// status_t File_DeleteTypeWithAtr_Successful()
-// {
-//     FILE *filp = fopen(test_file_name, "w+");
+static Status File_DeleteTypeWithAtr_Successful()
+{
+    FILE *filp = fopen(test_file_name, "w+");
 
-//     file_t *file = file_new();
-//     file_ctor(file, filp);
+    File *file = file_new();
+    file_ctor(file, filp);
 
-//     TYPE_INIT(V_type, "V");
+    Fileoff wrt_adr;
+    TYPE_INIT(V_type, "V");
 
-//     ATR_INIT(int_attr, "int", TYPE_INT32);
-//     type_add_atr(V_type, int_attr);
-//     ATR_INIT(float_attr, "float", TYPE_FLOAT);
-//     type_add_atr(V_type, float_attr);
-//     ATR_INIT(bool_attr, "bool", TYPE_BOOL);
-//     type_add_atr(V_type, bool_attr);
-//     ATR_INIT(string_attr, "string", TYPE_STRING);
-//     type_add_atr(V_type, string_attr);
+    ATR_INIT(int_attr, "int", TYPE_INT32);
+    type_add_atr(V_type, int_attr);
+    ATR_INIT(float_attr, "float", TYPE_FLOAT);
+    type_add_atr(V_type, float_attr);
+    ATR_INIT(bool_attr, "bool", TYPE_BOOL);
+    type_add_atr(V_type, bool_attr);
+    ATR_INIT(string_attr, "string", TYPE_STRING);
+    type_add_atr(V_type, string_attr);
 
-//     file_add_type(file, V_type);
+    file_add_type(file, V_type, &wrt_adr);
 
-//     STR_INIT(q_name, "V");
-//     file_delete_type(file, q_name);
+    file_delete_type(file, V_type->name);
 
-//     // Assert add types section
-//     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + SECTION_SIZE);
-//     assert(file->f_types->next == 0);
+    assert(file->header.lst_sect_ptr == sizeof(File_head_entity) + SECTION_SIZE);
 
-//     // Assert add type into section
-//     assert(file->f_types->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
-//     assert(file->f_types->header.lst_itm_ptr == sizeof(sect_head_entity_t));
-//     assert(file->f_types->header.fst_rec_ptr == SECTION_SIZE);
-//     assert(file->f_types->header.next_ptr == 0);
-//     assert(file->f_types->header.sect_off == sizeof(file_head_t));
+    File_head_entity *file_head_entity = my_malloc(File_head_entity);
+    file_head_read((File_head *)file, 0, sizeof(File_head_entity), file_head_entity);
+    assert(file_head_entity->lst_sect_ptr == sizeof(File_head_entity) + SECTION_SIZE);
+    free(file_head_entity);
 
-//     type_dtor(V_type);
+    assert(file->f_types->head->header.free_space == SECTION_SIZE - sizeof(Sect_head_entity));
+    assert(file->f_types->head->header.next_ptr == 0); // Next section is undefined
+    assert(file->f_types->head->header.lst_itm_ptr == sizeof(Sect_head_entity));
+    assert(file->f_types->head->header.fst_rec_ptr == SECTION_SIZE);
+    assert(file->f_types->head->header.file_offset == sizeof(File_head_entity));
 
-//     string_dtor(q_name);
+    Sect_head_entity *head_entity = my_malloc(Sect_head_entity);
+    sect_head_read((Sect_head *)file->f_types->head, 0, sizeof(Sect_head_entity), head_entity);
+    assert(head_entity->free_space == SECTION_SIZE - sizeof(Sect_head_entity));
+    assert(head_entity->next_ptr == 0); // Next section is undefined
+    assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
+    assert(head_entity->fst_rec_ptr == SECTION_SIZE);
+    free(head_entity);
 
-//     file_dtor(file);
-//     DO_OR_FAIL(remove(test_file_name));
+    type_dtor(V_type);
 
-//     return OK;
-// }
+    file_dtor(file);
+    DO_OR_FAIL(remove(test_file_name));
 
-// status_t File_DeleteTypeWithoutAtrFromNextSect_Successful()
-// {
-//     FILE *filp = fopen(test_file_name, "w+");
+    return OK;
+}
 
-//     file_t *file = file_new();
-//     file_ctor(file, filp);
+Status File_DeleteTypeWithoutAtrFromNextSect_Successful()
+{
+    FILE *filp = fopen(test_file_name, "w+");
 
-//     sect_type_t *fil_types = sect_type_new();
-//     file_add_sect_types(file, fil_types);
-//     sect_head_shift_lip(&fil_types->header, 8160);
+    File *file = file_new();
+    file_ctor(file, filp);
 
-//     TYPE_INIT(V_type, "V");
-//     file_add_type(file, V_type);
+    Sect_types *fil_types = sect_types_new();
+    file_add_sect_types(file, fil_types);
+    sect_head_shift_lip((Sect_head *)fil_types, 8160);
 
-//     STR_INIT(q_name, "V");
-//     file_delete_type(file, q_name);
+    Fileoff wrt_adr;
+    TYPE_INIT(V_type, "V");
 
-//     // Assert add types section
-//     assert(file->header.lst_sect_ptr == sizeof(file_head_t) + 2 * SECTION_SIZE);
-//     assert(file->f_types->header.next_ptr == sizeof(file_head_t) + SECTION_SIZE);
+    ATR_INIT(int_attr, "int", TYPE_INT32);
+    type_add_atr(V_type, int_attr);
+    ATR_INIT(float_attr, "float", TYPE_FLOAT);
+    type_add_atr(V_type, float_attr);
+    ATR_INIT(bool_attr, "bool", TYPE_BOOL);
+    type_add_atr(V_type, bool_attr);
+    ATR_INIT(string_attr, "string", TYPE_STRING);
 
-//     // Assert add type into section
-//     assert(file->f_types->next->header.fst_rec_ptr == SECTION_SIZE);
-//     assert(file->f_types->next->header.lst_itm_ptr == sizeof(sect_head_entity_t));
-//     assert(file->f_types->next->header.free_space == file->f_types->next->header.fst_rec_ptr - file->f_types->next->header.lst_itm_ptr);
-//     assert(file->f_types->next->header.next_ptr == 0);
-//     assert(file->f_types->next->header.sect_off == sizeof(file_head_t) + SECTION_SIZE);
+    file_add_type(file, V_type, &wrt_adr);
 
-//     type_dtor(V_type);
+    file_delete_type(file, V_type->name);
 
-//     string_dtor(q_name);
+    assert(file->header.lst_sect_ptr == sizeof(File_head_entity) + 2 * SECTION_SIZE);
 
-//     file_dtor(file);
-//     DO_OR_FAIL(remove(test_file_name));
+    File_head_entity *f_head_entity = my_malloc(File_head_entity);
+    file_head_read((File_head *)file, 0, sizeof(File_head_entity), f_head_entity);
+    assert(f_head_entity->lst_sect_ptr == sizeof(File_head_entity) + 2 * SECTION_SIZE);
+    free(f_head_entity);
 
-//     return OK;
-// }
+    assert(file->f_types->head->next->header.free_space == SECTION_SIZE - sizeof(Sect_head_entity));
+    assert(file->f_types->head->next->header.next_ptr == 0); // Next section is undefined
+    assert(file->f_types->head->next->header.lst_itm_ptr == sizeof(Sect_head_entity));
+    assert(file->f_types->head->next->header.fst_rec_ptr == SECTION_SIZE);
+    assert(file->f_types->head->next->header.file_offset == sizeof(File_head_entity) + SECTION_SIZE);
 
-// void test_file_delete_type()
-// {
-//     assert(File_DeleteTypeWithoutAtr_Successful() == OK);
-//     assert(File_DeleteTypeWithAtr_Successful() == OK);
-//     assert(File_DeleteTypeWithoutAtrFromNextSect_Successful() == OK);
-// }
+    Sect_head_entity *head_entity = my_malloc(Sect_head_entity);
+    sect_head_read((Sect_head *)file->f_types->head->next, 0, sizeof(Sect_head_entity), head_entity);
+    assert(head_entity->free_space == SECTION_SIZE - sizeof(Sect_head_entity));
+    assert(head_entity->next_ptr == 0); // Next section is undefined
+    assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
+    assert(head_entity->fst_rec_ptr == SECTION_SIZE);
+    free(head_entity);
+
+    type_dtor(V_type);
+
+    file_dtor(file);
+    DO_OR_FAIL(remove(test_file_name));
+
+    return OK;
+}
+
+void test_file_delete_type()
+{
+    assert(File_DeleteTypeWithoutAtr_Successful() == OK);
+    assert(File_DeleteTypeWithAtr_Successful() == OK);
+    assert(File_DeleteTypeWithoutAtrFromNextSect_Successful() == OK);
+}
