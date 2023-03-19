@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "tests/test.h"
 
 #include "section/header.h"
 #include "section/header_p.h"

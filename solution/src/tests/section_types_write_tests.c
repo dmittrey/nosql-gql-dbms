@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "tests/test.h"
 
 #include "section/types.h"
 #include "section/types_p.h"

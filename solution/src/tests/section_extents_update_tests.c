@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "tests/test.h"
 
 #include "section/extents.h"
 #include "section/extents_p.h"

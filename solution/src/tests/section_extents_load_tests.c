@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "tests/test.h"
 
 static const char *test_file_name = "test.bin";
 

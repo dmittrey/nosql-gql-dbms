@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "tests/test.h"
 
 #include "file/file.h"
 #include "file/file_p.h"
