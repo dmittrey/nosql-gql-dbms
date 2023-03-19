@@ -28,6 +28,7 @@ Status File_AddTypeIntoEmptyFile_Successful()
     File_head_entity *head_entity = my_malloc(File_head_entity);
     file_head_read((File_head *)file, 0, sizeof(File_head_entity), head_entity);
     assert(head_entity->lst_sect_ptr == sizeof(File_head_entity) + SECTION_SIZE);
+    free(head_entity);
 
     Sectoff soff;
     Sect_types *s_ext;
@@ -37,6 +38,7 @@ Status File_AddTypeIntoEmptyFile_Successful()
     assert(string_cmp(t->name, V_type->name) == 0);
     assert(t->next == NULL);
 
+    type_dtor(t);
     type_dtor(V_type);
     file_dtor(file);
     DO_OR_FAIL(remove(test_file_name));

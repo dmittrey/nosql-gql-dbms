@@ -35,7 +35,9 @@ Status SectionTypes_ReadTypeWithoutAttributes_Successful()
     assert(t->attr_list->count == 0);
 
     sect_types_dtor(types);
+    type_dtor(t);
     type_dtor(wr_type);
+    type_entity_dtor(t_ent);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -91,6 +93,7 @@ Status SectionTypes_ReadTypeWithAttributes_Successful()
     sect_types_dtor(types);
     type_dtor(V_type);
     type_dtor(t);
+    type_entity_dtor(t_ent);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));

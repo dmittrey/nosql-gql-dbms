@@ -5,11 +5,11 @@ Entity *entity_new()
     return my_calloc(Entity);
 }
 
-void entity_ctor(Entity *const entity, const size_t key_sz, const size_t val_sz, const uint64_t type, const Tplgy* const tplgy)
+void entity_ctor(Entity *const entity, const size_t key_sz, const size_t val_sz, const uint64_t type, const Tplgy tplgy)
 {
     entity->key_size = key_sz;
     entity->val_size = val_sz;
-    entity->fam_addr = *tplgy;
+    entity->fam_addr = tplgy;
     entity->type = type;
     entity->init_rec_sz = key_sz + val_sz;
 }

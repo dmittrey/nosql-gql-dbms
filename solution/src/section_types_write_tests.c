@@ -31,9 +31,9 @@ static Status SectionTypes_Ctor_InvokeHeaderCtor()
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE);
+    free(head_entity);
 
     sect_types_dtor(types);
-    free(head_entity);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -67,6 +67,7 @@ static Status SectionTypes_WriteEmptyType_Successful()
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity) + sizeof(Type_entity));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE - wr_type->name->cnt);
+    free(head_entity);
 
     Type_entity *t_ent = type_entity_new();
     sect_head_read((Sect_head *)types, wrt_adr, sizeof(Type_entity), t_ent);
@@ -121,6 +122,7 @@ static Status SectionTypes_WriteAllAttributesType_Successful()
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity) + type_itm_sz(t));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE - type_rec_sz(t));
+    free(head_entity);
 
     Type_entity *rd_type_ent = type_entity_new();
     sect_types_rd_type(types, wrt_adr, rd_type_ent);

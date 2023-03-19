@@ -38,6 +38,7 @@ Status SectionTypes_DeleteTypeWithoutAttributesOnBorder_DeleteAndShiftPtrs()
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE);
+    free(head_entity);
 
     Type_entity *zero_ent = type_entity_new();
     Type_entity *temp_ent = type_entity_new();
@@ -53,6 +54,8 @@ Status SectionTypes_DeleteTypeWithoutAttributesOnBorder_DeleteAndShiftPtrs()
     type_dtor(wr_type);
     type_entity_dtor(zero_ent);
     type_entity_dtor(temp_ent);
+    free(rec_zr);
+    free(rec);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -88,6 +91,7 @@ Status SectionTypes_DeleteInnerTypeWithoutAttributes_Delete()
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity) + type_itm_sz(V_type) + type_itm_sz(K_type));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE - type_rec_sz(V_type) - type_rec_sz(K_type));
+    free(head_entity);
 
     Type_entity *zero_ent = type_entity_new();
     Type_entity *temp_ent = type_entity_new();
@@ -102,9 +106,10 @@ Status SectionTypes_DeleteInnerTypeWithoutAttributes_Delete()
     sect_types_dtor(types);
     type_dtor(V_type);
     type_dtor(K_type);
-
     type_entity_dtor(zero_ent);
     type_entity_dtor(temp_ent);
+    free(rec_zr);
+    free(rec);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -141,6 +146,7 @@ Status SectionTypes_DeleteInnerTypeWithoutAttributesAndAfterBorder_DeleteAllAndS
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE);
+    free(head_entity);
 
     Type_entity *zero_ent = type_entity_new();
     Type_entity *temp_ent = type_entity_new();
@@ -161,6 +167,8 @@ Status SectionTypes_DeleteInnerTypeWithoutAttributesAndAfterBorder_DeleteAllAndS
     type_dtor(K_type);
     type_entity_dtor(zero_ent);
     type_entity_dtor(temp_ent);
+    free(rec_zr);
+    free(rec);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -203,6 +211,7 @@ Status SectionTypes_DeleteTypeWithAttributesOnBorder_DeleteAndShiftPtrs()
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE);
+    free(head_entity);
 
     char *zr_itm = calloc(type_itm_sz(t), sizeof(char));
     char *rd_itm = my_malloc_array(char, type_itm_sz(t));
@@ -220,7 +229,6 @@ Status SectionTypes_DeleteTypeWithAttributesOnBorder_DeleteAndShiftPtrs()
     free(rd_itm);
     free(zr_rec);
     free(rd_rec);
-    free(head_entity);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
@@ -268,6 +276,7 @@ Status SectionTypes_DeleteTypeWithAttributesInner_DeleteAndShiftPtrs()
     assert(head_entity->next_ptr == 0); // Next section is undefined
     assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity) + type_itm_sz(t) + type_itm_sz(extra));
     assert(head_entity->fst_rec_ptr == SECTION_SIZE - type_rec_sz(t) - type_rec_sz(extra));
+    free(head_entity);
 
     char *zr_itm = calloc(type_itm_sz(t), sizeof(char));
     char *rd_itm = my_malloc_array(char, type_itm_sz(t));
@@ -281,11 +290,11 @@ Status SectionTypes_DeleteTypeWithAttributesInner_DeleteAndShiftPtrs()
 
     sect_types_dtor(types);
     type_dtor(t);
+    type_dtor(extra);
     free(zr_itm);
     free(rd_itm);
     free(zr_rec);
     free(rd_rec);
-    free(head_entity);
 
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));

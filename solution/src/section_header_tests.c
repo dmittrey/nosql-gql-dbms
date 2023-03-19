@@ -18,10 +18,10 @@ static Status SectionHeader_DefaultCtor_Successful()
     assert(header->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(header->fst_rec_ptr == SECTION_SIZE);
 
+    sect_head_dtor(header);
+
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
-
-    sect_head_dtor(header);
 
     return ctor_Status;
 }
@@ -40,10 +40,10 @@ static Status SectionHeader_CtorWithFileStartNotFromZero_Successful()
     assert(header->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(header->fst_rec_ptr == SECTION_SIZE);
 
+    sect_head_dtor(header);
+
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
-
-    sect_head_dtor(header);
 
     return ctor_Status;
 }
@@ -66,9 +66,10 @@ static Status SectionHeader_ShiftLastItemPtr_Successful()
     FREAD_OR_FAIL(&file_last_item_ptr, sizeof(Sectoff), file);
     assert(file_last_item_ptr == sizeof(Sect_head_entity) + shift);
 
-    DO_OR_FAIL(remove(test_file_name));
-
     sect_head_dtor(header);
+
+    fclose(file);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
@@ -91,9 +92,10 @@ static Status SectionHeader_ShiftFirstRecordPtr_Successful()
     FREAD_OR_FAIL(&file_first_record_ptr, sizeof(Sectoff), file);
     assert(file_first_record_ptr == SECTION_SIZE + shift);
 
-    DO_OR_FAIL(remove(test_file_name));
-
     sect_head_dtor(header);
+    
+    fclose(file);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
@@ -127,9 +129,10 @@ static Status SectionHeader_SyncAfterUpdateInnerState_Successful()
     FREAD_OR_FAIL(&file_first_record_ptr, sizeof(Sectoff), file);
     assert(file_first_record_ptr == 8);
 
-    DO_OR_FAIL(remove(test_file_name));
-
     sect_head_dtor(header);
+    
+    fclose(file);
+    DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }

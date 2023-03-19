@@ -61,6 +61,7 @@ static Status SectionExtents_UpdateBoundaryElement_ShiftPtrsAndUpdate()
     json_dtor(r_json);
 
     entity_dtor(entity);
+    entity_dtor(updated_entity);
     entity_dtor(r_entity);
 
     sect_ext_dtor(extents);

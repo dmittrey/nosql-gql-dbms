@@ -85,10 +85,12 @@ Status sect_types_delete(struct Sect_types *const section, const Sectoff del_sof
     // Set null itm space
     void *itm_zr = calloc(itm_sz, sizeof(char));
     DO_OR_FAIL(sect_head_write((Sect_head *)section, del_soff, itm_sz, itm_zr));
+    free(itm_zr);
 
     // Set null rec space
     void *rec_zr = calloc(rec_sz, sizeof(char));
     DO_OR_FAIL(sect_head_write((Sect_head *)section, lst_atr_ent->name_ptr, rec_sz, rec_zr));
+    free(rec_zr);
 
     // Shift border by null items
     DO_OR_FAIL(sect_head_cmprs_lip((Sect_head *)section, sizeof(Attr_entity)));
@@ -149,14 +151,18 @@ Status sect_types_load(struct Sect_types *const section, List_Pair_Sectoff_Type 
     {
         Type *t = type_new();
         Sectoff *t_soff = my_malloc(Sectoff);
+        *t_soff = soff;
+
+        DO_OR_FAIL(sect_types_read(section, soff, t, t_ent, &ph_sz));
+
         Pair_Sectoff_Type *pair = pair_Sectoff_Type_new();
         pair_Sectoff_Type_ctor(pair, t_soff, t);
 
-        DO_OR_FAIL(sect_types_read(section, soff, t, t_ent, &ph_sz));
         list_Pair_Sectoff_Type_add(o_list, pair);
 
         soff += ph_sz;
     }
+    type_entity_dtor(t_ent);
 
     return OK;
 }
@@ -172,6 +178,8 @@ Status sect_types_find(struct Sect_types *const section, const String *const typ
         {
             type_cpy(o_type, type_list->head->s);
             *adr = *type_list->head->f;
+
+            list_Pair_Sectoff_Type_dtor(type_list);
             return OK;
         }
         else

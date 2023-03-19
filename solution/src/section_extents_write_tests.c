@@ -158,5 +158,11 @@ void test_extents_write()
     JSON_VALUE_INIT(TYPE_OBJECT, obj_j, "object", NULL);
     assert(SectionExtents_WriteTypedJsonValue_Successful(obj_j) == OK);
 
+    json_dtor(int32_j);
+    json_dtor(float_j);
+    json_dtor(bool_j);
+    json_dtor(string_j);
+    json_dtor(obj_j);
+    
     assert(SectionExtents_WriteStringJsonValueWithNotEnoughSpace_Failed() == FAILED);
 }

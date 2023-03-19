@@ -69,20 +69,18 @@ static Status SectionExtents_FindFromSeveralQSeveral_ReturnSeveral()
     assert(entity_cmp(collection->head->s, amount_entity) == 0);
     list_Pair_Json_Entity_del_fst(collection);
 
+    sect_ext_dtor(extents);
     query_dtor(query);
-
     json_dtor(location_json);
     json_dtor(amount_json);
     json_dtor(city_json);
     json_dtor(flag_json);
     json_dtor(info_json);
-
     entity_dtor(location_entity);
     entity_dtor(amount_entity);
     entity_dtor(city_entity);
     entity_dtor(flag_entity);
     entity_dtor(info_entity);
-
     list_Pair_Json_Entity_dtor(collection);
 
     fclose(filp);
@@ -140,20 +138,18 @@ static Status SectionExtents_FindFromSeveralWithOneQuery_ReturnOne()
     assert(entity_cmp(collection->head->s, amount_entity) == 0);
     list_Pair_Json_Entity_del_fst(collection);
 
+    sect_ext_dtor(extents);
     query_dtor(query);
-
     json_dtor(location_json);
     json_dtor(amount_json);
     json_dtor(city_json);
     json_dtor(flag_json);
     json_dtor(info_json);
-
     entity_dtor(location_entity);
     entity_dtor(amount_entity);
     entity_dtor(city_entity);
     entity_dtor(flag_entity);
     entity_dtor(info_entity);
-
     list_Pair_Json_Entity_dtor(collection);
 
     fclose(filp);
@@ -190,12 +186,10 @@ static Status SectionExtents_FindFromOne_ReturnOne()
     assert(entity_cmp(collection->head->s, amount_entity) == 0);
     list_Pair_Json_Entity_del_fst(collection);
 
+    sect_ext_dtor(extents);
     query_dtor(query);
-
     json_dtor(amount_json);
-
     entity_dtor(amount_entity);
-
     list_Pair_Json_Entity_dtor(collection);
 
     fclose(filp);
@@ -224,8 +218,8 @@ static Status SectionExtents_FindFromEmpty_ReturnEmpty()
     assert(collection->tail == NULL);
     assert(collection->count == 0);
 
+    sect_ext_dtor(extents);
     query_dtor(query);
-
     list_Pair_Json_Entity_dtor(collection);
 
     fclose(filp);
