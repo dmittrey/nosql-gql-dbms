@@ -139,7 +139,7 @@ static Status File_AddTypeIntoFileWithFilledSection_Successful()
 
     Sect_types *fil_types = sect_types_new();
     file_add_sect_types(file, fil_types);
-    sect_head_shift_lip((Sect_head *)fil_types, 8159);
+    fil_types->header.free_space = 0;
 
     Fileoff wrt_adr;
     TYPE_INIT(V_type, "V");

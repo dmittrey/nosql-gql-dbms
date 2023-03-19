@@ -114,7 +114,7 @@ Status File_DeleteTypeWithoutAtrFromNextSect_Successful()
 
     Sect_types *fil_types = sect_types_new();
     file_add_sect_types(file, fil_types);
-    sect_head_shift_lip((Sect_head *)fil_types, 8160);
+    fil_types->header.free_space = 0;
 
     Fileoff wrt_adr;
     TYPE_INIT(V_type, "V");
@@ -126,6 +126,7 @@ Status File_DeleteTypeWithoutAtrFromNextSect_Successful()
     ATR_INIT(bool_attr, "bool", TYPE_BOOL);
     type_add_atr(V_type, bool_attr);
     ATR_INIT(string_attr, "string", TYPE_STRING);
+    type_add_atr(V_type, string_attr);
 
     file_add_type(file, V_type, &wrt_adr);
 
