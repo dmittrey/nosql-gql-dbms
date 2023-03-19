@@ -1,14 +1,7 @@
 #include <assert.h>
 
-#include "memory/type/type.h"
-
-#include "physical/type/type.h"
-#include "physical/type/attr.h"
-
-#include "physical/section/header.h"
-
-#include "memory/section/types_p.h"
-#include "memory/section/types.h"
+#include "section/types.h"
+#include "section/types_p.h"
 
 static const char *test_file_name = "test.bin";
 
@@ -18,192 +11,181 @@ static const char *test_file_name = "test.bin";
 3) Запись типа состоящего из всех типов атрибутов
 4) Запись типа в недостаточное место
 */
-
-status_t SectionTypes_Ctor_InvokeHeaderCtor()
+static Status SectionTypes_Ctor_InvokeHeaderCtor()
 {
+    int START_ADR = 32;
+
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
-
-    assert(types->header.free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, START_ADR, file);
+    assert(types->header.free_space == (SECTION_SIZE - sizeof(Sect_head_entity)));
     assert(types->header.next_ptr == 0); // Next section is undefined
-    assert(types->header.lst_itm_ptr == sizeof(sect_head_entity_t));
+    assert(types->header.lst_itm_ptr == sizeof(Sect_head_entity));
     assert(types->header.fst_rec_ptr == SECTION_SIZE);
+    assert(types->header.file_offset == START_ADR);
 
-    sect_head_entity_t *header = my_malloc(sect_head_entity_t);
-    FREAD_OR_FAIL(header, sizeof(sect_head_entity_t), types->header.filp);
+    Sect_head_entity *head_entity = my_malloc(Sect_head_entity);
+    sect_head_read((Sect_head *)types, 0, sizeof(Sect_head_entity), head_entity);
+    assert(head_entity->free_space == (SECTION_SIZE - sizeof(Sect_head_entity)));
+    assert(head_entity->next_ptr == 0); // Next section is undefined
+    assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity));
+    assert(head_entity->fst_rec_ptr == SECTION_SIZE);
 
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
-    assert(header->next_ptr == 0); // Next section is undefined
-    assert(header->lst_itm_ptr == sizeof(sect_head_entity_t));
-    assert(header->fst_rec_ptr == SECTION_SIZE);
+    sect_types_dtor(types);
+    free(head_entity);
 
-    sect_type_dtor(types);
-    free(header);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
 
-status_t SectionTypes_WriteEmptyType_Successful()
+static Status SectionTypes_WriteEmptyType_Successful()
 {
+    int START_ADR = 32;
+
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, START_ADR, file);
 
-    type_t *wr_type = type_new();
-    STR_INIT(type_name, "V");
-    list_attr_t *wr_attr_list = list_attr_t_new();
+    TYPE_INIT(wr_type, "V");
 
-    type_ctor(wr_type, type_name, wr_attr_list);
-    sectoff_t wrt_adr;
-    sect_type_write(types, wr_type, &wrt_adr);
+    Sectoff wrt_adr;
+    sect_types_write(types, wr_type, &wrt_adr);
 
-    // Assert ptrs shifts
-    assert(types->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(type_entity_t) - wr_type->name->cnt);
-    assert(types->header.lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(type_entity_t));
-    assert(types->header.fst_rec_ptr == SECTION_SIZE - wr_type->name->cnt * sizeof(char));
+    assert(types->header.free_space == SECTION_SIZE - sizeof(Sect_head_entity) - type_ph_sz(wr_type));
+    assert(types->header.next_ptr == 0); // Next section is undefined
+    assert(types->header.lst_itm_ptr == sizeof(Sect_head_entity) + sizeof(Type_entity));
+    assert(types->header.fst_rec_ptr == SECTION_SIZE - wr_type->name->cnt);
+    assert(types->header.file_offset == START_ADR);
 
-    type_entity_t *rd_type_ent = type_entity_new();
-    sect_type_rd_ent(types, sizeof(sect_head_entity_t), rd_type_ent);
+    Sect_head_entity *head_entity = my_malloc(Sect_head_entity);
+    sect_head_read((Sect_head *)types, 0, sizeof(Sect_head_entity), head_entity);
+    assert(head_entity->free_space == SECTION_SIZE - sizeof(Sect_head_entity) - type_ph_sz(wr_type));
+    assert(head_entity->next_ptr == 0); // Next section is undefined
+    assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity) + sizeof(Type_entity));
+    assert(head_entity->fst_rec_ptr == SECTION_SIZE - wr_type->name->cnt);
 
-    assert(rd_type_ent->attr_cnt == wr_type->attr_list->count);
-    assert(rd_type_ent->name_ptr == types->header.fst_rec_ptr);
-    assert(rd_type_ent->name_size == wr_type->name->cnt);
+    Type_entity *t_ent = type_entity_new();
+    sect_head_read((Sect_head *)types, wrt_adr, sizeof(Type_entity), t_ent);
+    assert(t_ent->attr_cnt == wr_type->attr_list->count);
+    assert(t_ent->name_size == wr_type->name->cnt);
+    assert(t_ent->name_ptr == SECTION_SIZE - wr_type->name->cnt);
 
+    char *rec_data = my_malloc_array(char, wr_type->name->cnt);
+    sect_head_read((Sect_head *)types, t_ent->name_ptr, wr_type->name->cnt, rec_data);
+    assert(memcmp(rec_data, wr_type->name->val, wr_type->name->cnt) == 0);
+
+    sect_types_dtor(types);
     type_dtor(wr_type);
+    type_entity_dtor(t_ent);
+    free(rec_data);
 
-    type_entity_dtor(rd_type_ent);
-
-    sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
 
-status_t SectionTypes_WriteAllAttributesType_Successful()
+static Status SectionTypes_WriteAllAttributesType_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
 
-    type_t *wr_type = type_new();
-    STR_INIT(type_name, "V");
-    list_attr_t *wr_attr_list = list_attr_t_new();
+    TYPE_INIT(t, "V");
 
-    attr_t *bool_attr = attr_new();
-    STR_INIT(bool_attr_name, "attr");
-    attr_ctor(bool_attr, bool_attr_name, TYPE_BOOL);
-    list_attr_t_add(wr_attr_list, bool_attr);
+    ATR_INIT(bool_atr, "bool", TYPE_BOOL);
+    type_add_atr(t, bool_atr);
+    ATR_INIT(int32_atr, "int32", TYPE_INT32);
+    type_add_atr(t, int32_atr);
+    ATR_INIT(str_atr, "str", TYPE_STRING);
+    type_add_atr(t, str_atr);
+    ATR_INIT(float_atr, "float", TYPE_FLOAT);
+    type_add_atr(t, float_atr);
 
-    attr_t *int_attr = attr_new();
-    STR_INIT(int_attr_name, "attr");
-    attr_ctor(int_attr, int_attr_name, TYPE_INT32);
-    list_attr_t_add(wr_attr_list, int_attr);
+    Sectoff wrt_adr;
+    sect_types_write(types, t, &wrt_adr);
+    assert(types->header.free_space == SECTION_SIZE - sizeof(Sect_head_entity) - type_ph_sz(t));
+    assert(types->header.next_ptr == 0); // Next section is undefined
+    assert(types->header.lst_itm_ptr == sizeof(Sect_head_entity) + type_itm_sz(t));
+    assert(types->header.fst_rec_ptr == SECTION_SIZE - type_rec_sz(t));
+    assert(types->header.file_offset == 0);
 
-    attr_t *str_attr = attr_new();
-    STR_INIT(str_attr_name, "attr");
-    attr_ctor(str_attr, str_attr_name, TYPE_STRING);
-    list_attr_t_add(wr_attr_list, str_attr);
+    Sect_head_entity *head_entity = my_malloc(Sect_head_entity);
+    sect_head_read((Sect_head *)types, 0, sizeof(Sect_head_entity), head_entity);
+    assert(head_entity->free_space == SECTION_SIZE - sizeof(Sect_head_entity) - type_ph_sz(t));
+    assert(head_entity->next_ptr == 0); // Next section is undefined
+    assert(head_entity->lst_itm_ptr == sizeof(Sect_head_entity) + type_itm_sz(t));
+    assert(head_entity->fst_rec_ptr == SECTION_SIZE - type_rec_sz(t));
 
-    attr_t *float_attr = attr_new();
-    STR_INIT(float_attr_name, "attr");
-    attr_ctor(float_attr, float_attr_name, TYPE_FLOAT);
-    list_attr_t_add(wr_attr_list, float_attr);
+    Type_entity *rd_type_ent = type_entity_new();
+    sect_types_rd_type(types, wrt_adr, rd_type_ent);
+    assert(rd_type_ent->attr_cnt == t->attr_list->count);
+    assert(rd_type_ent->name_ptr == SECTION_SIZE - t->name->cnt);
+    assert(rd_type_ent->name_size == t->name->cnt);
 
-    type_ctor(wr_type, type_name, wr_attr_list);
-    sectoff_t wrt_adr;
-    sect_type_write(types, wr_type, &wrt_adr);
-
-    // Assert ptrs shifts
-    assert(types->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t) - sizeof(type_entity_t) - 1 * sizeof(char) - 4 * sizeof(attr_entity_t) - 4 * 4 * sizeof(char));
-    assert(types->header.lst_itm_ptr == sizeof(sect_head_entity_t) + sizeof(type_entity_t) + 4 * sizeof(attr_entity_t));
-    assert(types->header.fst_rec_ptr == SECTION_SIZE - 1 * sizeof(char) - 4 * 4 * sizeof(char));
-
-    type_entity_t *rd_type_ent = type_entity_new();
-    sect_type_rd_ent(types, sizeof(sect_head_entity_t), rd_type_ent);
-    assert(rd_type_ent->attr_cnt == wr_type->attr_list->count);
-    assert(rd_type_ent->name_ptr == SECTION_SIZE - 1 * sizeof(char));
-    assert(rd_type_ent->name_size == wr_type->name->cnt);
-
-    attr_entity_t *rd_attr_ent = attr_entity_new();
-    sect_type_rd_atr(types, sizeof(sect_head_entity_t) + sizeof(type_entity_t), rd_attr_ent);
-    assert(rd_attr_ent->name_size == 4);
-    assert(rd_attr_ent->name_ptr == SECTION_SIZE - 1 * sizeof(char) - 4 * sizeof(char));
+    Attr_entity *rd_attr_ent = attr_entity_new();
+    sect_types_rd_atr(types, wrt_adr + sizeof(Type_entity), rd_attr_ent);
+    assert(rd_attr_ent->name_size == bool_atr->name->cnt);
+    assert(rd_attr_ent->name_ptr == rd_type_ent->name_ptr - bool_atr->name->cnt);
     assert(rd_attr_ent->attr_type == TYPE_BOOL);
 
-    sect_type_rd_atr(types, sizeof(sect_head_entity_t) + sizeof(type_entity_t) + sizeof(attr_entity_t), rd_attr_ent);
-    assert(rd_attr_ent->name_size == 4);
-    assert(rd_attr_ent->name_ptr == SECTION_SIZE - 1 * sizeof(char) - 2 * 4 * sizeof(char));
+    sect_types_rd_atr(types, wrt_adr + sizeof(Type_entity) + sizeof(Attr_entity), rd_attr_ent);
+    assert(rd_attr_ent->name_size == int32_atr->name->cnt);
+    assert(rd_attr_ent->name_ptr == rd_type_ent->name_ptr - bool_atr->name->cnt - int32_atr->name->cnt);
     assert(rd_attr_ent->attr_type == TYPE_INT32);
 
-    sect_type_rd_atr(types, sizeof(sect_head_entity_t) + sizeof(type_entity_t) + 2 * sizeof(attr_entity_t), rd_attr_ent);
-    assert(rd_attr_ent->name_size == 4);
-    assert(rd_attr_ent->name_ptr == SECTION_SIZE - 1 * sizeof(char) - 3 * 4 * sizeof(char));
+    sect_types_rd_atr(types, wrt_adr + sizeof(Type_entity) + 2 * sizeof(Attr_entity), rd_attr_ent);
+    assert(rd_attr_ent->name_size == str_atr->name->cnt);
+    assert(rd_attr_ent->name_ptr == rd_type_ent->name_ptr - bool_atr->name->cnt - int32_atr->name->cnt - str_atr->name->cnt);
     assert(rd_attr_ent->attr_type == TYPE_STRING);
 
-    sect_type_rd_atr(types, sizeof(sect_head_entity_t) + sizeof(type_entity_t) + 3 * sizeof(attr_entity_t), rd_attr_ent);
-    assert(rd_attr_ent->name_size == 4);
-    assert(rd_attr_ent->name_ptr == SECTION_SIZE - 1 * sizeof(char) - 4 * 4 * sizeof(char));
+    sect_types_rd_atr(types, wrt_adr + sizeof(Type_entity) + 3 * sizeof(Attr_entity), rd_attr_ent);
+    assert(rd_attr_ent->name_size == float_atr->name->cnt);
+    assert(rd_attr_ent->name_ptr == rd_type_ent->name_ptr - bool_atr->name->cnt - int32_atr->name->cnt - str_atr->name->cnt - float_atr->name->cnt);
     assert(rd_attr_ent->attr_type == TYPE_FLOAT);
 
-    type_dtor(wr_type);
-
+    sect_types_dtor(types);
+    type_dtor(t);
     type_entity_dtor(rd_type_ent);
     attr_entity_dtor(rd_attr_ent);
 
-    sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
 
-status_t SectionTypes_WriteAllAttributesTypeWithNotEnoughSpaceSection_Successful()
+static Status SectionTypes_WriteAllAttributesTypeWithNotEnoughSpaceSection_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
 
     sect_head_shift_lip(&types->header, 8100);
 
-    type_t *wr_type = type_new();
-    STR_INIT(type_name, "V");
-    list_attr_t *wr_attr_list = list_attr_t_new();
+    TYPE_INIT(t, "V");
 
-    attr_t *bool_attr = attr_new();
-    STR_INIT(bool_attr_name, "attr");
-    attr_ctor(bool_attr, bool_attr_name, TYPE_BOOL);
-    list_attr_t_add(wr_attr_list, bool_attr);
+    ATR_INIT(bool_atr, "bool", TYPE_BOOL);
+    type_add_atr(t, bool_atr);
+    ATR_INIT(int32_atr, "int32", TYPE_INT32);
+    type_add_atr(t, int32_atr);
+    ATR_INIT(str_atr, "str", TYPE_STRING);
+    type_add_atr(t, str_atr);
+    ATR_INIT(float_atr, "float", TYPE_FLOAT);
+    type_add_atr(t, float_atr);
 
-    attr_t *int_attr = attr_new();
-    STR_INIT(int_attr_name, "attr");
-    attr_ctor(int_attr, int_attr_name, TYPE_INT32);
-    list_attr_t_add(wr_attr_list, int_attr);
+    Sectoff wrt_adr;
+    Status wr_status = sect_types_write(types, t, &wrt_adr);
 
-    attr_t *str_attr = attr_new();
-    STR_INIT(str_attr_name, "attr");
-    attr_ctor(str_attr, str_attr_name, TYPE_STRING);
-    list_attr_t_add(wr_attr_list, str_attr);
+    type_dtor(t);
 
-    attr_t *float_attr = attr_new();
-    STR_INIT(float_attr_name, "attr");
-    attr_ctor(float_attr, float_attr_name, TYPE_FLOAT);
-    list_attr_t_add(wr_attr_list, float_attr);
-
-    type_ctor(wr_type, type_name, wr_attr_list);
-    sectoff_t wrt_adr;
-    status_t wr_status = sect_type_write(types, wr_type, &wrt_adr);
-
-    type_dtor(wr_type);
-
-    sect_type_dtor(types);
+    sect_types_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 

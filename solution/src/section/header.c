@@ -1,32 +1,32 @@
-#include "memory/section/header.h"
-#include "memory/section/header_p.h"
+#include "utils/table.h"
 
-#include "physical/section/header.h"
+#include "section/header.h"
+#include "section/header_p.h"
 
-sect_head_t *sect_head_new()
+Sect_head *sect_head_new()
 {
-    return my_calloc(sect_head_t);
+    return my_calloc(Sect_head);
 }
 
-status_t sect_head_ctor(sect_head_t *const header, const fileoff_t offset, FILE *const filp)
+Status sect_head_ctor(Sect_head *const header, const Fileoff offset, FILE *const filp)
 {
-    header->free_space = SECTION_SIZE - sizeof(sect_head_entity_t);
+    header->free_space = SECTION_SIZE - sizeof(Sect_head_entity);
     header->next_ptr = 0; // If we have 0 then we don't have next section
-    header->lst_itm_ptr = sizeof(sect_head_entity_t);
+    header->lst_itm_ptr = sizeof(Sect_head_entity);
     header->fst_rec_ptr = SECTION_SIZE;
-    header->sect_off = offset;
+    header->file_offset = offset;
     header->filp = filp;
 
     return sect_head_sync(header);
 }
 
-status_t sect_head_dtor(sect_head_t *header)
+Status sect_head_dtor(Sect_head *header)
 {
     header->free_space = 0;
     header->next_ptr = 0;
     header->lst_itm_ptr = 0;
     header->fst_rec_ptr = 0;
-    
+
     DO_OR_FAIL(sect_head_sync(header));
 
     free(header);
@@ -34,15 +34,15 @@ status_t sect_head_dtor(sect_head_t *header)
     return OK;
 }
 
-status_t sect_head_sync(sect_head_t *const header)
+Status sect_head_sync(Sect_head *const header)
 {
     SAVE_FILP(header->filp,
-              RA_FWRITE_OR_FAIL(header, sizeof(sect_head_entity_t), header->sect_off, header->filp));
+              RA_FWRITE_OR_FAIL(header, sizeof(Sect_head_entity), header->file_offset, header->filp));
 
     return OK;
 }
 
-status_t sect_head_shift_lip(sect_head_t *const header, const size_t shift)
+Status sect_head_shift_lip(Sect_head *const header, const size_t shift)
 {
     header->free_space -= shift;
     header->lst_itm_ptr += shift;
@@ -50,7 +50,7 @@ status_t sect_head_shift_lip(sect_head_t *const header, const size_t shift)
     return sect_head_sync(header);
 }
 
-status_t sect_head_shift_frp(sect_head_t *const header, const size_t shift)
+Status sect_head_shift_frp(Sect_head *const header, const size_t shift)
 {
     header->free_space += shift;
     header->fst_rec_ptr += shift;
@@ -58,14 +58,14 @@ status_t sect_head_shift_frp(sect_head_t *const header, const size_t shift)
     return sect_head_sync(header);
 }
 
-status_t sect_head_cmprs_lip(sect_head_t *header, size_t itm_size)
+Status sect_head_cmprs_lip(Sect_head *const header, const size_t itm_size)
 {
     void *rd_data = my_malloc_array(char, itm_size);
     void *zr_data = memset(my_malloc_array(char, itm_size), 0, itm_size);
 
     sect_head_read(header, header->lst_itm_ptr - itm_size, itm_size, rd_data);
 
-    while (header->lst_itm_ptr != sizeof(sect_head_entity_t) && memcmp(rd_data, zr_data, itm_size) == 0)
+    while (header->lst_itm_ptr != sizeof(Sect_head_entity) && memcmp(rd_data, zr_data, itm_size) == 0)
     {
         header->lst_itm_ptr -= itm_size;
         header->free_space += itm_size;
@@ -79,7 +79,7 @@ status_t sect_head_cmprs_lip(sect_head_t *header, size_t itm_size)
     return sect_head_sync(header);
 }
 
-status_t sect_head_cmprs_frp(sect_head_t *header)
+Status sect_head_cmprs_frp(Sect_head *const header)
 {
     char chr;
     while (true)
@@ -96,33 +96,53 @@ status_t sect_head_cmprs_frp(sect_head_t *header)
     return sect_head_sync(header);
 }
 
-status_t sect_head_read(sect_head_t *header, sectoff_t sectoff, size_t sz, void *o_data)
+Status sect_head_read(Sect_head *const header, const Sectoff soff, const size_t sz, void *const o_data)
 {
     SAVE_FILP(header->filp, {
-        RA_FREAD_OR_FAIL(o_data, sz, sect_head_get_fileoff(header, sectoff), header->filp);
+        RA_FREAD_OR_FAIL(o_data, sz, sect_head_get_fileoff(header, soff), header->filp);
     });
 
     return OK;
 }
 
-status_t sect_head_write(sect_head_t *header, sectoff_t sectoff, size_t sz, void *data)
+Status sect_head_write(Sect_head *const header, const Sectoff soff, const size_t sz, const void *const data)
 {
     if (sz != 0)
     {
         SAVE_FILP(header->filp, {
-            RA_FWRITE_OR_FAIL(data, sz, sect_head_get_fileoff(header, sectoff), header->filp);
+            RA_FWRITE_OR_FAIL(data, sz, sect_head_get_fileoff(header, soff), header->filp);
         });
     }
 
     return OK;
 }
 
-fileoff_t sect_head_get_fileoff(const sect_head_t *const header, const sectoff_t offset)
+Fileoff sect_head_get_fileoff(const Sect_head *const header, const Sectoff offset)
 {
-    return header->sect_off + offset;
+    return header->file_offset + offset;
 }
 
-sectoff_t sect_head_get_sectoff(const sect_head_t *const header, const fileoff_t offset)
+Sectoff sect_head_get_soff(const Sect_head *const header, const Fileoff offset)
 {
-    return offset - header->sect_off;
+    return offset - header->file_offset;
+}
+
+int sect_head_cmp(Sect_head *this, Sect_head *other)
+{
+    int cmp_flag;
+
+    cmp_flag = memcmp((void *)this->file_offset, (void *)other->file_offset, sizeof(Fileoff));
+    if (cmp_flag)
+        return cmp_flag;
+    cmp_flag = memcmp((void *)this->free_space, (void *)other->free_space, sizeof(size_t));
+    if (cmp_flag)
+        return cmp_flag;
+    cmp_flag = memcmp((void *)this->fst_rec_ptr, (void *)other->fst_rec_ptr, sizeof(Sectoff));
+    if (cmp_flag)
+        return cmp_flag;
+    cmp_flag = memcmp((void *)this->lst_itm_ptr, (void *)other->lst_itm_ptr, sizeof(Sectoff));
+    if (cmp_flag)
+        return cmp_flag;
+
+    return 0;
 }

@@ -1,26 +1,25 @@
 #include <assert.h>
 
-#include "memory/file/file.h"
-
-#include "memory/section/extents_p.h"
-#include "memory/section/extents.h"
-
 static const char *test_file_name = "test.bin";
 
-static status_t SectionExtents_LoadEmpty_ReturnEmptyCol()
+#include "section/extents.h"
+#include "section/extents_p.h"
+
+static Status SectionExtents_LoadEmpty_ReturnEmptyCol()
 {
     FILE *filp = fopen(test_file_name, "w+");
 
-    sect_ext_t *extents = sect_ext_new();
+    Sect_ext *extents = sect_ext_new();
     sect_ext_ctor(extents, 0, filp);
 
-    list_json_t *collection = list_json_t_new();
+    List_Pair_Json_Entity *collection = list_Pair_Json_Entity_new();
     DO_OR_FAIL(sect_ext_load(extents, collection));
 
     assert(collection->head == NULL);
     assert(collection->tail == NULL);
+    assert(collection->count == 0);
 
-    list_json_t_dtor(collection);
+    list_Pair_Json_Entity_dtor(collection);
 
     sect_ext_dtor(extents);
 
@@ -30,63 +29,77 @@ static status_t SectionExtents_LoadEmpty_ReturnEmptyCol()
     return OK;
 }
 
-static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
+static Status SectionExtents_LoadObjects_ReturnColWithFiveEls()
 {
     FILE *filp = fopen(test_file_name, "w+");
 
-    STR_INIT(prev_location_str, "Moscow");
-    JSON_VALUE_INIT(TYPE_STRING, prev_location_json, "location", prev_location_str);
-    ENTITY_INIT(prev_location_entity, prev_location_json, 0, 0, 0);
+    STR_INIT(location_str, "Moscow");
+    JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
+    ENTITY_INIT(location_entity, location_json, 0, 0, 0, 0);
 
-    JSON_VALUE_INIT(TYPE_INT32, prev_amount_json, "amount", 50000);
-    ENTITY_INIT(prev_amount_entity, prev_amount_json, 0, 0, 0);
+    JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
+    ENTITY_INIT(amount_entity, amount_json, 0, 0, 0, 0);
 
-    JSON_VALUE_INIT(TYPE_OBJECT, prev_city_json, "city", NULL);
-    ENTITY_INIT(prev_city_entity, prev_city_json, 0, 0, 0);
+    JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
+    ENTITY_INIT(city_entity, city_json, 0, 0, 0, 0);
 
-    json_add_son(prev_city_json, prev_location_json);
-    json_add_son(prev_city_json, prev_amount_json);
+    JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
+    ENTITY_INIT(flag_entity, flag_json, 0, 0, 0, 0);
 
-    JSON_VALUE_INIT(TYPE_BOOL, prev_flag_json, "flag", true);
-    ENTITY_INIT(prev_flag_entity, prev_flag_json, 0, 0, 0);
+    JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
+    ENTITY_INIT(info_entity, info_json, 0, 0, 0, 0);
 
-    JSON_VALUE_INIT(TYPE_OBJECT, prev_info_json, "info", NULL);
-    ENTITY_INIT(prev_info_entity, prev_info_json, 0, 0, 0);
+    Sect_ext *extents = sect_ext_new();
+    sect_ext_ctor(extents, 0, filp);
 
-    json_add_son(prev_info_json, prev_city_json);
-    json_add_son(prev_info_json, prev_flag_json);
+    Fileoff save_json_fileoff;
+    DO_OR_FAIL(sect_ext_write(extents, location_json->key, json_val_ptr(location_json),
+                              json_val_size(location_json), location_entity, &save_json_fileoff));
+    DO_OR_FAIL(sect_ext_write(extents, amount_json->key, json_val_ptr(amount_json),
+                              json_val_size(amount_json), amount_entity, &save_json_fileoff));
+    DO_OR_FAIL(sect_ext_write(extents, city_json->key, json_val_ptr(city_json),
+                              json_val_size(city_json), city_entity, &save_json_fileoff));
+    DO_OR_FAIL(sect_ext_write(extents, flag_json->key, json_val_ptr(flag_json),
+                              json_val_size(flag_json), flag_entity, &save_json_fileoff));
+    DO_OR_FAIL(sect_ext_write(extents, info_json->key, json_val_ptr(info_json),
+                              json_val_size(info_json), info_entity, &save_json_fileoff));
 
-    file_t *file = file_new();
-    file_ctor(file, filp);
+    List_Pair_Json_Entity *collection = list_Pair_Json_Entity_new();
+    DO_OR_FAIL(sect_ext_load(extents, collection));
 
-    fileoff_t save_json_fileoff;
-    DO_OR_FAIL(file_write(file, prev_info_json, 0, 0, &save_json_fileoff));
+    assert(json_cmp(collection->head->f, location_json) == 0);
+    assert(entity_cmp(collection->head->s, location_entity) == 0);
+    list_Pair_Json_Entity_del_fst(collection);
+    assert(json_cmp(collection->head->f, amount_json) == 0);
+    assert(entity_cmp(collection->head->s, amount_entity) == 0);
+    list_Pair_Json_Entity_del_fst(collection);
+    assert(json_cmp(collection->head->f, city_json) == 0);
+    assert(entity_cmp(collection->head->s, city_entity) == 0);
+    list_Pair_Json_Entity_del_fst(collection);
+    assert(json_cmp(collection->head->f, flag_json) == 0);
+    assert(entity_cmp(collection->head->s, flag_entity) == 0);
+    list_Pair_Json_Entity_del_fst(collection);
+    assert(json_cmp(collection->head->f, info_json) == 0);
+    assert(entity_cmp(collection->head->s, info_entity) == 0);
+    list_Pair_Json_Entity_del_fst(collection);
 
-    list_json_t *collection = list_json_t_new();
-    DO_OR_FAIL(sect_ext_load(file->f_extent, collection));
+    list_Pair_Json_Entity_dtor(collection);
 
-    assert(json_cmp(collection->head, prev_info_json) == 0);
-    list_json_t_del_fst(collection);
-    assert(json_cmp(collection->head, prev_city_json) == 0);
-    list_json_t_del_fst(collection);
-    assert(json_cmp(collection->head, prev_flag_json) == 0);
-    list_json_t_del_fst(collection);
-    assert(json_cmp(collection->head, prev_location_json) == 0);
-    list_json_t_del_fst(collection);
-    assert(json_cmp(collection->head, prev_amount_json) == 0);
-    list_json_t_del_fst(collection);
+    json_dtor(location_json);
+    json_dtor(amount_json);
+    json_dtor(city_json);
+    json_dtor(flag_json);
+    json_dtor(info_json);
 
-    list_json_t_dtor(collection);
+    entity_dtor(location_entity);
+    entity_dtor(amount_entity);
+    entity_dtor(city_entity);
+    entity_dtor(flag_entity);
+    entity_dtor(info_entity);
 
-    json_dtor(prev_info_json);
+    sect_ext_dtor(extents);
 
-    entity_dtor(prev_location_entity);
-    entity_dtor(prev_amount_entity);
-    entity_dtor(prev_city_entity);
-    entity_dtor(prev_flag_entity);
-    entity_dtor(prev_info_entity);
-
-    file_dtor(file);
+    fclose(filp);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
@@ -95,5 +108,5 @@ static status_t SectionExtents_Load3LvlObject_ReturnColWithFiveEls()
 void test_extents_load()
 {
     assert(SectionExtents_LoadEmpty_ReturnEmptyCol() == OK);
-    assert(SectionExtents_Load3LvlObject_ReturnColWithFiveEls() == OK);
+    assert(SectionExtents_LoadObjects_ReturnColWithFiveEls() == OK);
 }

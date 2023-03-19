@@ -1,68 +1,71 @@
-#include <string.h>
+#include "json/iter.h"
 
-#include "memory/json/iter.h"
+#include "section/extents_p.h"
 
-#include "memory/section/extents.h"
-#include "memory/section/extents_p.h"
+#include "file/file.h"
+#include "file/file_p.h"
 
-typedef struct iter_t
+
+typedef struct Iter
 {
-    file_t *file;
-    query_t *query;
-    list_json_t *cur_json_col;
-    sect_ext_t *cur_sect;
-} iter_t;
+    File *file;
+    Query *query;
+    List_Pair_Json_Entity *cur_col;
+    Sect_ext *cur_sect;
+} Iter;
 
-iter_t *iter_new()
+Iter *iter_new()
 {
-    return memset(my_malloc(iter_t), 0, sizeof(iter_t));
+    return my_calloc(Iter);
 }
 
-void iter_ctor(iter_t *const iter, file_t *const file, query_t *const query)
-{
-    iter->file = file;
-    iter->query = query;
+// void iter_ctor(Iter *const iter, File *const file, Query *const query)
+// {
+//     iter->file = file;
+//     iter->query = query;
 
-    iter->cur_sect = file->f_extent;
-    iter->cur_json_col = list_json_t_new();
+//     iter->cur_sect = file->f_extent->head;
+//     iter->cur_col = list_Pair_Json_Entity_new();
 
-    if (iter->cur_sect != NULL)
-    {
-        file_find(file, iter->cur_sect, query, iter->cur_json_col);
-    }
-}
-void iter_dtor(iter_t *iter)
-{
-    list_json_t_dtor(iter->cur_json_col);
-    free(iter);
-}
+//     if (iter->cur_sect != NULL)
+//     {
+//         file_find(file, iter->cur_sect, query, iter->cur_col);
+//     }
+// }
+// void iter_dtor(Iter *iter)
+// {
+//     list_Pair_Json_Entity_dtor(iter->cur_col);
+//     free(iter);
+// }
 
-void iter_next(iter_t *const iter)
-{
-    if (iter->cur_json_col->head != NULL)
-    {
-        list_json_t_del_fst(iter->cur_json_col);
-    }
+// void iter_next(Iter *const iter)
+// {
+//     if (iter->cur_col->count != 0)
+//     {
+//         list_Pair_Json_Entity_del_fst(iter->cur_col);
+//     }
 
-    if (iter->cur_json_col->head == NULL)
-    {
-        while (iter->cur_sect != NULL && iter->cur_json_col->count == 0)
-        {
-            iter->cur_sect = iter->cur_sect->next;
-            file_find(iter->file, iter->cur_sect, iter->query, iter->cur_json_col);
-        }
-    }
-}
+//     if (iter->cur_col->count == 0)
+//     {
+//         while (iter->cur_sect != NULL && iter->cur_col->count == 0)
+//         {
+//             iter->cur_sect = iter->cur_sect->next;
+//             file_find(iter->file, iter->cur_sect, iter->query, iter->cur_col);
+//         }
+//     }
+// }
 
-bool iter_is_avail(iter_t *const iter)
-{
-    return iter->cur_json_col->count > 0;
-}
+// bool iter_is_avail(Iter *const iter)
+// {
+//     return iter->cur_col->count > 0;
+// }
 
-/*
-Null or json
-*/
-json_t *iter_get(iter_t *const iter)
-{
-    return iter->cur_json_col->head;
-}
+// Json *iter_get_json(Iter *const iter)
+// {
+//     return iter->cur_col->head->f;
+// }
+
+// Entity *iter_get_entity(Iter *const iter)
+// {
+//     return iter->cur_col->head->s;
+// }

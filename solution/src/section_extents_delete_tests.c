@@ -1,11 +1,8 @@
 #include <assert.h>
 
-#include "physical/json/entity.h"
+#include "section/extents.h"
+#include "section/extents_p.h"
 
-#include "physical/section/header.h"
-
-#include "memory/section/extents_p.h"
-#include "memory/section/extents.h"
 /*
 1) Удаление TYPE_OBJECT на границе
 2) Удаление TYPE_STRING на границе
@@ -22,40 +19,41 @@
 
 static const char *test_file_name = "test.bin";
 
-static status_t SectionExtents_DeleteOnBorderType_ShiftPtrsAndClearRecAndItm(const json_t *const json)
+static Status SectionExtents_DeleteOnBorderType_ShiftPtrsAndClearRecAndItm(const Json *const json)
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_ext_t *extents = sect_ext_new();
+    Sect_ext *extents = sect_ext_new();
     DO_OR_FAIL(sect_ext_ctor(extents, 0, file));
 
-    ENTITY_INIT(entity, json, 500, 200, 300);
+    ENTITY_INIT(ent, json, 500, 200, 300, 222);
 
-    sectoff_t save_json_sectoff;
-    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_sectoff));
+    Sectoff save_json_sectoff;
+    DO_OR_FAIL(sect_ext_write(extents, json->key, json_val_ptr(json), json_val_size(json), ent, &save_json_sectoff));
 
-    entity_t *del_entity = entity_new();
+    Entity *del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, save_json_sectoff, del_entity));
 
-    assert(entity_cmp(entity, del_entity) == 0);
+    assert(entity_cmp(ent, del_entity) == 0);
 
-    assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t));
+    assert(extents->header.lst_itm_ptr == sizeof(Sect_head_entity));
     assert(extents->header.fst_rec_ptr == SECTION_SIZE);
-    assert(extents->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
+    assert(extents->header.free_space == SECTION_SIZE - sizeof(Sect_head_entity));
 
-    entity_t *o_entity = entity_new();
-    entity_t *temp_zero_entity = entity_new();
-    void *o_rec = my_malloc_array(char, entity_rec_size(del_entity));
-    void *temp_zero = memset(my_malloc_array(char, entity_rec_size(del_entity)), 0, entity_rec_size(del_entity));
+    Entity *o_entity = entity_new();
+    Entity *temp_zero_entity = entity_new();
     sect_ext_rd_itm(extents, save_json_sectoff, o_entity);
-    sect_ext_rd_rec(extents, del_entity->key_ptr - del_entity->val_size, entity_rec_size(del_entity), o_rec);
     assert(entity_cmp(o_entity, temp_zero_entity) == 0);
-    assert(memcmp(o_rec, temp_zero, entity_rec_size(del_entity)) == 0);
+
+    void *o_rec = my_malloc_array(char, entity_rec_sz(del_entity));
+    void *temp_zero = calloc(1, entity_rec_sz(del_entity));
+    sect_head_read((Sect_head *)extents, del_entity->key_ptr - del_entity->val_size, entity_rec_sz(del_entity), o_rec);
+    assert(memcmp(o_rec, temp_zero, entity_rec_sz(del_entity)) == 0);
 
     free(temp_zero);
     free(o_rec);
 
-    entity_dtor(entity);
+    entity_dtor(ent);
     entity_dtor(del_entity);
     entity_dtor(o_entity);
     entity_dtor(temp_zero_entity);
@@ -65,43 +63,44 @@ static status_t SectionExtents_DeleteOnBorderType_ShiftPtrsAndClearRecAndItm(con
     return OK;
 }
 
-static status_t SectionExtents_DeleteInnerType_ShiftPtrsAndClearRecAndItm(const json_t *const json)
+static Status SectionExtents_DeleteInnerType_ShiftPtrsAndClearRecAndItm(const Json *const j)
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_ext_t *extents = sect_ext_new();
+    Sect_ext *extents = sect_ext_new();
     DO_OR_FAIL(sect_ext_ctor(extents, 0, file));
 
-    ENTITY_INIT(entity, json, 500, 200, 300);
+    ENTITY_INIT(ent, j, 0, 0, 0, 0);
 
     JSON_VALUE_INIT(TYPE_OBJECT, brdr_json, "brdr_json", VAL);
-    ENTITY_INIT(brdr_entity, brdr_json, 0, 0, 0);
+    ENTITY_INIT(brdr_entity, brdr_json, 0, 0, 0, 0);
 
-    sectoff_t save_json_sectoff;
-    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_sectoff));
-    sectoff_t save_brdr_json_sectoff;
-    DO_OR_FAIL(sect_ext_write(extents, brdr_json, brdr_entity, &save_brdr_json_sectoff));
+    Sectoff save_json_sectoff;
+    DO_OR_FAIL(sect_ext_write(extents, j->key, json_val_ptr(j), json_val_size(j), ent, &save_json_sectoff));
+    Sectoff save_brdr_json_sectoff;
+    DO_OR_FAIL(sect_ext_write(extents, brdr_json->key, json_val_ptr(brdr_json), json_val_size(brdr_json), brdr_entity, &save_brdr_json_sectoff));
 
-    entity_t *del_entity = entity_new();
+    Entity *del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, save_json_sectoff, del_entity));
 
-    assert(entity_cmp(entity, del_entity) == 0);
+    assert(entity_cmp(ent, del_entity) == 0);
 
-    entity_t *o_entity = entity_new();
-    entity_t *temp_zero_entity = entity_new();
-    void *o_rec = my_malloc_array(char, entity_rec_size(del_entity));
-    void *temp_zero = memset(my_malloc_array(char, entity_rec_size(del_entity)), 0, entity_rec_size(del_entity));
+    Entity *o_entity = entity_new();
+    Entity *temp_zero_entity = entity_new();
     sect_ext_rd_itm(extents, save_json_sectoff, o_entity);
-    sect_ext_rd_rec(extents, del_entity->key_ptr - del_entity->val_size, entity_rec_size(del_entity), o_rec);
     assert(entity_cmp(o_entity, temp_zero_entity) == 0);
-    assert(memcmp(o_rec, temp_zero, entity_rec_size(del_entity)) == 0);
+
+    void *o_rec = my_malloc_array(char, entity_rec_sz(del_entity));
+    void *temp_zero = memset(my_malloc_array(char, entity_rec_sz(del_entity)), 0, entity_rec_sz(del_entity));
+    sect_head_read((Sect_head *)extents, del_entity->key_ptr - del_entity->val_size, entity_rec_sz(del_entity), o_rec);
+    assert(memcmp(o_rec, temp_zero, entity_rec_sz(del_entity)) == 0);
 
     free(o_rec);
     free(temp_zero);
 
     json_dtor(brdr_json);
 
-    entity_dtor(entity);
+    entity_dtor(ent);
     entity_dtor(del_entity);
     entity_dtor(brdr_entity);
     entity_dtor(o_entity);
@@ -116,38 +115,36 @@ static status_t SectionExtents_DeleteInnerType_ShiftPtrsAndClearRecAndItm(const 
     return OK;
 }
 
-static status_t SectionExtents_DeleteOnBorderElementWithLeftGap_ReduceGapsAndDelete()
+static Status SectionExtents_DeleteOnBorderElementWithLeftGap_ReduceGapsAndDelete()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_ext_t *extents = sect_ext_new();
+    Sect_ext *extents = sect_ext_new();
     DO_OR_FAIL(sect_ext_ctor(extents, 0, file));
 
-    JSON_VALUE_INIT(TYPE_OBJECT, json, "json", NULL);
-    ENTITY_INIT(entity, json, 500, 200, 300);
+    JSON_VALUE_INIT(TYPE_OBJECT, j, "json", NULL);
+    ENTITY_INIT(ent, j, 500, 200, 300, 222);
 
     JSON_VALUE_INIT(TYPE_OBJECT, brdr_json, "brdr_json", NULL);
-    ENTITY_INIT(brdr_entity, brdr_json, 0, 0, 0);
+    ENTITY_INIT(brdr_entity, brdr_json, 0, 0, 0, 222);
 
-    sectoff_t save_json_sectoff;
-    DO_OR_FAIL(sect_ext_write(extents, json, entity, &save_json_sectoff));
-    sectoff_t save_brdr_json_sectoff;
-    DO_OR_FAIL(sect_ext_write(extents, brdr_json, brdr_entity, &save_brdr_json_sectoff));
+    Sectoff save_json_sectoff;
+    DO_OR_FAIL(sect_ext_write(extents, j->key, json_val_ptr(j), json_val_size(j), ent, &save_json_sectoff));
+    Sectoff save_brdr_json_sectoff;
+    DO_OR_FAIL(sect_ext_write(extents, brdr_json->key, json_val_ptr(brdr_json), json_val_size(brdr_json), brdr_entity, &save_brdr_json_sectoff));
 
     DO_OR_FAIL(sect_ext_delete(extents, save_json_sectoff, NULL));
-    entity_t *del_entity = entity_new();
     DO_OR_FAIL(sect_ext_delete(extents, save_brdr_json_sectoff, NULL));
 
-    assert(extents->header.lst_itm_ptr == sizeof(sect_head_entity_t));
+    assert(extents->header.lst_itm_ptr == sizeof(Sect_head_entity));
     assert(extents->header.fst_rec_ptr == SECTION_SIZE);
-    assert(extents->header.free_space == SECTION_SIZE - sizeof(sect_head_entity_t));
+    assert(extents->header.free_space == SECTION_SIZE - sizeof(Sect_head_entity));
 
-    json_dtor(json);
+    json_dtor(j);
     json_dtor(brdr_json);
 
-    entity_dtor(entity);
+    entity_dtor(ent);
     entity_dtor(brdr_entity);
-    entity_dtor(del_entity);
 
     sect_ext_dtor(extents);
 

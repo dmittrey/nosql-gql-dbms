@@ -1,12 +1,7 @@
 #include <assert.h>
 
-#include "memory/type/type.h"
-#include "physical/type/type.h"
-
-#include "physical/section/header.h"
-
-#include "memory/section/types_p.h"
-#include "memory/section/types.h"
+#include "section/types.h"
+#include "section/types_p.h"
 
 static const char *test_file_name = "test.bin";
 
@@ -16,97 +11,91 @@ static const char *test_file_name = "test.bin";
 3) Найти тип в секции с несколькими разными типами
 */
 
-status_t SectionTypes_FindFromEmptySection_FindNothing()
+Status SectionTypes_FindFromEmptySection_FindNothing()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
 
-    type_t *t = type_new();
+    Sectoff t_adr;
+    Type* t = type_new();
+    STR_INIT(t_name, "example");
+    sect_types_find(types, t_name, t, &t_adr);
 
-    STR_INIT(q_name, "example");
-    sect_type_find(types, q_name, t);
+    assert(t->attr_list == NULL);
+    assert(t->name == NULL);
+    assert(t->next == NULL);
 
-    void *t_zero = type_new();
-
-    assert(memcmp(t_zero, t, sizeof(type_t)) == 0);
-
+    sect_types_dtor(types);
     type_dtor(t);
-    type_dtor(t_zero);
-    string_dtor(q_name);
+    string_dtor(t_name);
 
-    sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
 
-status_t SectionTypes_FindOneTypeFromOneEmpty_FindNothing()
+Status SectionTypes_FindOneTypeFromOneEmpty_FindNothing()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
 
-    TYPE_INIT(wr_type, "V");
-    sectoff_t wrt_adr;
-    sect_type_write(types, wr_type, &wrt_adr);
-
-    type_t *t = type_new();
-
-    STR_INIT(q_name, "V");
-    sect_type_find(types, q_name, t);
-
-    assert(string_cmp(t->name, q_name) == 0);
-    assert(t->attr_list->count == 0);
-    assert(t->foff_ptr == sizeof(sect_head_entity_t));
-
-    type_dtor(wr_type);
-    type_dtor(t);
-
-    string_dtor(q_name);
-
-    sect_type_dtor(types);
-    fclose(file);
-    DO_OR_FAIL(remove(test_file_name));
-
-    return OK;
-}
-
-status_t SectionTypes_FindOneTypeFromSeveral_FindNothing()
-{
-    FILE *file = fopen(test_file_name, "w+");
-
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
-
-    sectoff_t wrt_adr;
     TYPE_INIT(V_type, "V");
-    sect_type_write(types, V_type, &wrt_adr);
+
+    Sectoff wrt_adr;
+    sect_types_write(types, V_type, &wrt_adr);
+
+    Sectoff t_adr;
+    Type *t = type_new();
+    STR_INIT(t_name, "V");
+    sect_types_find(types, t_name, t, &t_adr);
+
+    assert(type_cmp(t, V_type) == 0);
+
+    sect_types_dtor(types);
+    type_dtor(V_type);
+    type_dtor(t);
+    string_dtor(t_name);
+
+    fclose(file);
+    DO_OR_FAIL(remove(test_file_name));
+
+    return OK;
+}
+
+Status SectionTypes_FindOneTypeFromSeveral_FindNothing()
+{
+    FILE *file = fopen(test_file_name, "w+");
+
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
+
+    Sectoff wrt_adr;
+    TYPE_INIT(V_type, "V");
+    sect_types_write(types, V_type, &wrt_adr);
     TYPE_INIT(T_type, "T");
-    sect_type_write(types, T_type, &wrt_adr);
+    sect_types_write(types, T_type, &wrt_adr);
     TYPE_INIT(K_type, "K");
-    sect_type_write(types, K_type, &wrt_adr);
+    sect_types_write(types, K_type, &wrt_adr);
 
-    type_t *t = type_new();
+    Sectoff t_adr;
+    Type *t = type_new();
+    STR_INIT(t_name, "T");
+    sect_types_find(types, t_name, t, &t_adr);
 
-    STR_INIT(q_name, "K");
-    sect_type_find(types, q_name, t);
+    assert(type_cmp(t, T_type) == 0);
 
-    assert(string_cmp(t->name, q_name) == 0);
-    assert(t->attr_list->count == 0);
-    assert(t->foff_ptr == sizeof(sect_head_entity_t) + 2 * sizeof(type_entity_t));
-
+    sect_types_dtor(types);
     type_dtor(V_type);
     type_dtor(K_type);
     type_dtor(T_type);
     type_dtor(t);
+    string_dtor(t_name);
 
-    string_dtor(q_name);
-
-    sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 

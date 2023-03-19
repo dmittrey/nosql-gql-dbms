@@ -1,60 +1,54 @@
-#include <string.h>
+#include "json/entity.h"
 
-#include "physical/json/entity.h"
-
-entity_t *entity_new()
+Entity *entity_new()
 {
-    return memset(my_malloc(entity_t), 0, sizeof(entity_t));
+    return my_calloc(Entity);
 }
 
-void entity_ctor(entity_t *const entity, const json_t *const json, const fileoff_t dad_json_addr, const fileoff_t bro_json_addr, const fileoff_t son_json_addr)
+void entity_ctor(Entity *const entity, const size_t key_sz, const size_t val_sz, const uint64_t type, const Tplgy* const tplgy)
 {
-    entity->key_ptr = 0;
-    entity->key_size = json->key->cnt;
-    entity->val_ptr = 0;
-    entity->val_size = json_val_size(json);
-    entity->fam_addr.dad_ptr = dad_json_addr;
-    entity->fam_addr.bro_ptr = bro_json_addr;
-    entity->fam_addr.son_ptr = son_json_addr;
-    entity->type = json->type;
-    entity->rec_size = entity->key_size + entity->val_size;
+    entity->key_size = key_sz;
+    entity->val_size = val_sz;
+    entity->fam_addr = *tplgy;
+    entity->type = type;
+    entity->init_rec_sz = key_sz + val_sz;
 }
-void entity_dtor(entity_t *entity)
+void entity_dtor(Entity *entity)
 {
     free(entity);
 }
 
-size_t entity_itm_size(const entity_t *const entity)
+size_t entity_itm_size(const Entity *const ent)
 {
-    return sizeof(entity_t);
+    return sizeof(Entity);
 }
 
-size_t entity_rec_size(const entity_t *const entity)
+size_t entity_rec_sz(const Entity *const entity)
 {
     return entity->key_size + entity->val_size;
 }
 
-size_t entity_rec_pool_size(const entity_t *const entity)
+size_t entity_init_rec_sz(const Entity *const entity)
 {
-    return entity->rec_size;
+    return entity->init_rec_sz;
 }
 
-size_t entity_ph_size(const entity_t *const entity)
+size_t entity_ph_size(const Entity *const ent)
 {
-    return entity_itm_size(entity) + entity_rec_size(entity);
+    return entity_itm_size(ent) + entity_rec_sz(ent);
 }
 
-entity_t *entity_clear(entity_t *const entity)
+Entity *entity_clear(Entity *const e)
 {
-    return memset(entity, 0, sizeof(entity_t));
+    return memset(e, 0, sizeof(Entity));
 }
 
-entity_t *entity_cpy(entity_t *const dest, entity_t *const src)
+Entity *entity_cpy(Entity *const dest, Entity *const src)
 {
-    return memcpy(dest, src, sizeof(entity_t));
+    return memcpy(dest, src, sizeof(Entity));
 }
 
-int entity_cmp(entity_t *const e1, entity_t *const e2)
+int entity_cmp(Entity *const e1, Entity *const e2)
 {
-    return memcmp(e1, e2, sizeof(entity_t));
+    return memcmp(e1, e2, sizeof(Entity));
 }

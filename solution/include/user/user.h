@@ -1,17 +1,16 @@
 #pragma once
 
-#include "memory/file/file.h"
+#include "utils/utils.h"
 
-#include "memory/json/iter.h"
+#include "json/object/type.h"
 
-#include "memory/type/type.h"
+#include "file/file.h"
 
-status_t user_add_type(file_t *const file, const type_t *const type);
-status_t user_delete_type(file_t *const file, const string_t *const name);
-status_t user_find_type(file_t *const file, const string_t *const name, type_t *const o_type);
+Status user_read_type(struct File *const file, const String *const name, Type *const o_type);
+Status user_add_type(struct File *const file, const Type *const type);
+Status user_delete_type(struct File *const file, const String *const name);
 
-status_t user_write(file_t *const file, const json_t *const json);
-status_t user_write_wth_type(file_t *const file, const json_t *const json, const string_t *const t_name);
-struct iter_t *user_read(file_t *const file, query_t *const query);
-status_t user_update(file_t *const file, query_t *const query, const json_t *const new_json);
-status_t user_delete(file_t *const file, query_t *const query);
+Status user_write(struct File *const file, const Json *const json, const String *const type_name);
+struct iter_t *user_read(struct File *const file, Query *const query);
+Status user_update(struct File *const file, Query *const query, const Json *const new_json);
+Status user_delete(struct File *const file, Query *const query);

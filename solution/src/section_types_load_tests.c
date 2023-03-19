@@ -1,12 +1,7 @@
 #include <assert.h>
 
-#include "memory/type/type.h"
-#include "physical/type/type.h"
-
-#include "physical/section/header.h"
-
-#include "memory/section/types_p.h"
-#include "memory/section/types.h"
+#include "section/types.h"
+#include "section/types_p.h"
 
 static const char *test_file_name = "test.bin";
 
@@ -16,123 +11,103 @@ static const char *test_file_name = "test.bin";
 3) Скачивание типа со всеми атрибутами
 */
 
-status_t SectionTypes_LoadEmptySection_LoadNothing()
+Status SectionTypes_LoadEmptySection_LoadNothing()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
 
-    list_type_t *t_list = list_type_t_new();
+    List_Pair_Sectoff_Type *t_list = list_Pair_Sectoff_Type_new();
+    sect_types_load(types, t_list);
 
-    sect_type_load(types, t_list);
-
-    assert(t_list->head == NULL);
-    assert(t_list->tail == NULL);
     assert(t_list->count == 0);
 
-    list_type_t_dtor(t_list);
+    sect_types_dtor(types);
+    list_Pair_Sectoff_Type_dtor(t_list);
 
-    sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
 
-status_t SectionTypes_LoadTypeWithoutAttributes_LoadType()
+Status SectionTypes_LoadTypeWithoutAttributes_LoadType()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
 
-    type_t *wr_type = type_new();
-    STR_INIT(type_name, "V");
-    list_attr_t *wr_attr_list = list_attr_t_new();
+    TYPE_INIT(V_type, "V");
 
-    type_ctor(wr_type, type_name, wr_attr_list);
-    sectoff_t wrt_adr;
-    sect_type_write(types, wr_type, &wrt_adr);
+    Sectoff wrt_adr;
+    sect_types_write(types, V_type, &wrt_adr);
 
-    list_type_t *t_list = list_type_t_new();
+    List_Pair_Sectoff_Type *t_list = list_Pair_Sectoff_Type_new();
+    sect_types_load(types, t_list);
 
-    sect_type_load(types, t_list);
-
-    assert(string_cmp(t_list->head->name, wr_type->name) == 0);
-    assert(t_list->head->attr_list->count == 0);
+    assert(type_cmp(t_list->head->s, V_type) == 0);
     assert(t_list->count == 1);
 
-    type_dtor(wr_type);
+    sect_types_dtor(types);
+    type_dtor(V_type);
+    list_Pair_Sectoff_Type_dtor(t_list);
 
-    list_type_t_dtor(t_list);
-
-    sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 
     return OK;
 }
 
-status_t SectionTypes_LoadTypeWithAllAttributes_LoadType()
+Status SectionTypes_LoadTypeWithAllAttributes_LoadType()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_type_t *types = sect_type_new();
-    sect_type_ctor(types, 0, file);
+    Sect_types *types = sect_types_new();
+    sect_types_ctor(types, 0, file);
 
-    type_t *wr_type = type_new();
-    STR_INIT(type_name, "V");
-    list_attr_t *wr_attr_list = list_attr_t_new();
+    TYPE_INIT(V_type, "V");
 
-    attr_t *bool_attr = attr_new();
-    STR_INIT(bool_attr_name, "attr");
-    attr_ctor(bool_attr, bool_attr_name, TYPE_BOOL);
-    list_attr_t_add(wr_attr_list, bool_attr);
+    ATR_INIT(bool_atr, "bool", TYPE_BOOL);
+    type_add_atr(V_type, bool_atr);
+    ATR_INIT(int32_atr, "int32", TYPE_INT32);
+    type_add_atr(V_type, int32_atr);
+    ATR_INIT(str_atr, "str", TYPE_STRING);
+    type_add_atr(V_type, str_atr);
+    ATR_INIT(float_atr, "float", TYPE_FLOAT);
+    type_add_atr(V_type, float_atr);
 
-    attr_t *int_attr = attr_new();
-    STR_INIT(int_attr_name, "attr");
-    attr_ctor(int_attr, int_attr_name, TYPE_INT32);
-    list_attr_t_add(wr_attr_list, int_attr);
+    TYPE_INIT(K_type, "K");
 
-    attr_t *str_attr = attr_new();
-    STR_INIT(str_attr_name, "attr");
-    attr_ctor(str_attr, str_attr_name, TYPE_STRING);
-    list_attr_t_add(wr_attr_list, str_attr);
+    Sectoff wrt_adr;
+    sect_types_write(types, V_type, &wrt_adr);
+    sect_types_write(types, K_type, &wrt_adr);
 
-    attr_t *float_attr = attr_new();
-    STR_INIT(float_attr_name, "attr");
-    attr_ctor(float_attr, float_attr_name, TYPE_FLOAT);
-    list_attr_t_add(wr_attr_list, float_attr);
+    List_Pair_Sectoff_Type *t_list = list_Pair_Sectoff_Type_new();
+    sect_types_load(types, t_list);
 
-    type_ctor(wr_type, type_name, wr_attr_list);
-    sectoff_t wrt_adr;
-    sect_type_write(types, wr_type, &wrt_adr);
+    assert(type_cmp(t_list->head->s, V_type) == 0);
+    assert(attr_cmp(t_list->head->s->attr_list->head, V_type->attr_list->head) == 0);
+    list_Attr_del_fst(t_list->head->s->attr_list);
+    list_Attr_del_fst(V_type->attr_list);
+    assert(attr_cmp(t_list->head->s->attr_list->head, V_type->attr_list->head) == 0);
+    list_Attr_del_fst(t_list->head->s->attr_list);
+    list_Attr_del_fst(V_type->attr_list);
+    assert(attr_cmp(t_list->head->s->attr_list->head, V_type->attr_list->head) == 0);
+    list_Attr_del_fst(t_list->head->s->attr_list);
+    list_Attr_del_fst(V_type->attr_list);
+    assert(attr_cmp(t_list->head->s->attr_list->head, V_type->attr_list->head) == 0);
+    list_Attr_del_fst(t_list->head->s->attr_list);
+    list_Attr_del_fst(V_type->attr_list);
+    assert(type_cmp(t_list->head->next->s, K_type) == 0);
+    assert(t_list->count == 2);
 
-    list_type_t *t_list = list_type_t_new();
+    sect_types_dtor(types);
+    type_dtor(V_type);
+    type_dtor(K_type);
+    list_Pair_Sectoff_Type_dtor(t_list);
 
-    sect_type_load(types, t_list);
-
-    assert(t_list->count == 1);
-    assert(t_list->head == t_list->tail);
-    assert(string_cmp(t_list->head->name, wr_type->name) == 0);
-    assert(t_list->head->next == NULL);
-
-    assert(t_list->head->attr_list->count == 4);
-    assert(attr_cmp(t_list->head->attr_list->head, bool_attr) == 0);
-    list_attr_t_del_fst(t_list->head->attr_list);
-    assert(attr_cmp(t_list->head->attr_list->head, int_attr) == 0);
-    list_attr_t_del_fst(t_list->head->attr_list);
-    assert(attr_cmp(t_list->head->attr_list->head, str_attr) == 0);
-    list_attr_t_del_fst(t_list->head->attr_list);
-    assert(attr_cmp(t_list->head->attr_list->head, float_attr) == 0);
-    list_attr_t_del_fst(t_list->head->attr_list);
-
-    type_dtor(wr_type);
-
-    list_type_t_dtor(t_list);
-
-    sect_type_dtor(types);
     fclose(file);
     DO_OR_FAIL(remove(test_file_name));
 

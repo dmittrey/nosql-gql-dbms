@@ -1,25 +1,21 @@
 #include <assert.h>
 
-#include "physical/json/entity.h"
-
-#include "physical/section/header.h"
-#include "memory/section/header.h"
-
-#include "memory/section/extents_p.h"
+#include "section/header.h"
+#include "section/header_p.h"
 
 static const char *test_file_name = "test.bin";
 
 // Создание с существующим файлом и нулевым отступом
-static status_t SectionHeader_DefaultCtor_Successful()
+static Status SectionHeader_DefaultCtor_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
 
-    sect_head_t *header = sect_head_new();
-    status_t ctor_status = sect_head_ctor(header, 0, file);
+    Sect_head *header = sect_head_new();
+    Status ctor_Status = sect_head_ctor(header, 0, file);
 
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
+    assert(header->free_space == (SECTION_SIZE - sizeof(Sect_head_entity)));
     assert(header->next_ptr == 0); // Next section is undefined
-    assert(header->lst_itm_ptr == sizeof(sect_head_entity_t));
+    assert(header->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(header->fst_rec_ptr == SECTION_SIZE);
 
     fclose(file);
@@ -27,21 +23,21 @@ static status_t SectionHeader_DefaultCtor_Successful()
 
     sect_head_dtor(header);
 
-    return ctor_status;
+    return ctor_Status;
 }
 
 // Создание с существующим файлом и ненулевым отступом
-static status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
+static Status SectionHeader_CtorWithFileStartNotFromZero_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
-    sectoff_t shift = 5;
+    Sectoff shift = 5;
 
-    sect_head_t *header = sect_head_new();
-    status_t ctor_status = sect_head_ctor(header, shift, file);
+    Sect_head *header = sect_head_new();
+    Status ctor_Status = sect_head_ctor(header, shift, file);
 
-    assert(header->free_space == (SECTION_SIZE - sizeof(sect_head_entity_t)));
+    assert(header->free_space == (SECTION_SIZE - sizeof(Sect_head_entity)));
     assert(header->next_ptr == 0); // Next section is undefined
-    assert(header->lst_itm_ptr == sizeof(sect_head_entity_t));
+    assert(header->lst_itm_ptr == sizeof(Sect_head_entity));
     assert(header->fst_rec_ptr == SECTION_SIZE);
 
     fclose(file);
@@ -49,26 +45,26 @@ static status_t SectionHeader_CtorWithFileStartNotFromZero_Successful()
 
     sect_head_dtor(header);
 
-    return ctor_status;
+    return ctor_Status;
 }
 
-static status_t SectionHeader_ShiftLastItemPtr_Successful()
+static Status SectionHeader_ShiftLastItemPtr_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
-    sectoff_t shift = 5;
+    Sectoff shift = 5;
 
-    sect_head_t *header = sect_head_new();
+    Sect_head *header = sect_head_new();
     sect_head_ctor(header, 0, file);
 
-    status_t perform_result = sect_head_shift_lip(header, shift);
+    Status perform_result = sect_head_shift_lip(header, shift);
 
     assert(perform_result == OK);
-    assert(header->lst_itm_ptr == sizeof(sect_head_entity_t) + shift);
+    assert(header->lst_itm_ptr == sizeof(Sect_head_entity) + shift);
 
-    sectoff_t file_last_item_ptr;
+    Sectoff file_last_item_ptr;
     FSEEK_OR_FAIL(file, sizeof(header->free_space) + sizeof(header->next_ptr));
-    FREAD_OR_FAIL(&file_last_item_ptr, sizeof(sectoff_t), file);
-    assert(file_last_item_ptr == sizeof(sect_head_entity_t) + shift);
+    FREAD_OR_FAIL(&file_last_item_ptr, sizeof(Sectoff), file);
+    assert(file_last_item_ptr == sizeof(Sect_head_entity) + shift);
 
     DO_OR_FAIL(remove(test_file_name));
 
@@ -77,22 +73,22 @@ static status_t SectionHeader_ShiftLastItemPtr_Successful()
     return OK;
 }
 
-static status_t SectionHeader_ShiftFirstRecordPtr_Successful()
+static Status SectionHeader_ShiftFirstRecordPtr_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
-    sectoff_t shift = -5;
+    Sectoff shift = -5;
 
-    sect_head_t *header = sect_head_new();
+    Sect_head *header = sect_head_new();
     sect_head_ctor(header, 0, file);
 
-    status_t perform_result = sect_head_shift_frp(header, shift);
+    Status perform_result = sect_head_shift_frp(header, shift);
 
     assert(perform_result == OK);
     assert(header->fst_rec_ptr == SECTION_SIZE + shift);
 
-    sectoff_t file_first_record_ptr;
+    Sectoff file_first_record_ptr;
     FSEEK_OR_FAIL(file, sizeof(header->free_space) + sizeof(header->next_ptr) + sizeof(header->lst_itm_ptr));
-    FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
+    FREAD_OR_FAIL(&file_first_record_ptr, sizeof(Sectoff), file);
     assert(file_first_record_ptr == SECTION_SIZE + shift);
 
     DO_OR_FAIL(remove(test_file_name));
@@ -102,10 +98,10 @@ static status_t SectionHeader_ShiftFirstRecordPtr_Successful()
     return OK;
 }
 
-static status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
+static Status SectionHeader_SyncAfterUpdateInnerState_Successful()
 {
     FILE *file = fopen(test_file_name, "w+");
-    sect_head_t *header = sect_head_new();
+    Sect_head *header = sect_head_new();
 
     header->free_space = 5;
     header->next_ptr = 6;
@@ -115,20 +111,20 @@ static status_t SectionHeader_SyncAfterUpdateInnerState_Successful()
 
     sect_head_sync(header);
 
-    sectoff_t file_free_space;
-    FREAD_OR_FAIL(&file_free_space, sizeof(sectoff_t), file);
+    Sectoff file_free_space;
+    FREAD_OR_FAIL(&file_free_space, sizeof(Sectoff), file);
     assert(file_free_space == 5);
 
-    sectoff_t file_next;
-    FREAD_OR_FAIL(&file_next, sizeof(sectoff_t), file);
+    Sectoff file_next;
+    FREAD_OR_FAIL(&file_next, sizeof(Sectoff), file);
     assert(file_next == 6);
 
-    sectoff_t file_last_item_ptr;
-    FREAD_OR_FAIL(&file_last_item_ptr, sizeof(sectoff_t), file);
+    Sectoff file_last_item_ptr;
+    FREAD_OR_FAIL(&file_last_item_ptr, sizeof(Sectoff), file);
     assert(file_last_item_ptr == 7);
 
-    sectoff_t file_first_record_ptr;
-    FREAD_OR_FAIL(&file_first_record_ptr, sizeof(sectoff_t), file);
+    Sectoff file_first_record_ptr;
+    FREAD_OR_FAIL(&file_first_record_ptr, sizeof(Sectoff), file);
     assert(file_first_record_ptr == 8);
 
     DO_OR_FAIL(remove(test_file_name));

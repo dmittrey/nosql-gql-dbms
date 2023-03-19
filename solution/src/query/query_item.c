@@ -1,17 +1,17 @@
-#include "memory/query/query.h"
+#include "query/query_item.h"
 
-query_item_t *query_item_new()
+Query_item *query_item_new()
 {
-    return memset(my_malloc(query_item_t), 0, sizeof(query_item_t));
+    return memset(my_malloc(Query_item), 0, sizeof(Query_item));
 }
 
-void query_item_ctor(query_item_t *const query_itm, const json_type_t type, string_t *key)
+void query_item_ctor(Query_item *const query_itm, const Json_type type, String *key)
 {
     query_itm->query_key = key;
     query_itm->type = type;
 }
 
-void query_item_dtor(query_item_t *q_itm)
+void query_item_dtor(Query_item *q_itm)
 {
     string_dtor(q_itm->query_key);
 
@@ -23,22 +23,22 @@ void query_item_dtor(query_item_t *q_itm)
     free(q_itm);
 }
 
-bool query_item_check(const query_item_t *const query, const json_t *const json)
+bool query_item_check(const Query_item *const query, const Json *const j)
 {
-    if (string_cmp(query->query_key, json->key) == 0)
+    if (string_cmp(query->query_key, j->key) == 0)
     {
-        switch (json->type)
+        switch (j->type)
         {
         case TYPE_STRING:
-            return !string_cmp(json->value.string_val, query->query_val.string_val);
+            return !string_cmp(j->value.string_val, query->query_val.string_val);
         case TYPE_INT32:
-            if (json->value.int32_val == query->query_val.int32_val)
+            if (j->value.int32_val == query->query_val.int32_val)
                 return true;
         case TYPE_FLOAT:
-            if (json->value.float_val == query->query_val.float_val)
+            if (j->value.float_val == query->query_val.float_val)
                 return true;
         case TYPE_BOOL:
-            if (json->value.bool_val == query->query_val.bool_val)
+            if (j->value.bool_val == query->query_val.bool_val)
                 return true;
         }
     }

@@ -1,42 +1,42 @@
-#include "memory/query/query.h"
+#include "query/query.h"
 
-query_t *query_new()
+Query *query_new()
 {
-    return memset(my_malloc(query_t), 0, sizeof(query_t));
+    return memset(my_malloc(Query), 0, sizeof(Query));
 }
 
-void query_dtor(query_t *query)
+void query_dtor(Query *q)
 {
-    while (query->f_query_itm != NULL)
+    while (q->f_query_itm != NULL)
     {
-        query_item_t *cur = query->f_query_itm;
-        query->f_query_itm = query->f_query_itm->next;
+        Query_item *cur = q->f_query_itm;
+        q->f_query_itm = q->f_query_itm->next;
         query_item_dtor(cur);
     }
 
-    free(query);
+    free(q);
 }
 
-void query_item_add(query_t *const query, query_item_t *const query_item)
+void query_item_add(Query *const q, Query_item *const q_item)
 {
-    if (query->f_query_itm == NULL)
+    if (q->f_query_itm == NULL)
     {
-        query->f_query_itm = query_item;
+        q->f_query_itm = q_item;
     }
     else
     {
-        query_item_t *nxt = query->f_query_itm->next;
-        query->f_query_itm->next = query_item;
-        query_item->next = nxt;
+        Query_item *nxt = q->f_query_itm->next;
+        q->f_query_itm->next = q_item;
+        q_item->next = nxt;
     }
 }
 
-bool query_check_or(const query_t *const query, const json_t *const json)
+bool query_check_or(const Query *const q, const Json *const j)
 {
-    const query_item_t *cur_query_itm = query->f_query_itm;
+    const Query_item *cur_query_itm = q->f_query_itm;
     while (cur_query_itm != NULL)
     {
-        if (query_item_check(cur_query_itm, json) == true)
+        if (query_item_check(cur_query_itm, j) == true)
             return true;
 
         cur_query_itm = cur_query_itm->next;
@@ -50,17 +50,17 @@ bool query_check_or(const query_t *const query, const json_t *const json)
 Проходимся по всем условиям, для каждого условия:
     - Проходимся по json и всем его братьям, если удовлетворяем, идем к след условию
 */
-bool query_check_and(const query_t *const query, const json_t *const dad_json)
+bool query_check_and(const Query *const q, const Json *const dad_json)
 {
-    const query_item_t *cur_query_itm = query->f_query_itm;
-    while (cur_query_itm != NULL)
+    const Query_item *cur_Query_itm = q->f_query_itm;
+    while (cur_Query_itm != NULL)
     {
-        const json_t *temp = dad_json->son;
+        const Json *temp = dad_json->son;
         bool is_satisfies = false;
 
         while (temp != NULL)
         {
-            if (query_item_check(cur_query_itm, temp) == true)
+            if (query_item_check(cur_Query_itm, temp) == true)
             {
                 is_satisfies = true;
                 break;
@@ -73,7 +73,7 @@ bool query_check_and(const query_t *const query, const json_t *const dad_json)
         if (is_satisfies == false)
             return false;
 
-        cur_query_itm = cur_query_itm->next;
+        cur_Query_itm = cur_Query_itm->next;
     }
 
     return true;

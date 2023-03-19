@@ -1,270 +1,213 @@
-#include "memory/section/types_p.h"
-#include "memory/section/types.h"
+#include "utils/pair.h"
 
-#include "physical/section/header.h"
+#include "section/types.h"
+#include "section/types_p.h"
 
-static status_t sect_type_wrt(sect_type_t *const section, const sectoff_t sectoff, void *data, size_t size);
-static status_t sect_type_rd(sect_type_t *const section, const sectoff_t sectoff, size_t size, void *o_data);
-
-static status_t reduce_lst_itm_ptr_emt(sect_type_t *section);
-static status_t reduce_fst_rec_ptr_emt(sect_type_t *section);
-
-sect_type_t *sect_type_new()
+Sect_types *sect_types_new()
 {
-    return calloc(1, sizeof(sect_type_t));
+    return my_calloc(Sect_types);
 }
 
-status_t sect_type_ctor(sect_type_t *const section, const fileoff_t fileoff, FILE *const filp)
+Status sect_types_ctor(Sect_types *const section, const Fileoff fileoff, FILE *const filp)
 {
-    return sect_head_ctor((sect_head_t *)section, fileoff, filp);
+    return sect_head_ctor((Sect_head *)section, fileoff, filp);
 }
-void sect_type_dtor(sect_type_t *section)
+Status sect_types_dtor(Sect_types *section)
 {
-    section->next = NULL;
-    sect_head_dtor((sect_head_t *)section);
+    return sect_head_dtor((Sect_head *)section);
 }
 
-/*
-1) Проверить можно ли разместить тип
-2) Если можем, то размещаем
-*/
-status_t sect_type_write(sect_type_t *const section, const type_t *const type, sectoff_t *const o_wrt_soff)
+Status sect_types_write(struct Sect_types *const section, const Type *const type, Sectoff *const o_wrt_soff)
 {
-    size_t attrs_size = 0;
-    attr_t *cur = type->attr_list->head;
-    while (cur != NULL)
-    {
-        attrs_size += attr_entity_sz(cur->name->cnt);
-        cur = cur->next;
-    }
-
-    if (section->header.free_space < type_entity_sz(type->name->cnt) + attrs_size)
+    // Check if free space for type exist
+    if (section->header.free_space < type_ph_sz(type))
         return FAILED;
 
-    type_entity_t *entity = type_entity_new();
-    attr_entity_t *cur_entity = attr_entity_new();
-
+    // Write type name
     DO_OR_FAIL(sect_head_shift_frp(&section->header, -1 * type->name->cnt));
-    DO_OR_FAIL(sect_type_wrt(section, section->header.fst_rec_ptr, type->name->val, type->name->cnt));
-    entity->name_size = type->name->cnt;
-    entity->name_ptr = section->header.fst_rec_ptr;
-    entity->attr_cnt = type->attr_list->count;
+    DO_OR_FAIL(sect_head_write((Sect_head *)section, section->header.fst_rec_ptr, type->name->cnt, type->name->val));
 
-    DO_OR_FAIL(sect_type_wrt(section, section->header.lst_itm_ptr, entity, sizeof(type_entity_t)));
+    // Initialize type entity
+    Type_entity *t_ent = type_entity_new();
+    t_ent->attr_cnt = type->attr_list->count;
+    t_ent->name_ptr = section->header.fst_rec_ptr;
+    t_ent->name_size = type->name->cnt;
+
+    // Write type entity
     *o_wrt_soff = section->header.lst_itm_ptr;
-    DO_OR_FAIL(sect_head_shift_lip(&section->header, sizeof(type_entity_t)));
+    DO_OR_FAIL(sect_types_wrt_type(section, section->header.lst_itm_ptr, t_ent));
+    DO_OR_FAIL(sect_head_shift_lip((Sect_head *)section, sizeof(Type_entity)));
 
-    cur = type->attr_list->head;
-    while (cur != NULL)
+    Attr_entity *cur_a_ent = attr_entity_new();
+    Attr *cur_a = type->attr_list->head;
+    while (cur_a != NULL)
     {
-        attr_entity_ctor(cur_entity, cur);
+        // Write attr name
+        DO_OR_FAIL(sect_head_shift_frp(&section->header, -1 * cur_a->name->cnt));
+        DO_OR_FAIL(sect_head_write((Sect_head *)section, section->header.fst_rec_ptr, cur_a->name->cnt, cur_a->name->val));
 
-        DO_OR_FAIL(sect_head_shift_frp(&section->header, -1 * cur->name->cnt));
-        DO_OR_FAIL(sect_type_wrt(section, section->header.fst_rec_ptr, cur->name->val, cur->name->cnt));
-        cur_entity->name_size = cur->name->cnt;
-        cur_entity->name_ptr = section->header.fst_rec_ptr;
-        cur_entity->attr_type = cur->type;
+        // Initialize attr entity
+        cur_a_ent->name_size = cur_a->name->cnt;
+        cur_a_ent->name_ptr = section->header.fst_rec_ptr;
+        cur_a_ent->attr_type = cur_a->type;
 
-        DO_OR_FAIL(sect_type_wrt(section, section->header.lst_itm_ptr, cur_entity, sizeof(type_entity_t)));
-        DO_OR_FAIL(sect_head_shift_lip(&section->header, sizeof(type_entity_t)));
+        // Write attr entity
+        DO_OR_FAIL(sect_types_wrt_atr(section, section->header.lst_itm_ptr, cur_a_ent));
+        DO_OR_FAIL(sect_head_shift_lip((Sect_head *)section, sizeof(Attr_entity)));
 
-        cur = cur->next;
+        cur_a = cur_a->next;
     }
 
-    type_entity_dtor(entity);
-    attr_entity_dtor(cur_entity);
+    type_entity_dtor(t_ent);
+    attr_entity_dtor(cur_a_ent);
     return OK;
 }
 
-status_t sect_type_delete(sect_type_t *const section, const sectoff_t del_soff)
+Status sect_types_delete(struct Sect_types *const section, const Sectoff del_soff)
 {
-    type_t *t = type_new();
-    type_entity_t *t_ent = type_entity_new();
-    sect_type_read(section, del_soff, t, t_ent);
+    // Read type entity
+    Type_entity *t_ent = type_entity_new();
+    DO_OR_FAIL(sect_types_rd_type(section, del_soff, t_ent));
 
-    size_t itm_size = sizeof(type_entity_t) + t->attr_list->count * sizeof(attr_entity_t);
+    // Read last attr entity
+    Attr_entity *lst_atr_ent = attr_entity_new();
+    DO_OR_FAIL(sect_types_rd_atr(section, del_soff + sizeof(Type_entity) + (t_ent->attr_cnt - 1) * sizeof(Attr_entity), lst_atr_ent));
 
-    size_t rec_size = t->name->cnt * sizeof(char);
-    attr_t *cur_atr = t->attr_list->head;
-    while (cur_atr != NULL)
-    {
-        rec_size += cur_atr->name->cnt * sizeof(char);
-        cur_atr = cur_atr->next;
-    }
+    size_t itm_sz = sizeof(Type_entity) + t_ent->attr_cnt * sizeof(Attr_entity);
+    /*
+    | lst_name | ... | type_name |
+    /\                           /\
+    |                            |
+    lst_atr_ent->name_ptr        (t_ent->name_ptr + t_ent->name_size)
+    */
+    size_t rec_sz = (t_ent->name_ptr + t_ent->name_size) - lst_atr_ent->name_ptr;
 
-    if (del_soff + sizeof(type_entity_t) + t->attr_list->count * sizeof(attr_entity_t) == section->header.lst_itm_ptr)
-    {
-        DO_OR_FAIL(sect_head_shift_lip(&section->header, -1 * itm_size));
-        DO_OR_FAIL(sect_head_shift_frp(&section->header, rec_size));
-    }
+    // Set null itm space
+    void *itm_zr = calloc(itm_sz, sizeof(char));
+    DO_OR_FAIL(sect_head_write((Sect_head *)section, del_soff, itm_sz, itm_zr));
 
-    // Set null rec fields
-    void *itm_zero = memset(my_malloc_array(char, itm_size), 0, itm_size);
-    void *rec_zero = memset(my_malloc_array(char, rec_size), 0, rec_size);
-    sect_type_wrt(section, t_ent->name_ptr + t->name->cnt - rec_size, rec_zero, rec_size);
-    sect_type_wrt(section, del_soff, itm_zero, itm_size);
+    // Set null rec space
+    void *rec_zr = calloc(rec_sz, sizeof(char));
+    DO_OR_FAIL(sect_head_write((Sect_head *)section, lst_atr_ent->name_ptr, rec_sz, rec_zr));
 
     // Shift border by null items
-    reduce_lst_itm_ptr_emt(section);
-    reduce_fst_rec_ptr_emt(section);
+    DO_OR_FAIL(sect_head_cmprs_lip((Sect_head *)section, sizeof(Attr_entity)));
+    DO_OR_FAIL(sect_head_cmprs_frp((Sect_head *)section));
 
-    type_dtor(t);
     type_entity_dtor(t_ent);
-
-    free(itm_zero);
-    free(rec_zero);
+    attr_entity_dtor(lst_atr_ent);
     return OK;
 }
 
-status_t sect_type_read(sect_type_t *const section, sectoff_t sctoff, type_t *const o_type, type_entity_t *const o_type_ent)
+Status sect_types_read(struct Sect_types *const section, Sectoff soff, Type *const o_type, Type_entity *const o_type_ent, size_t *o_ph_sz)
 {
-    sect_type_rd_ent(section, sctoff, o_type_ent);
+    *o_ph_sz = soff;
+
+    // Read type entity
+    DO_OR_FAIL(sect_types_rd_type(section, soff, o_type_ent));
+
+    // Read type name
     char *t_name_c = my_malloc_array(char, o_type_ent->name_size);
-    sect_type_rd(section, o_type_ent->name_ptr, o_type_ent->name_size, t_name_c);
+    DO_OR_FAIL(sect_head_read((Sect_head *)section, o_type_ent->name_ptr, o_type_ent->name_size, t_name_c));
 
-    string_t *t_name = string_new();
+    String *t_name = string_new();
+    List_Attr *atr_list = list_Attr_new();
     string_ctor(t_name, t_name_c, o_type_ent->name_size);
-    free(t_name_c);
-    list_attr_t *atr_list = list_attr_t_new();
-    type_ctor_foff(o_type, t_name, atr_list, sect_head_get_fileoff(&section->header, sctoff));
-    sctoff += sizeof(type_entity_t);
+    type_ctor(o_type, t_name, atr_list);
 
-    attr_entity_t *a_ent = attr_entity_new();
+    Attr_entity *a_ent = attr_entity_new();
+    soff += sizeof(Type_entity);
     for (size_t i = 0; i < o_type_ent->attr_cnt; i++)
     {
-        sect_type_rd_atr(section, sctoff + i * sizeof(attr_entity_t), a_ent);
+        DO_OR_FAIL(sect_types_rd_atr(section, soff, a_ent));
         char *a_name_c = my_malloc_array(char, a_ent->name_size);
-        sect_type_rd(section, a_ent->name_ptr, a_ent->name_size, a_name_c);
+        DO_OR_FAIL(sect_head_read((Sect_head *)section, a_ent->name_ptr, a_ent->name_size, a_name_c));
 
-        attr_t *a = attr_new();
-        string_t *a_name = string_new();
+        Attr *a = attr_new();
+        String *a_name = string_new();
         string_ctor(a_name, a_name_c, a_ent->name_size);
-        free(a_name_c);
         attr_ctor(a, a_name, a_ent->attr_type);
+        free(a_name_c);
 
-        list_attr_t_add(o_type->attr_list, a);
+        type_add_atr(o_type, a);
+        soff += sizeof(Attr_entity);
     }
+    *o_ph_sz = soff - *o_ph_sz;
+
     attr_entity_dtor(a_ent);
+    free(t_name_c);
+    return OK;
+}
+
+Status sect_types_load(struct Sect_types *const section, List_Pair_Sectoff_Type *const o_list)
+{
+    Sectoff soff = sizeof(Sect_head_entity);
+    size_t ph_sz;
+
+    Type_entity *t_ent = type_entity_new();
+    while (soff < section->header.lst_itm_ptr)
+    {
+        Type *t = type_new();
+        Sectoff *t_soff = my_malloc(Sectoff);
+        Pair_Sectoff_Type *pair = pair_Sectoff_Type_new();
+        pair_Sectoff_Type_ctor(pair, t_soff, t);
+
+        DO_OR_FAIL(sect_types_read(section, soff, t, t_ent, &ph_sz));
+        list_Pair_Sectoff_Type_add(o_list, pair);
+
+        soff += ph_sz;
+    }
 
     return OK;
 }
 
-status_t sect_type_find(sect_type_t *const section, const string_t *const type_name, type_t *const o_type)
+Status sect_types_find(struct Sect_types *const section, const String *const type_name, Type *const o_type, Sectoff *adr)
 {
-    list_type_t *type_list = list_type_t_new();
-    sect_type_load(section, type_list);
+    List_Pair_Sectoff_Type *type_list = list_Pair_Sectoff_Type_new();
+    DO_OR_FAIL(sect_types_load(section, type_list));
 
     while (type_list->head != NULL)
     {
-        if (string_cmp(type_list->head->name, type_name) == 0)
+        if (string_cmp(type_list->head->s->name, type_name) == 0)
         {
-            type_cpy(o_type, type_list->head);
-            break;
+            type_cpy(o_type, type_list->head->s);
+            *adr = *type_list->head->f;
+            return OK;
         }
         else
         {
-            list_type_t_del_fst(type_list);
+            list_Pair_Sectoff_Type_del_fst(type_list);
         }
     }
 
-    list_type_t_dtor(type_list);
+    list_Pair_Sectoff_Type_dtor(type_list);
 
-    return OK;
+    return FAILED;
 }
 
-status_t sect_types_sync(sect_type_t *const section)
+/* Private functions */
+Status sect_types_rd_type(Sect_types *const section, const Sectoff sectoff, Type_entity *const o_ent)
 {
-    return sect_head_sync(&section->header);
+    return sect_head_read((Sect_head *)section, sectoff, sizeof(Type_entity), o_ent);
 }
-
-status_t sect_type_load(sect_type_t *const section, list_type_t *const o_type_list)
+Status sect_types_rd_atr(Sect_types *const section, const Sectoff sectoff, Attr_entity *const o_atr)
 {
-    sectoff_t cur_sctoff = sizeof(sect_head_entity_t);
-
-    while (cur_sctoff < section->header.lst_itm_ptr)
-    {
-        type_t *t = type_new();
-        type_entity_t *t_ent = type_entity_new();
-
-        sect_type_read(section, cur_sctoff, t, t_ent);
-        type_entity_dtor(t_ent);
-
-        list_type_t_add(o_type_list, t);
-        cur_sctoff += sizeof(type_entity_t) + t->attr_list->count * sizeof(attr_entity_t);
-    }
-
-    return OK;
+    return sect_head_read((Sect_head *)section, sectoff, sizeof(Attr_entity), o_atr);
 }
-
-status_t sect_type_rd_ent(sect_type_t *const section, const sectoff_t sectoff, type_entity_t *const o_ent)
+Status sect_types_wrt_type(Sect_types *const section, const Sectoff sectoff, const Type_entity *const o_ent)
 {
-    SAVE_FILP(section->header.filp, {
-        RA_FREAD_OR_FAIL(o_ent, sizeof(type_entity_t), sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
-    });
-
-    return OK;
+    return sect_head_write((Sect_head *)section, sectoff, sizeof(Type_entity), o_ent);
 }
-
-status_t sect_type_rd_atr(sect_type_t *const section, const sectoff_t sectoff, attr_entity_t *const o_atr)
+Status sect_types_wrt_atr(Sect_types *const section, const Sectoff sectoff, const Attr_entity *const o_atr)
 {
-    SAVE_FILP(section->header.filp, {
-        RA_FREAD_OR_FAIL(o_atr, sizeof(attr_entity_t), sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
-    });
-
-    return OK;
+    return sect_head_write((Sect_head *)section, sectoff, sizeof(Attr_entity), o_atr);
 }
-
-static status_t sect_type_wrt(sect_type_t *const section, const sectoff_t sectoff, void *data, size_t size)
+int sect_types_cmp(Sect_types *this, Sect_types *other)
 {
-    SAVE_FILP(section->header.filp, {
-        RA_FWRITE_OR_FAIL(data, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
-    });
-
-    return OK;
+    return sect_head_cmp((Sect_head *)this, (Sect_head *)other);
 }
 
-static status_t sect_type_rd(sect_type_t *const section, const sectoff_t sectoff, size_t size, void *o_data)
-{
-    SAVE_FILP(section->header.filp, {
-        RA_FREAD_OR_FAIL(o_data, size, sect_head_get_fileoff(&section->header, sectoff), section->header.filp);
-    });
+PAIR_DEFINE(Sectoff, Type, free, sectoff_cmp, type_dtor, type_cmp);
+LIST_DEFINE(Pair_Sectoff_Type, pair_Sectoff_Type_dtor, pair_Sectoff_Type_cmp);
 
-    return OK;
-}
-
-static status_t reduce_lst_itm_ptr_emt(sect_type_t *section)
-{
-    type_entity_t *lst_entity = type_entity_new();
-    type_entity_t *rd_entity = type_entity_new();
-
-    sect_type_rd_ent(section, section->header.lst_itm_ptr - sizeof(type_entity_t), rd_entity);
-
-    while (section->header.lst_itm_ptr != sizeof(sect_head_entity_t) && memcmp(lst_entity, rd_entity, sizeof(type_entity_t)) == 0)
-    {
-        section->header.lst_itm_ptr -= sizeof(type_entity_t);
-        section->header.free_space += sizeof(type_entity_t);
-
-        sect_type_rd_ent(section, section->header.lst_itm_ptr - sizeof(type_entity_t), rd_entity);
-    }
-
-    type_entity_dtor(lst_entity);
-    type_entity_dtor(rd_entity);
-
-    return sect_head_sync((sect_head_t *)section);
-}
-static status_t reduce_fst_rec_ptr_emt(sect_type_t *section)
-{
-    char chr;
-    while (true)
-    {
-        sect_type_rd(section, section->header.fst_rec_ptr, 1, &chr);
-
-        if (section->header.fst_rec_ptr == SECTION_SIZE || chr != 0)
-            break;
-
-        section->header.fst_rec_ptr += 1;
-        section->header.free_space += 1;
-    }
-
-    return sect_head_sync((sect_head_t *)section);
-}
+LIST_DEFINE(Sect_types, sect_types_dtor, sect_types_cmp);
