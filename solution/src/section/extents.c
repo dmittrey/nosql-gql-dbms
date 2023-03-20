@@ -255,25 +255,6 @@ Status sect_ext_find(Sect_ext *const section, const Query *const q, List_Pair_Js
     return OK;
 }
 
-Status sect_ext_add_next(Sect_ext *const section, Sect_ext *const new_section)
-{
-    Sect_ext *cur = section;
-    if (cur == NULL)
-    {
-        memcpy(section, new_section, sizeof(Sect_ext));
-    }
-
-    while (cur->next != NULL)
-    {
-        cur = cur->next;
-    }
-
-    cur->next = new_section;
-    cur->header.next_ptr = new_section->header.file_offset;
-
-    return sect_head_sync((Sect_head *)section);
-}
-
 /* Private functions */
 Status sect_ext_load(const Sect_ext *const section, List_Pair_Json_Entity *const collection)
 {

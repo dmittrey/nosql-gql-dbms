@@ -24,8 +24,6 @@ Status sect_ext_update(struct Sect_ext *const section, const Sectoff soff, const
 Status sect_ext_delete(struct Sect_ext *const section, const Sectoff sectoff, Entity *del_entity);
 Status sect_ext_find(struct Sect_ext *const section, const Query *const query, List_Pair_Json_Entity *const o_list);
 
-Status sect_ext_add_next(struct Sect_ext *const section, struct Sect_ext *const);
-
 typedef struct
 {
     Sect_head_entity header;
