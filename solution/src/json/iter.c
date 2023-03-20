@@ -26,13 +26,20 @@ void iter_ctor(Iter *const iter, File *const file, Query *const query)
     iter->cur_sect = file->f_extent->head;
     iter->cur_col = list_Pair_Json_Entity_new();
 
-    while (iter->cur_sect != NULL && iter->cur_sect->next != NULL && iter->cur_col->count == 0)
+    while (iter->cur_sect != NULL && iter->cur_col->count == 0)
     {
         file_find(iter->file, iter->cur_sect, iter->query, iter->cur_col);
         if (iter->cur_col->count != 0)
             break;
         iter->cur_sect = iter->cur_sect->next;
     }
+
+    // Pair_Json_Entity *cur = iter->cur_col->head;
+    // for (size_t i = 0; i < iter->cur_col->count; i++)
+    // {
+    //     printf("Section %zu\t", iter->cur_sect->header.file_offset);
+    //     printf("%s\n", cur->f->key->val);
+    // }
 }
 void iter_dtor(Iter *iter)
 {
@@ -53,6 +60,13 @@ void iter_next(Iter *const iter)
         {
             iter->cur_sect = iter->cur_sect->next;
             file_find(iter->file, iter->cur_sect, iter->query, iter->cur_col);
+
+            // Pair_Json_Entity *cur = iter->cur_col->head;
+            // for (size_t i = 0; i < iter->cur_col->count; i++)
+            // {
+            //     printf("Section %zu\t", iter->cur_sect->header.file_offset);
+            //     printf("%s\n", cur->f->key->val);
+            // }
         }
     }
 }

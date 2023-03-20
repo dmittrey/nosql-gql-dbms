@@ -297,10 +297,6 @@ Status file_find(File *const file, Sect_ext *section, const Query *const query, 
         Entity *dad_entity = entity_new();
         DO_OR_FAIL(file_read(file, temp->head->s->fam_addr.dad_ptr, dad_json, dad_entity));
 
-        Entity *zr = entity_new();
-        if (entity_cmp(zr, dad_entity) == 0)
-            printf("NULL\n");
-
         if (query_check_and(query, dad_json))
         {
             Pair_Json_Entity *pair = pair_Json_Entity_new();

@@ -310,28 +310,25 @@ void bench_update()
 
     for (size_t i = 0; i < 50; i++)
     {
-        for (size_t j = 0; j < 50 * i; j++)
+        for (size_t j = 0; j < 20 * i; j++)
         {
             if (user_write(file, info_json, V_type->name) == FAILED)
                 printf("Failed");
-            // if (user_write(file, glossary, V_type->name) == FAILED)
-                // printf("Failed");
+            if (user_write(file, glossary, V_type->name) == FAILED)
+            printf("Failed");
         }
         ins_cnt = 50 * i;
 
-        if (ins_cnt == 400)
-        {
-            printf("l");
-        }
         timespec_get(&ts, TIME_UTC);
         long cur_ts = ts.tv_nsec;
 
         user_update(file, query, glossary);
+        // user_delete(file, query);
 
         timespec_get(&ts, TIME_UTC);
         long delta = ts.tv_nsec - cur_ts;
         printf("%ld, %zu \t", ins_cnt, delta);
 
-        user_delete(file, glos_query);
+        // user_delete(file, glos_query);
     }
 }

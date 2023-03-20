@@ -71,23 +71,25 @@ Status user_update(struct File *const file, Query *const query, const Json *cons
     struct Iter *iter = iter_new();
     iter_ctor(iter, file, query);
 
+    size_t cnt = 0;
+
     Fileoff upd_fileoff;
     while (iter_is_avail(iter))
     {
-        Sect_types *t_sect = get_sect_types(file, iter_get_entity(iter)->type_ptr);
-        Type *t = type_new();
-        Type_entity t_ent;
-        size_t ph_sz;
-        sect_types_read(t_sect, sect_head_get_sectoff((Sect_head *)t_sect, iter_get_entity(iter)->type_ptr), t, &t_ent, &ph_sz);
+        cnt++;
 
-        if (json_is_apply_type(new_json, t) == OK)
+        Fileoff wrt;
+        if (file_update(file, iter_get_json(iter)->foff, new_json, iter_get_entity(iter)->fam_addr.dad_ptr, iter_get_entity(iter)->type_ptr, true, &wrt) == FAILED)
         {
-            Fileoff wrt;
-            file_update(file, iter_get_json(iter)->foff, new_json, iter_get_entity(iter)->fam_addr.dad_ptr, iter_get_entity(iter)->type_ptr, true, &wrt);
+            cnt--;
+            // printf("Kek");
         }
 
         iter_next(iter);
     }
+
+    printf("Updated %zu\n", cnt);
+
     iter_dtor(iter);
 
     return OK;
