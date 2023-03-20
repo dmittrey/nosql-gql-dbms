@@ -285,10 +285,7 @@ void bench_update()
     json_add_son(glossary, acronym);
     json_add_son(glossary, abbrev);
 
-    FILE *filp = fopen(test_file_name, "w+");
-
-    File *file = file_new();
-    file_ctor(file, filp);
+    File *file = user_open_file(test_file_name);
 
     TYPE_INIT(V_type, "V");
     user_add_type(file, V_type);
@@ -328,4 +325,6 @@ void bench_update()
 
         user_delete(file, glos_query);
     }
+
+    user_close_file(file);
 }

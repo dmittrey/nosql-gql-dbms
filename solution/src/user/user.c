@@ -8,6 +8,21 @@
 #include "section/types.h"
 #include "section/types_p.h"
 
+struct File *user_open_file(const char *const name)
+{
+    FILE *filp = fopen(name, "w+");
+
+    struct File *file = file_new();
+    file_ctor(file, filp);
+
+    return file;
+}
+
+Status user_close_file(struct File *const file)
+{
+    return file_dtor(file);
+}
+
 Status user_add_type(struct File *const file, const Type *const type)
 {
     Fileoff wrt_adr;
