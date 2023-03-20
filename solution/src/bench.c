@@ -306,29 +306,26 @@ void bench_update()
     Query *glos_query = query_new();
     query_item_add(glos_query, sort_query);
 
-    long ins_cnt = 0;
-
-    for (size_t i = 0; i < 50; i++)
+    for (size_t i = 1; i < 51; i++)
     {
-        for (size_t j = 0; j < 20 * i; j++)
+        long ins_cnt = 0;
+        for (size_t j = 0; j < 200 * i; j++)
         {
-            if (user_write(file, info_json, V_type->name) == FAILED)
-                printf("Failed");
-            if (user_write(file, glossary, V_type->name) == FAILED)
-            printf("Failed");
+            if (user_write(file, info_json, V_type->name) == OK)
+            {
+                ins_cnt++;
+            }
+            user_write(file, glossary, V_type->name);
         }
-        ins_cnt = 50 * i;
 
-        timespec_get(&ts, TIME_UTC);
-        long cur_ts = ts.tv_nsec;
+        clock_t start = clock();
 
         user_update(file, query, glossary);
-        // user_delete(file, query);
 
-        timespec_get(&ts, TIME_UTC);
-        long delta = ts.tv_nsec - cur_ts;
-        printf("%ld, %zu \t", ins_cnt, delta);
+        clock_t end = clock();
+        double elapsed = (double)(end - start) * 10;
+        printf("%ld, %f \t", ins_cnt, elapsed);
 
-        // user_delete(file, glos_query);
+        user_delete(file, glos_query);
     }
 }

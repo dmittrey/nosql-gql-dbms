@@ -209,6 +209,8 @@ Status file_update(File *const file, const Fileoff fileoff, const Json *const ne
     if (extents == NULL)
         return FAILED;
 
+    
+
     Json *old_json = json_new();
     Entity *old_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));

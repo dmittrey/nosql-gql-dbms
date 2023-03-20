@@ -77,18 +77,22 @@ Status user_update(struct File *const file, Query *const query, const Json *cons
     while (iter_is_avail(iter))
     {
         cnt++;
-
-        Fileoff wrt;
-        if (file_update(file, iter_get_json(iter)->foff, new_json, iter_get_entity(iter)->fam_addr.dad_ptr, iter_get_entity(iter)->type_ptr, true, &wrt) == FAILED)
+        if (file_delete(file, iter_get_json(iter)->foff, true) == FAILED)
         {
             cnt--;
-            // printf("Kek");
+        }
+        else
+        {
+            if (file_write(file, new_json, iter_get_entity(iter)->fam_addr.dad_ptr, iter_get_entity(iter)->type_ptr, &upd_fileoff) == FAILED)
+            {
+                cnt--;
+            }
         }
 
         iter_next(iter);
     }
 
-    printf("Updated %zu\n", cnt);
+    // printf("Updated %zu\n", cnt);
 
     iter_dtor(iter);
 
