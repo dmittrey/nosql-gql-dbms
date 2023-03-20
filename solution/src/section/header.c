@@ -122,7 +122,7 @@ Fileoff sect_head_get_fileoff(const Sect_head *const header, const Sectoff offse
     return header->file_offset + offset;
 }
 
-Sectoff sect_head_get_soff(const Sect_head *const header, const Fileoff offset)
+Sectoff sect_head_get_sectoff(const Sect_head *const header, const Fileoff offset)
 {
     return offset - header->file_offset;
 }

@@ -15,3 +15,6 @@ typedef struct File
 
 Status file_add_sect_ext(File *const file, struct Sect_ext *r_extents);
 Status file_add_sect_types(File *const file, struct Sect_types *r_types);
+
+Sect_ext *get_sect_ext(const File *const file, Fileoff fileoff);
+Sect_types *get_sect_types(const File *const file, Fileoff fileoff);

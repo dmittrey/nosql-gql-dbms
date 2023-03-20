@@ -281,12 +281,13 @@ Status sect_ext_load(const Sect_ext *const section, List_Pair_Json_Entity *const
     {
         Json *o_Json = json_new();
         Entity *o_Entity = entity_new();
-        DO_OR_FAIL(sect_ext_read(section, i, o_Entity, o_Json));
+        if (sect_ext_read(section, i, o_Entity, o_Json) == OK)
+        {
+            Pair_Json_Entity *pair = pair_Json_Entity_new();
+            pair_Json_Entity_ctor(pair, o_Json, o_Entity);
 
-        Pair_Json_Entity *pair = pair_Json_Entity_new();
-        pair_Json_Entity_ctor(pair, o_Json, o_Entity);
-
-        list_Pair_Json_Entity_add(collection, pair);
+            list_Pair_Json_Entity_add(collection, pair);
+        }
     }
 
     return OK;

@@ -169,7 +169,7 @@ static Status SectionTypes_WriteAllAttributesTypeWithNotEnoughSpaceSection_Succe
     Sect_types *types = sect_types_new();
     sect_types_ctor(types, 0, file);
 
-    sect_head_shift_lip(&types->header, 8100);
+    sect_head_shift_lip(&types->header, SECTION_SIZE - 92);
 
     TYPE_INIT(t, "V");
 

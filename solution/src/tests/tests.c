@@ -22,7 +22,7 @@ void do_tests()
     test_file_add_type();
     test_file_delete_type();
 
-    // test_file_write();
+    test_file_write();
     // test_file_read();
     // test_file_delete();
     // test_file_update();

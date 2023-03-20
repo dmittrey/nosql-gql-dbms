@@ -18,6 +18,7 @@ Status file_ctor(File *const file, FILE *const filp)
 {
     file->f_extent = list_Sect_ext_new();
     file->f_types = list_Sect_types_new();
+
     return file_head_ctor((File_head *)file, filp);
 }
 Status file_dtor(File *file)
@@ -92,328 +93,259 @@ Status file_find_type(File *const file, const String *const name, Type *const o_
     return FAILED;
 }
 
-// /*
-// cur -> bro -> son
-// */
-// status_t file_write(file_t *const file, const json_t *const json, fileoff_t dad_fileoff, fileoff_t type_foff, fileoff_t *const write_addr)
-// {
-//     ENTITY_INIT(entity, json, dad_fileoff, 0, 0);
-//     entity->type_ptr = type_foff;
+Status file_write(struct File *const file, const Json *const json, Fileoff dad_fileoff, Fileoff type_foff, Fileoff *const wrt_foff)
+{
+    ENTITY_INIT(entity, json, dad_fileoff, 0, 0, type_foff);
 
-//     sect_ext_t *extents = find_sect_ext(file, entity_ph_size(entity));
-//     if (extents == NULL)
-//     {
-//         extents = sect_ext_new();
-//         DO_OR_FAIL(file_add_sect_ext(file, extents));
-//     }
+    Sectoff wrt_soff;
+    Sect_ext *extents = file->f_extent->head;
+    while (extents != NULL && sect_ext_write(extents, json->key, json_val_ptr(json), json_val_size(json), entity, &wrt_soff) == FAILED)
+    {
+        extents = extents->next;
+    }
 
-//     sect_ext_write(extents, json, entity, write_addr);
+    if (extents == NULL)
+    {
+        extents = sect_ext_new();
+        DO_OR_FAIL(file_add_sect_ext(file, extents));
+        DO_OR_FAIL(sect_ext_write(extents, json->key, json_val_ptr(json), json_val_size(json), entity, &wrt_soff));
+    }
+    *wrt_foff = sect_head_get_fileoff((Sect_head *)extents, wrt_soff);
 
-//     *write_addr += extents->header.sect_off;
+    Fileoff bro_offset = 0;
+    if (json->bro != NULL)
+    {
+        DO_OR_FAIL(file_write(file, json->bro, dad_fileoff, 0, &bro_offset));
+        entity->fam_addr.bro_ptr = bro_offset;
+    }
 
-//     fileoff_t bro_offset = 0;
-//     if (json->bro != NULL)
-//     {
-//         DO_OR_FAIL(file_write(file, json->bro, dad_fileoff, type_foff, &bro_offset));
-//         entity->fam_addr.bro_ptr = bro_offset;
-//     }
+    Fileoff son_offset = 0;
+    if (json->son != NULL)
+    {
+        DO_OR_FAIL(file_write(file, json->son, *wrt_foff, 0, &son_offset));
+        entity->fam_addr.son_ptr = son_offset;
+    }
 
-//     fileoff_t son_offset = 0;
-//     if (json->son != NULL)
-//     {
-//         DO_OR_FAIL(file_write(file, json->son, *write_addr, type_foff, &son_offset));
-//         entity->fam_addr.son_ptr = son_offset;
-//     }
+    sect_ext_wrt_itm(extents, wrt_soff, entity);
+    entity_dtor(entity);
+    return file_head_sync((File_head *)file);
+}
 
-//     if (bro_offset)
-//     {
-//         RA_FWRITE_OR_FAIL(&bro_offset, sizeof(bro_offset), *write_addr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, bro_ptr), file->filp);
-//     }
-//     if (son_offset)
-//     {
-//         RA_FWRITE_OR_FAIL(&son_offset, sizeof(son_offset), *write_addr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
-//     }
+Status file_read(File *const file, const Fileoff fileoff, Json *const ret_json, Entity *const ret_entity)
+{
+    Sect_ext *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+        return FAILED;
 
-//     entity_dtor(entity);
+    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), ret_entity, ret_json));
+    ret_json->foff = fileoff;
 
-//     return file_head_sync((File_head *)file);
-// }
-// /*
-// 1) Прочитать секцию с нодой
-// 2) Прочитать ноду по секционному смещению
-// 3) Если есть брат, запуск от брата
-// 4) Прокинуть ссылку на брата
-// 5) Если есть сын, запуск от сына
-// 6) Прокинуть ссылку на сына
-// */
-// status_t file_read(file_t *const file, const fileoff_t fileoff, json_t *const ret_json)
-// {
-//     sect_ext_t *extents = get_sect_ext(file, fileoff);
-//     if (extents == NULL)
-//         return FAILED;
+    if (ret_entity->fam_addr.bro_ptr != 0)
+    {
+        Json *bro_json = json_new();
+        Entity entity;
+        DO_OR_FAIL(file_read(file, ret_entity->fam_addr.bro_ptr, bro_json, &entity));
+        json_add_bro(ret_json, bro_json);
+    }
 
-//     entity_t *ret_entity = entity_new();
-//     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), ret_entity, ret_json));
-//     ret_json->entity = ret_entity;
+    if (ret_entity->fam_addr.son_ptr != 0)
+    {
+        Json *son_json = json_new();
+        Entity entity;
+        DO_OR_FAIL(file_read(file, ret_entity->fam_addr.son_ptr, son_json, &entity));
+        json_add_son(ret_json, son_json);
+    }
 
-//     if (ret_entity->fam_addr.bro_ptr != 0)
-//     {
-//         json_t *bro_json = json_new();
-//         DO_OR_FAIL(file_read(file, ret_entity->fam_addr.bro_ptr, bro_json));
-//         json_add_bro(ret_json, bro_json);
-//     }
+    return OK;
+}
 
-//     if (ret_entity->fam_addr.son_ptr != 0)
-//     {
-//         json_t *son_json = json_new();
-//         DO_OR_FAIL(file_read(file, ret_entity->fam_addr.son_ptr, son_json));
-//         json_add_son(ret_json, son_json);
-//     }
+Status file_delete(File *const file, const Fileoff fileoff, const bool is_root)
+{
+    // Find root section
+    Sect_ext *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+        return FAILED;
 
-//     return file_head_sync((File_head *)file);
-// }
+    // Delete and read del root
+    Entity *del_entity = entity_new();
+    DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
 
-// /*
-// 1) Считали старую ноду
-// 2) Сравнили ноду, если надо, то обновили
-// 3) Обновили поддерево
-// */
-// status_t file_update(file_t *const file, const fileoff_t fileoff, const json_t *const new_json, const fileoff_t dad_ptr, bool is_bro_upd, fileoff_t *cur_fileoff)
-// {
-//     sect_ext_t *extents = get_sect_ext(file, fileoff);
-//     if (extents == NULL)
-//     {
-//         return FAILED;
-//     }
+    if (!is_root && del_entity->fam_addr.bro_ptr != 0)
+    {
+        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.bro_ptr, false));
+    }
 
-//     json_t *old_json = json_new();
-//     entity_t *old_entity = entity_new();
-//     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
+    // Delete recursively under tree
+    if (del_entity->fam_addr.son_ptr != 0)
+    {
+        DO_OR_FAIL(file_delete(file, del_entity->fam_addr.son_ptr, false));
+    }
 
-//     *cur_fileoff = fileoff;
-//     ENTITY_INIT(new_entity, new_json, dad_ptr, 0, 0);
+    // If dad exist change dad -> son ptr
+    if (is_root && del_entity->fam_addr.dad_ptr != 0)
+    {
+        // Change dad -> son to bro_ptr
+        if (del_entity->fam_addr.bro_ptr != 0)
+        {
+            file_head_write((File_head *)file, del_entity->fam_addr.dad_ptr + offsetof(Entity, fam_addr) + offsetof(Tplgy, son_ptr),
+                            sizeof(Fileoff), (void *)&del_entity->fam_addr.bro_ptr);
+        }
+        // Change dad -> son to 0
+        else
+        {
+            Fileoff temp_zero = 0;
+            file_head_write((File_head *)file, del_entity->fam_addr.dad_ptr + offsetof(Entity, fam_addr) + offsetof(Tplgy, son_ptr),
+                            sizeof(Fileoff), &temp_zero);
+        }
+    }
 
-//     if (json_cmp(old_json, new_json) != 0)
-//     {
-//         /*
-//             - Если не можем обновить, то удалим сущность из секции
-//             - Далее добавим сущность в первую свободную секцию
-//             - Обновим дерево под ней
-//         */
-//         if (sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json, new_entity) == FAILED)
-//         {
-//             DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), NULL));
+    entity_dtor(del_entity);
+    return file_head_sync((File_head *)file);
+}
 
-//             sect_ext_t *empty_sect_ext = find_sect_ext(file, entity_ph_size(new_entity));
-//             if (empty_sect_ext == NULL)
-//             {
-//                 empty_sect_ext = sect_ext_new();
-//                 DO_OR_FAIL(file_add_sect_ext(file, empty_sect_ext));
-//             }
+Status file_update(File *const file, const Fileoff fileoff, const Json *const new_json, const Fileoff dad_ptr, const Fileoff type_ptr, bool is_root, Fileoff *cur_fileoff)
+{
+    Sect_ext *extents = get_sect_ext(file, fileoff);
+    if (extents == NULL)
+        return FAILED;
 
-//             sectoff_t save_addr;
-//             DO_OR_FAIL(sect_ext_write(empty_sect_ext, new_json, new_entity, &save_addr));
+    Json *old_json = json_new();
+    Entity *old_entity = entity_new();
+    DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
 
-//             *cur_fileoff = sect_head_get_fileoff(&empty_sect_ext->header, save_addr);
-//         }
-//     }
+    if (json_cmp(old_json, new_json) != 0)
+    {
+        *cur_fileoff = fileoff;
+        ENTITY_INIT(new_entity, new_json, dad_ptr, 0, 0, type_ptr);
 
-//     fileoff_t bro_ptr = 0;
-//     if (is_bro_upd && new_json->bro != NULL)
-//     {
-//         DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro, *cur_fileoff, true, &bro_ptr));
-//     }
+        /*
+            - Если не можем обновить, то удалим сущность из секции
+            - Далее добавим сущность в первую свободную секцию
+            - Обновим дерево под ней
+        */
+        if (sect_ext_update(extents, sect_head_get_sectoff(&extents->header, fileoff), new_json->key, json_val_ptr(new_json), json_val_size(new_json), new_entity) == FAILED)
+        {
+            DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), NULL));
 
-//     fileoff_t son_ptr = 0;
-//     if (new_json->son != NULL)
-//     {
-//         DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son, *cur_fileoff, true, &son_ptr));
-//     }
+            Sectoff wrt_soff;
+            Sect_ext *empty_sect_ext = file->f_extent->head;
+            while (empty_sect_ext != NULL && sect_ext_write(empty_sect_ext, new_json->key, json_val_ptr(new_json), json_val_size(new_json), new_entity, &wrt_soff) == FAILED)
+            {
+                empty_sect_ext = empty_sect_ext->next;
+            }
 
-//     if (bro_ptr)
-//     {
-//         RA_FWRITE_OR_FAIL(&bro_ptr, sizeof(bro_ptr), *cur_fileoff + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, bro_ptr), file->filp);
-//     }
-//     if (son_ptr)
-//     {
-//         RA_FWRITE_OR_FAIL(&son_ptr, sizeof(son_ptr), *cur_fileoff + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
-//     }
+            if (empty_sect_ext == NULL)
+            {
+                empty_sect_ext = sect_ext_new();
+                DO_OR_FAIL(file_add_sect_ext(file, empty_sect_ext));
+                DO_OR_FAIL(sect_ext_write(extents, new_json->key, json_val_ptr(new_json), json_val_size(new_json), new_entity, &wrt_soff));
+            }
 
-//     json_dtor(old_json);
-//     entity_dtor(old_entity);
-//     entity_dtor(new_entity);
+            *cur_fileoff = sect_head_get_fileoff(&empty_sect_ext->header, wrt_soff);
+        }
+    }
 
-//     return file_head_sync((File_head *)file);
-// }
+    Fileoff bro_ptr = 0;
+    if (!is_root && new_json->bro != NULL)
+    {
+        if (old_entity->fam_addr.bro_ptr)
+        {
+            DO_OR_FAIL(file_update(file, old_entity->fam_addr.bro_ptr, new_json->bro, *cur_fileoff, 0, false, &bro_ptr));
+        }
+        else
+        {
+            DO_OR_FAIL(file_write(file, new_json->bro, *cur_fileoff, 0, &bro_ptr));
+        }
+    }
 
-// /*
-// 1) Нашли секцию с удаляемой нодой, если не нашли то FAILED
-// 2) Удалили текущую ноду и вернули ее сущность
-// 3) Удалили дерево под ней
-// 4) Поменяли ссылку с отца на сына
-// */
-// status_t file_delete(file_t *const file, const fileoff_t fileoff, bool is_root)
-// {
-//     // Find root section
-//     sect_ext_t *extents = get_sect_ext(file, fileoff);
-//     if (extents == NULL)
-//     {
-//         return FAILED;
-//     }
+    Fileoff son_ptr = 0;
+    if (new_json->son != NULL)
+    {
+        if (old_entity->fam_addr.son_ptr)
+        {
+            DO_OR_FAIL(file_update(file, old_entity->fam_addr.son_ptr, new_json->son, *cur_fileoff, 0, false, &son_ptr));
+        }
+        else
+        {
+            DO_OR_FAIL(file_write(file, new_json->son, *cur_fileoff, 0, &son_ptr));
+        }
+    }
 
-//     // Delete and read del root
-//     entity_t *const del_entity = entity_new();
-//     DO_OR_FAIL(sect_ext_delete(extents, sect_head_get_sectoff(&extents->header, fileoff), del_entity));
+    if (bro_ptr)
+    {
+        file_head_write((File_head *)file, *cur_fileoff + offsetof(Entity, fam_addr) + offsetof(Tplgy, bro_ptr), sizeof(Fileoff), &bro_ptr);
+    }
+    if (son_ptr)
+    {
+        file_head_write((File_head *)file, *cur_fileoff + offsetof(Entity, fam_addr) + offsetof(Tplgy, son_ptr), sizeof(Fileoff), &son_ptr);
+    }
 
-//     if (!is_root && del_entity->fam_addr.bro_ptr != 0)
-//     {
-//         DO_OR_FAIL(file_delete(file, del_entity->fam_addr.bro_ptr, false));
-//     }
+    json_dtor(old_json);
+    entity_dtor(old_entity);
 
-//     // Delete recursively under tree
-//     if (del_entity->fam_addr.son_ptr != 0)
-//     {
-//         DO_OR_FAIL(file_delete(file, del_entity->fam_addr.son_ptr, false));
-//     }
+    return file_head_sync((File_head *)file);
+}
 
-//     // If dad exist change dad -> son ptr
-//     if (is_root && del_entity->fam_addr.dad_ptr != 0)
-//     {
-//         // Change dad -> son to bro_ptr
-//         if (del_entity->fam_addr.bro_ptr != 0)
-//         {
-//             RA_FWRITE_OR_FAIL(&del_entity->fam_addr.bro_ptr, sizeof(fileoff_t), del_entity->fam_addr.dad_ptr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
-//         }
-//         // Change dad -> son to 0
-//         else
-//         {
-//             fileoff_t temp_zero = 0;
-//             RA_FWRITE_OR_FAIL(&temp_zero, sizeof(fileoff_t), del_entity->fam_addr.dad_ptr + offsetof(entity_t, fam_addr) + offsetof(tplgy_addr, son_ptr), file->filp);
-//         }
-//     }
+Status file_find(File *const file, Sect_ext *section, const Query *const query, List_Pair_Json_Entity *const o_obj_col)
+{
+    List_Pair_Json_Entity *temp = list_Pair_Json_Entity_new();
+    DO_OR_FAIL(sect_ext_find(section, query, temp));
 
-//     entity_dtor(del_entity);
+    while (temp->head != NULL)
+    {
+        Json *dad_json = json_new();
+        Entity *dad_entity = entity_new();
+        DO_OR_FAIL(file_read(file, temp->head->s->fam_addr.dad_ptr, dad_json, dad_entity));
 
-//     return file_head_sync((File_head *)file);
-// }
+        Entity *zr = entity_new();
+        if (entity_cmp(zr, dad_entity) == 0)
+            printf("NULL\n");
 
-// /*
-// 1) Получили массив json'ов которые удовлетворяют хотя бы одному условию
-// 2) Итерируемся по каждому
-//     - Прочитали по ссылке на родителя
-//     - Прогнали по всем условиям
-//     - Если соответствует то сохранили в o_obj_col
-// */
-// status_t file_find(file_t *const file, sect_ext_t *section, const query_t *const query, list_json_t *const o_obj_col)
-// {
-//     if (section == NULL)
-//         return OK;
+        if (query_check_and(query, dad_json))
+        {
+            Pair_Json_Entity *pair = pair_Json_Entity_new();
+            pair_Json_Entity_ctor(pair, dad_json, dad_entity);
 
-//     list_json_t *temp = list_json_t_new();
-//     DO_OR_FAIL(sect_ext_find(section, query, temp));
+            list_Pair_Json_Entity_add(o_obj_col, pair);
+        }
+        else
+        {
+            json_dtor_with_bro(dad_json);
+        }
 
-//     while (temp->head != NULL)
-//     {
-//         json_t *dad_json = json_new();
-//         DO_OR_FAIL(file_read(file, temp->head->entity->fam_addr.dad_ptr, dad_json));
+        list_Pair_Json_Entity_del_fst(temp);
+    }
 
-//         if (query_check_and(query, dad_json))
-//         {
-//             if (!list_json_t_add_lk_set(o_obj_col, dad_json))
-//             {
-//                 json_dtor_with_bro(dad_json);
-//             }
-//         }
-//         else
-//         {
-//             json_dtor_with_bro(dad_json);
-//         }
+    list_Pair_Json_Entity_dtor(temp);
 
-//         list_json_t_del_fst(temp);
-//     }
+    return OK;
+}
 
-//     list_json_t_dtor(temp);
+Sect_ext *get_sect_ext(const File *const file, Fileoff fileoff)
+{
+    Sect_ext *r_sect_ext = file->f_extent->head;
+    while (r_sect_ext != NULL)
+    {
+        if (r_sect_ext->header.file_offset <= fileoff && r_sect_ext->header.file_offset + SECTION_SIZE > fileoff)
+            return r_sect_ext;
 
-//     return OK;
-// }
+        r_sect_ext = r_sect_ext->next;
+    }
+    return NULL;
+}
 
-// /*
-// Add empty extents section to end of file
-// */
-// status_t file_add_sect_ext(file_t *const file, sect_ext_t *new_extents)
-// {
-//     DO_OR_FAIL(sect_ext_ctor(new_extents, file->header.lst_sect_ptr, file->filp));
-//     file->header.lst_sect_ptr += SECTION_SIZE;
-//     if (file->f_extent == NULL)
-//     {
-//         file->f_extent = new_extents;
-//         return OK;
-//     }
+Sect_types *get_sect_types(const File *const file, Fileoff fileoff)
+{
+    Sect_types *r_sect_types = file->f_types->head;
+    while (r_sect_types != NULL)
+    {
+        if (r_sect_types->header.file_offset <= fileoff && r_sect_types->header.file_offset + SECTION_SIZE > fileoff)
+            return r_sect_types;
 
-//     sect_ext_t *cur = file->f_extent;
-//     while (cur->next != NULL)
-//     {
-//         cur = cur->next;
-//     }
-//     cur->next = new_extents;
-//     cur->header.next_ptr = new_extents->header.sect_off;
-//     DO_OR_FAIL(sect_ext_sync(cur));
-
-//     return file_head_sync((File_head *)file);
-// }
-
-// /*
-// Add empty types section to end of file
-// */
-// status_t file_add_sect_types(file_t *const file, sect_type_t *new_types)
-// {
-//     DO_OR_FAIL(sect_type_ctor(new_types, file->header.lst_sect_ptr, file->filp));
-//     file->header.lst_sect_ptr += SECTION_SIZE;
-//     if (file->f_types == NULL)
-//     {
-//         file->f_types = new_types;
-//         return OK;
-//     }
-
-//     sect_type_t *cur = file->f_types;
-//     while (cur->next != NULL)
-//     {
-//         cur = cur->next;
-//     }
-//     cur->next = new_types;
-//     cur->header.next_ptr = new_types->header.sect_off;
-//     DO_OR_FAIL(sect_types_sync(cur));
-
-//     return file_head_sync((File_head *)file);
-// }
-
-// static sect_ext_t *get_sect_ext(const file_t *const file, fileoff_t fileoff)
-// {
-//     sect_ext_t *r_sect_ext = file->f_extent;
-
-//     while (r_sect_ext != NULL)
-//     {
-//         if (r_sect_ext->header.sect_off <= fileoff && r_sect_ext->header.sect_off + SECTION_SIZE > fileoff)
-//         {
-//             break;
-//         }
-
-//         r_sect_ext = r_sect_ext->next;
-//     }
-
-//     return r_sect_ext;
-// }
-
-// static sect_ext_t *find_sect_ext(const file_t *const file, const size_t entity_size)
-// {
-//     sect_ext_t *cur_ext = file->f_extent;
-//     while (cur_ext != NULL && cur_ext->header.free_space < entity_size)
-//     {
-//         cur_ext = cur_ext->next;
-//     }
-
-//     return cur_ext;
-// }
+        r_sect_types = r_sect_types->next;
+    }
+    return NULL;
+}
 
 Status file_add_sect_ext(File *const file, struct Sect_ext *r_extents)
 {

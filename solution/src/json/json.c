@@ -32,7 +32,8 @@ void json_dtor(Json *j)
     }
 
     // Free Json
-    string_dtor(j->key);
+    if (j->key != NULL)
+        string_dtor(j->key);
     if (j->type == TYPE_STRING)
         string_dtor(j->value.string_val);
     free(j);
@@ -162,15 +163,7 @@ int json_cmp(const Json *const j1, const Json *const j2)
 
 int json_cmp_wth_foff(const Json *const j1, const Json *const j2)
 {
-    int cmp = json_cmp(j1, j2);
-    if (cmp != 0)
-    {
-        return cmp;
-    }
-    else
-    {
-        return j1->foff != j2->foff;
-    }
+    return memcmp(&j1->foff, &j2->foff, sizeof(Fileoff));
 }
 
 /*

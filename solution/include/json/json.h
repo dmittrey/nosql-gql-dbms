@@ -48,7 +48,7 @@ typedef struct Json
     struct Json *son;
     uint64_t type;     // Тип значения
     struct Json *next; // Указатель на следующий json в секции
-    Fileoff foff;      // TODO Check write in file api
+    Fileoff foff;
 } Json;
 
 Json *json_new();
@@ -64,6 +64,7 @@ void json_add_bro(Json *const j, Json *const bro);
 void json_add_son(Json *const j, Json *const son);
 void json_add_nxt(Json *const j, Json *const nxt);
 
-int json_cmp(const Json *const json_1, const Json *const json_2);
+int json_cmp(const Json *const this, const Json *const other);
+int json_cmp_wth_foff(const Json *const this, const Json *const other);
 
 bool json_is_apply_type(const Json *const json, const Type *const type);

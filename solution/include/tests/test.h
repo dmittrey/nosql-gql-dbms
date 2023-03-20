@@ -24,7 +24,7 @@ void test_types_find();
 void test_file_add_type();
 void test_file_delete_type();
 
-// void test_file_write();
+void test_file_write();
 // void test_file_read();
 // void test_file_update();
 // void test_file_delete();
