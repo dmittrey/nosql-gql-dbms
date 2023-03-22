@@ -92,6 +92,16 @@ Status file_find_type(File *const file, const String *const name, Type *const o_
 
     return FAILED;
 }
+Status file_read_type(File *const file, const Fileoff foff, Type *const o_type)
+{
+    Sect_types *cur_sect = get_sect_types(file, foff);
+    if (cur_sect == NULL)
+        return FAILED;
+
+    Type_entity ent;
+    size_t ent_sz;
+    return sect_types_read(cur_sect, sect_head_get_sectoff((Sect_head*) cur_sect, foff), o_type, &ent, &ent_sz);
+}
 
 Status file_write(struct File *const file, const Json *const json, Fileoff dad_fileoff, Fileoff type_foff, Fileoff *const wrt_foff)
 {
@@ -209,8 +219,6 @@ Status file_update(File *const file, const Fileoff fileoff, const Json *const ne
     if (extents == NULL)
         return FAILED;
 
-    
-
     Json *old_json = json_new();
     Entity *old_entity = entity_new();
     DO_OR_FAIL(sect_ext_read(extents, sect_head_get_sectoff(&extents->header, fileoff), old_entity, old_json));
@@ -299,7 +307,10 @@ Status file_find(File *const file, Sect_ext *section, const Query *const query, 
         Entity *dad_entity = entity_new();
         DO_OR_FAIL(file_read(file, temp->head->s->fam_addr.dad_ptr, dad_json, dad_entity));
 
-        if (query_check_and(query, dad_json))
+        Type *type = type_new();
+        file_read_type(file, dad_entity->type_ptr, type);
+
+        if (query_check_and(query, dad_json) && query_check_type(query, type))
         {
             Pair_Json_Entity *pair = pair_Json_Entity_new();
             pair_Json_Entity_ctor(pair, dad_json, dad_entity);

@@ -15,6 +15,7 @@ Status file_dtor(struct File *);
 Status file_add_type(struct File *const file, const Type *const type, Fileoff *wrt_foff);
 Status file_delete_type(struct File *const file, const String *const name);
 Status file_find_type(struct File *const file, const String *const name, Type *const o_type, Sectoff *const o_adr, struct Sect_types **o_sect_ptr);
+Status file_read_type(struct File *const file, const Fileoff foff, Type *const o_type);
 
 Status file_write(struct File *const file, const Json *const json, Fileoff dad_fileoff, Fileoff type_foff, Fileoff *const wrt_foff);
 Status file_read(struct File *const file, const Fileoff fileoff, Json *const ret_json, Entity* const ret_entity);

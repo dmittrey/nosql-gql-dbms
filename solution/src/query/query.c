@@ -4,6 +4,10 @@ Query *query_new()
 {
     return memset(my_malloc(Query), 0, sizeof(Query));
 }
+void query_ctor(Query *q, String *str)
+{
+    q->type_name = str;
+}
 
 void query_dtor(Query *q)
 {
@@ -77,4 +81,15 @@ bool query_check_and(const Query *const q, const Json *const dad_json)
     }
 
     return true;
+}
+
+bool query_check_type(const Query *const q, const Type *const type)
+{
+    if (q->type_name == NULL)
+        return true;
+
+    if (type->name == NULL)
+        return false;
+
+    return string_cmp(q->type_name, type->name) == 0;
 }

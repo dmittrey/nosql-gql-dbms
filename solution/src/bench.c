@@ -101,10 +101,12 @@ void bench_read()
     File *file = file_new();
     file_ctor(file, filp);
 
-    STR_INIT(amount_q_key, "amount");
-    QUERY_ITEM_INIT(TYPE_INT32, amount_query, amount_q_key, 50000);
+    STR_INIT(amount_q_key, "flag");
+    QUERY_ITEM_INIT(TYPE_BOOL, amount_query, amount_q_key, true);
 
+    STR_INIT(q_name, "K");
     Query *query = query_new();
+    query_ctor(query, q_name);
     query_item_add(query, amount_query);
 
     long ins_cnt = 0;
@@ -124,8 +126,8 @@ void bench_read()
         for (size_t i = 0; i < 50; i++)
         {
             user_write(file, info_json, K_type->name);
-            user_write(file, location_json, T_type->name);
-            user_write(file, flag_json, V_type->name);
+            user_write(file, location_json, K_type->name);
+            user_write(file, flag_json, K_type->name);
             ins_cnt += 3;
         }
 
