@@ -7,9 +7,9 @@ void bench_update();
 
 int main(int argc, char **argv)
 {
-    // do_tests();
+    do_tests();
     // bench_write();
-    bench_read();
+    // bench_read();
     // bench_delete();
     // bench_update();
 }
