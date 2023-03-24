@@ -305,7 +305,7 @@ void bench_update()
     Query *glos_query = query_new();
     query_item_add(glos_query, sort_query);
 
-    for (size_t i = 1; i < 2; i++)
+    for (size_t i = 1; i < 51; i++)
     {
         long ins_cnt = 0;
         for (size_t j = 0; j < 200 * i; j++)
