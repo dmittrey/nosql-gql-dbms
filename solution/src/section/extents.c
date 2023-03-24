@@ -54,7 +54,11 @@ Status sect_ext_read(const Sect_ext *const section, const Sectoff Sectoff, Entit
 
     // Read key
     char *key = my_malloc_array(char, o_entity->key_size);
-    DO_OR_FAIL(sect_head_read((Sect_head *)section, o_entity->key_ptr, o_entity->key_size * sizeof(char), key));
+    if (sect_head_read((Sect_head *)section, o_entity->key_ptr, o_entity->key_size * sizeof(char), key) == FAILED)
+    {
+        free(key);
+        return FAILED;
+    }
 
     // Append key to Json
     json_ctor(o_json, o_entity->type, key, o_entity->key_size);
@@ -226,15 +230,17 @@ Status sect_ext_load(const Sect_ext *const section, List_Fileoff_itm *const o_co
 {
     for (size_t i = sizeof(Sect_head_entity); i < section->header.lst_itm_ptr; i += sizeof(Entity))
     {
-        Json o_Json;
-        Entity o_Entity;
-        if (sect_ext_read(section, i, &o_Entity, &o_Json) == OK)
+        Json *o_Json = json_new();
+        Entity *o_Entity = entity_new();
+        if (sect_ext_read(section, i, o_Entity, o_Json) == OK)
         {
             Fileoff_itm *foff_itm = my_calloc(Fileoff_itm);
-            foff_itm->foff = sect_head_get_fileoff((Sect_head*)section, i);
+            foff_itm->foff = sect_head_get_fileoff((Sect_head *)section, i);
 
             list_Fileoff_itm_add(o_col, foff_itm);
         }
+        json_dtor(o_Json);
+        entity_dtor(o_Entity);
     }
 
     return OK;

@@ -323,6 +323,7 @@ Status file_find(File *const file, Sect_ext *section, const Query *const query, 
             entity_dtor(entity);
         }
 
+        type_dtor(type);
         list_Fileoff_itm_del_fst(temp_foff_col);
     }
 

@@ -42,10 +42,7 @@ void iter_dtor(Iter *iter)
 
 void iter_next(Iter *const iter)
 {
-    if (iter->cur_col->count != 0)
-    {
-        list_Pair_Json_Entity_del_fst(iter->cur_col);
-    }
+    list_Pair_Json_Entity_del_fst(iter->cur_col);
 
     if (iter->cur_col->count == 0)
     {

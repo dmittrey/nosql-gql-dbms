@@ -52,14 +52,15 @@
             TYPE *nxt = col->head->next;                                   \
             DTOR_FUNC(col->head);                                          \
             col->head = nxt;                                               \
+            col->count -= 1;                                               \
         }                                                                  \
         else if (col->count == 1)                                          \
         {                                                                  \
             DTOR_FUNC(col->head);                                          \
             col->head = NULL;                                              \
             col->tail = NULL;                                              \
+            col->count -= 1;                                               \
         }                                                                  \
-        col->count -= 1;                                                   \
     }                                                                      \
     void list_##TYPE##_del_nxt(List_##TYPE *const col, TYPE *const ent)    \
     {                                                                      \

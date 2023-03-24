@@ -48,9 +48,13 @@ Status user_write(struct File *const file, const Json *const json, const String 
 
     if (json_is_apply_type(json, t) == OK)
     {
+        type_dtor(t);
+
         Fileoff wrt_foff;
         return file_write(file, json, 0, sect_head_get_fileoff((Sect_head *)types, soff), &wrt_foff);
     }
+
+    type_dtor(t);
     return FAILED;
 }
 
@@ -100,6 +104,6 @@ Status user_update(struct File *const file, Query *const query, const Json *cons
     }
     iter_dtor(iter);
 
-    printf("Updated %d", cnt);
+    printf("Updated %d\t", cnt);
     return OK;
 }

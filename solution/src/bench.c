@@ -191,10 +191,7 @@ void bench_delete()
     json_add_son(glossary, acronym);
     json_add_son(glossary, abbrev);
 
-    FILE *filp = fopen(test_file_name, "w+");
-
-    File *file = file_new();
-    file_ctor(file, filp);
+    File *file = user_open_file(test_file_name);
 
     TYPE_INIT(V_type, "V");
     user_add_type(file, V_type);
@@ -236,6 +233,13 @@ void bench_delete()
         user_delete(file, glos_query);
         printf("\n");
     }
+
+    type_dtor(V_type);
+    query_dtor(query);
+    query_dtor(glos_query);
+    json_dtor(info_json);
+    json_dtor(glossary);
+    user_close_file(file);
 }
 
 void bench_update()
@@ -256,8 +260,6 @@ void bench_update()
         "abbrev": "ISO 8879:1986"
     }
     */
-
-    struct timespec ts;
 
     STR_INIT(location_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
@@ -324,7 +326,13 @@ void bench_update()
         printf("%ld, %f \t", ins_cnt, elapsed);
 
         user_delete(file, glos_query);
+        printf("\n");
     }
 
+    type_dtor(V_type);
+    query_dtor(query);
+    query_dtor(glos_query);
+    json_dtor(info_json);
+    json_dtor(glossary);
     user_close_file(file);
 }
