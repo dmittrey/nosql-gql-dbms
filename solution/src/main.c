@@ -11,5 +11,5 @@ int main(int argc, char **argv)
     // bench_write();
     // bench_read();
     // bench_delete();
-    // bench_update();
+    bench_update();
 }

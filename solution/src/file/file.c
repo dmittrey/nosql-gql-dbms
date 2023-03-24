@@ -100,7 +100,7 @@ Status file_read_type(File *const file, const Fileoff foff, Type *const o_type)
 
     Type_entity ent;
     size_t ent_sz;
-    return sect_types_read(cur_sect, sect_head_get_sectoff((Sect_head*) cur_sect, foff), o_type, &ent, &ent_sz);
+    return sect_types_read(cur_sect, sect_head_get_sectoff((Sect_head *)cur_sect, foff), o_type, &ent, &ent_sz);
 }
 
 Status file_write(struct File *const file, const Json *const json, Fileoff dad_fileoff, Fileoff type_foff, Fileoff *const wrt_foff)
@@ -298,34 +298,35 @@ Status file_update(File *const file, const Fileoff fileoff, const Json *const ne
 
 Status file_find(File *const file, Sect_ext *section, const Query *const query, List_Pair_Json_Entity *const o_obj_col)
 {
-    List_Pair_Json_Entity *temp = list_Pair_Json_Entity_new();
-    DO_OR_FAIL(sect_ext_find(section, query, temp));
+    List_Fileoff_itm *temp_foff_col = list_Fileoff_itm_new();
+    DO_OR_FAIL(sect_ext_load(section, temp_foff_col));
 
-    while (temp->head != NULL)
+    while (temp_foff_col->head != NULL)
     {
-        Json *dad_json = json_new();
-        Entity *dad_entity = entity_new();
-        DO_OR_FAIL(file_read(file, temp->head->s->fam_addr.dad_ptr, dad_json, dad_entity));
+        Json *json = json_new();
+        Entity *entity = entity_new();
+        DO_OR_FAIL(file_read(file, temp_foff_col->head->foff, json, entity));
 
         Type *type = type_new();
-        file_read_type(file, dad_entity->type_ptr, type);
+        file_read_type(file, entity->type_ptr, type);
 
-        if (query_check_and(query, dad_json) && query_check_type(query, type))
+        if (query_check(query, json, type))
         {
             Pair_Json_Entity *pair = pair_Json_Entity_new();
-            pair_Json_Entity_ctor(pair, dad_json, dad_entity);
+            pair_Json_Entity_ctor(pair, json, entity);
 
             list_Pair_Json_Entity_add(o_obj_col, pair);
         }
         else
         {
-            json_dtor_with_bro(dad_json);
+            json_dtor_with_bro(json);
+            entity_dtor(entity);
         }
 
-        list_Pair_Json_Entity_del_fst(temp);
+        list_Fileoff_itm_del_fst(temp_foff_col);
     }
 
-    list_Pair_Json_Entity_dtor(temp);
+    list_Fileoff_itm_dtor(temp_foff_col);
 
     return OK;
 }

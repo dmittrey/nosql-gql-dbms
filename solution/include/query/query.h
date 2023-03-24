@@ -15,6 +15,4 @@ void query_dtor(Query *);
 
 void query_item_add(Query *const, Query_item *const);
 
-bool query_check_or(const Query *const, const Json *const);
-bool query_check_and(const Query *const, const Json *const);
-bool query_check_type(const Query *const q, const Type *const type);
+bool query_check(const Query *const q, const Json *const json, const Type *json_type);

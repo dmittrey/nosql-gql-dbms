@@ -22,7 +22,7 @@ Status sect_ext_write(struct Sect_ext *const section, const String *const key, c
 Status sect_ext_read(const struct Sect_ext *const section, const Sectoff entity_addr, Entity *const o_entity, Json *const o_json);
 Status sect_ext_update(struct Sect_ext *const section, const Sectoff soff, const String *const new_key, const void *const val, const size_t val_sz, Entity *const entity);
 Status sect_ext_delete(struct Sect_ext *const section, const Sectoff sectoff, Entity *del_entity);
-Status sect_ext_find(struct Sect_ext *const section, const Query *const query, List_Pair_Json_Entity *const o_list);
+Status sect_ext_load(const struct Sect_ext *const section, List_Fileoff_itm *const collection);
 
 typedef struct
 {

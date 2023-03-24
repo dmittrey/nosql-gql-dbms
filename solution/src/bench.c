@@ -165,8 +165,6 @@ void bench_delete()
     }
     */
 
-    struct timespec ts;
-
     STR_INIT(location_str, "Moscow");
     JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
     JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 5);
@@ -227,16 +225,16 @@ void bench_delete()
         }
         ins_cnt = 50 * i;
 
-        timespec_get(&ts, TIME_UTC);
-        long cur_ts = ts.tv_nsec;
+        clock_t start = clock();
 
         user_delete(file, query);
 
-        timespec_get(&ts, TIME_UTC);
-        long delta = ts.tv_nsec - cur_ts;
-        printf("%ld, %zu\n", ins_cnt, delta);
+        clock_t end = clock();
+        double elapsed = (double)(end - start) * 10;
+        printf("%ld, %f \t", ins_cnt, elapsed);
 
         user_delete(file, glos_query);
+        printf("\n");
     }
 }
 
@@ -305,7 +303,7 @@ void bench_update()
     Query *glos_query = query_new();
     query_item_add(glos_query, sort_query);
 
-    for (size_t i = 1; i < 51; i++)
+    for (size_t i = 1; i < 2; i++)
     {
         long ins_cnt = 0;
         for (size_t j = 0; j < 200 * i; j++)

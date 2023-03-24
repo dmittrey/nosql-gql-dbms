@@ -222,58 +222,25 @@ Status sect_ext_update(Sect_ext *const section, const Sectoff soff, const String
     return FAILED;
 }
 
-/*
-    1) Загружаем ноды из секции в коллекцию пар Json, Entity
-    2) Фильтруем по query(Json должен соответствовать хотя бы одному queryItem)
-*/
-Status sect_ext_find(Sect_ext *const section, const Query *const q, List_Pair_Json_Entity *const o_list)
+Status sect_ext_load(const Sect_ext *const section, List_Fileoff_itm *const o_col)
 {
-    DO_OR_FAIL(sect_ext_load(section, o_list));
-
-    if (o_list->count == 0)
-        return OK;
-
-    Pair_Json_Entity *cur = o_list->head;
-    Pair_Json_Entity *next = o_list->head->next;
-    while (next != NULL)
+    for (size_t i = sizeof(Sect_head_entity); i < section->header.lst_itm_ptr; i += sizeof(Entity))
     {
-        if (!query_check_or(q, next->f))
+        Json o_Json;
+        Entity o_Entity;
+        if (sect_ext_read(section, i, &o_Entity, &o_Json) == OK)
         {
-            list_Pair_Json_Entity_del_nxt(o_list, cur);
-            next = cur->next;
-        }
-        else
-        {
-            cur = next;
-            next = next->next;
+            Fileoff_itm *foff_itm = my_calloc(Fileoff_itm);
+            foff_itm->foff = sect_head_get_fileoff((Sect_head*)section, i);
+
+            list_Fileoff_itm_add(o_col, foff_itm);
         }
     }
-
-    if (!query_check_or(q, o_list->head->f))
-        list_Pair_Json_Entity_del_fst(o_list);
 
     return OK;
 }
 
 /* Private functions */
-Status sect_ext_load(const Sect_ext *const section, List_Pair_Json_Entity *const collection)
-{
-    for (size_t i = sizeof(Sect_head_entity); i < section->header.lst_itm_ptr; i += sizeof(Entity))
-    {
-        Json *o_Json = json_new();
-        Entity *o_Entity = entity_new();
-        if (sect_ext_read(section, i, o_Entity, o_Json) == OK)
-        {
-            Pair_Json_Entity *pair = pair_Json_Entity_new();
-            pair_Json_Entity_ctor(pair, o_Json, o_Entity);
-
-            list_Pair_Json_Entity_add(collection, pair);
-        }
-    }
-
-    return OK;
-}
-
 Status sect_ext_wrt_itm(Sect_ext *const section, const Sectoff Sectoff, const Entity *const ent)
 {
     return sect_head_write((Sect_head *)section, Sectoff, sizeof(Entity), (void *)ent);

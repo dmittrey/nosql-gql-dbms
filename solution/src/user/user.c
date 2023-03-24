@@ -67,13 +67,18 @@ Status user_delete(struct File *const file, Query *const query)
     struct Iter *iter = iter_new();
     iter_ctor(iter, file, query);
 
+    int cnt = 0;
+
     while (iter_is_avail(iter))
     {
         DO_OR_FAIL(file_delete(file, iter_get_json(iter)->foff, true));
+        cnt++;
 
         iter_next(iter);
     }
+    iter_dtor(iter);
 
+    printf("Deleted %d\t", cnt);
     return OK;
 }
 
@@ -82,16 +87,19 @@ Status user_update(struct File *const file, Query *const query, const Json *cons
     struct Iter *iter = iter_new();
     iter_ctor(iter, file, query);
 
+    int cnt = 0;
+
     Fileoff upd_fileoff;
     while (iter_is_avail(iter))
     {
         DO_OR_FAIL(file_delete(file, iter_get_json(iter)->foff, true));
         DO_OR_FAIL(file_write(file, new_json, iter_get_entity(iter)->fam_addr.dad_ptr, iter_get_entity(iter)->type_ptr, &upd_fileoff) == FAILED);
+        cnt++;
 
         iter_next(iter);
     }
-
     iter_dtor(iter);
 
+    printf("Updated %d", cnt);
     return OK;
 }
