@@ -101,13 +101,21 @@ void bench_read()
     File *file = file_new();
     file_ctor(file, filp);
 
-    STR_INIT(amount_q_key, "flag");
-    QUERY_ITEM_INIT(TYPE_BOOL, amount_query, amount_q_key, true);
+    List_Path *flag_q_key_path_list = list_Path_new();
+
+    STR_INIT(flag_q_key, "flag");
+    PATH(flag_q_key);
+
+    list_Path_add(flag_q_key_path_list, flag_q_key_path);
+
+    Query_item *flag_q_itm = query_item_new();
+    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list);
+    flag_q_itm->query_val.bool_val = true;
 
     STR_INIT(q_name, "K");
     Query *query = query_new();
     query_ctor(query, q_name);
-    query_item_add(query, amount_query);
+    query_item_add(query, flag_q_itm);
 
     long ins_cnt = 0;
 
@@ -196,18 +204,34 @@ void bench_delete()
     TYPE_INIT(V_type, "V");
     user_add_type(file, V_type);
 
-    STR_INIT(amount_q_key, "flag");
-    QUERY_ITEM_INIT(TYPE_BOOL, amount_query, amount_q_key, true);
+    List_Path *flag_q_key_path_list = list_Path_new();
+
+    STR_INIT(flag_q_key, "flag");
+    PATH(flag_q_key);
+
+    list_Path_add(flag_q_key_path_list, flag_q_key_path);
+
+    Query_item *flag_q_itm = query_item_new();
+    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list);
+    flag_q_itm->query_val.bool_val = true;
+
+    Query *amount_query = query_new();
+    query_item_add(amount_query, flag_q_itm);
+
+    List_Path *sort_q_key_path_list = list_Path_new();
 
     STR_INIT(sort_q_key, "sort");
+    PATH(sort_q_key);
+
+    list_Path_add(sort_q_key_path_list, sort_q_key_path);
+
+    Query_item *sort_q_itm = query_item_new();
     STR_INIT(sgml, "SGML");
-    QUERY_ITEM_INIT(TYPE_STRING, sort_query, sort_q_key, sgml);
+    query_item_ctor(sort_q_itm, TYPE_STRING, sort_q_key_path_list);
+    sort_q_itm->query_val.string_val = sgml;
 
-    Query *query = query_new();
-    query_item_add(query, amount_query);
-
-    Query *glos_query = query_new();
-    query_item_add(glos_query, sort_query);
+    Query *sort_query = query_new();
+    query_item_add(sort_query, sort_q_itm);
 
     long ins_cnt = 0;
 
@@ -224,19 +248,19 @@ void bench_delete()
 
         clock_t start = clock();
 
-        user_delete(file, query);
+        user_delete(file, amount_query);
 
         clock_t end = clock();
         double elapsed = (double)(end - start) * 10;
         printf("%ld, %f \t", ins_cnt, elapsed);
 
-        user_delete(file, glos_query);
+        user_delete(file, sort_query);
         printf("\n");
     }
 
     type_dtor(V_type);
-    query_dtor(query);
-    query_dtor(glos_query);
+    query_dtor(amount_query);
+    query_dtor(sort_query);
     json_dtor(info_json);
     json_dtor(glossary);
     user_close_file(file);
@@ -292,18 +316,34 @@ void bench_update()
     TYPE_INIT(V_type, "V");
     user_add_type(file, V_type);
 
-    STR_INIT(amount_q_key, "flag");
-    QUERY_ITEM_INIT(TYPE_BOOL, amount_query, amount_q_key, true);
+    List_Path *flag_q_key_path_list = list_Path_new();
+
+    STR_INIT(flag_q_key, "flag");
+    PATH(flag_q_key);
+
+    list_Path_add(flag_q_key_path_list, flag_q_key_path);
+
+    Query_item *flag_q_itm = query_item_new();
+    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list);
+    flag_q_itm->query_val.bool_val = true;
+
+    Query *amount_query = query_new();
+    query_item_add(amount_query, flag_q_itm);
+
+    List_Path *sort_q_key_path_list = list_Path_new();
 
     STR_INIT(sort_q_key, "sort");
+    PATH(sort_q_key);
+
+    list_Path_add(sort_q_key_path_list, sort_q_key_path);
+
+    Query_item *sort_q_itm = query_item_new();
     STR_INIT(sgml, "SGML");
-    QUERY_ITEM_INIT(TYPE_STRING, sort_query, sort_q_key, sgml);
+    query_item_ctor(sort_q_itm, TYPE_STRING, sort_q_key_path_list);
+    sort_q_itm->query_val.string_val = sgml;
 
-    Query *query = query_new();
-    query_item_add(query, amount_query);
-
-    Query *glos_query = query_new();
-    query_item_add(glos_query, sort_query);
+    Query *sort_query = query_new();
+    query_item_add(sort_query, sort_q_itm);
 
     for (size_t i = 1; i < 51; i++)
     {
@@ -319,20 +359,113 @@ void bench_update()
 
         clock_t start = clock();
 
-        user_update(file, query, glossary);
+        user_update(file, amount_query, glossary);
 
         clock_t end = clock();
         double elapsed = (double)(end - start) * 10;
         printf("%ld, %f \t", ins_cnt, elapsed);
 
-        user_delete(file, glos_query);
+        user_delete(file, sort_query);
         printf("\n");
     }
 
     type_dtor(V_type);
-    query_dtor(query);
-    query_dtor(glos_query);
+    query_dtor(amount_query);
+    query_dtor(sort_query);
     json_dtor(info_json);
     json_dtor(glossary);
+    user_close_file(file);
+}
+
+void bench_read_inner()
+{
+    /*
+    "info" : {
+        "city" : {
+            "location" : "Moscow",
+            "amount" : "50000"
+        },
+        "flag": true
+    }
+    */
+
+    STR_INIT(location_str, "Moscow");
+    JSON_VALUE_INIT(TYPE_STRING, location_json, "location", location_str);
+    JSON_VALUE_INIT(TYPE_INT32, amount_json, "amount", 50000);
+    JSON_VALUE_INIT(TYPE_OBJECT, city_json, "city", NULL);
+    json_add_son(city_json, location_json);
+    json_add_son(city_json, amount_json);
+    JSON_VALUE_INIT(TYPE_BOOL, flag_json, "flag", true);
+    JSON_VALUE_INIT(TYPE_OBJECT, info_json, "info", NULL);
+    json_add_son(info_json, city_json);
+    json_add_son(info_json, flag_json);
+
+    File *file = user_open_file(test_file_name);
+
+    TYPE_INIT(V_type, "V");
+    user_add_type(file, V_type);
+
+    List_Path *amount_q_key_path_list = list_Path_new();
+
+    STR_INIT(flag_q_key, "flag");
+    PATH(flag_q_key);
+    // STR_INIT(city_q_key, "city");
+    // PATH(city_q_key);
+    // STR_INIT(amount_q_key, "amount");
+    // PATH(amount_q_key);
+
+    // list_Path_add(amount_q_key_path_list, city_q_key_path);
+    // list_Path_add(amount_q_key_path_list, amount_q_key_path);
+    list_Path_add(amount_q_key_path_list, flag_q_key_path);
+
+    Query_item *amount_q_itm = query_item_new();
+    // query_item_ctor(amount_q_itm, TYPE_INT32, amount_q_key_path_list);
+    // amount_q_itm->query_val.int32_val = 50000;
+    query_item_ctor(amount_q_itm, TYPE_BOOL, amount_q_key_path_list);
+    amount_q_itm->query_val.bool_val = true;
+
+    Query *query = query_new();
+    query_item_add(query, amount_q_itm);
+
+    for (size_t i = 1; i < 51; i++)
+    {
+        long ins_cnt = 0;
+        for (size_t j = 0; j < 200 * i; j++)
+        {
+            if (user_write(file, info_json, V_type->name) == OK)
+            {
+                ins_cnt++;
+            }
+        }
+
+        clock_t start = clock();
+
+        struct Iter *iter = user_read(file, query);
+
+        int cnt = 0;
+
+        while (iter_is_avail(iter))
+        {
+            cnt++;
+
+            iter_next(iter);
+        }
+        iter_dtor(iter);
+
+        printf("Readed %d\t", cnt);
+
+        clock_t end = clock();
+        double elapsed = (double)(end - start) * 10 / CLOCKS_PER_SEC;
+
+        printf("%ld, %f \t", ins_cnt, elapsed);
+
+        printf("\n");
+
+        user_delete(file, query);
+    }
+
+    type_dtor(V_type);
+    query_dtor(query);
+    json_dtor(info_json);
     user_close_file(file);
 }

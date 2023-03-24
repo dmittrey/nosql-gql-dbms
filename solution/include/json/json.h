@@ -68,3 +68,5 @@ int json_cmp(const Json *const this, const Json *const other);
 int json_cmp_wth_foff(const Json *const this, const Json *const other);
 
 bool json_is_apply_type(const Json *const json, const Type *const type);
+
+Json* json_son_by_key(const Json *const json, String* key);

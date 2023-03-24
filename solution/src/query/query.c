@@ -37,38 +37,18 @@ void query_item_add(Query *const q, Query_item *const q_item)
     }
 }
 
-// Iterate over bro's and find all consitional satisfies
-/*
-Проходимся по всем условиям, для каждого условия:
-    - Проходимся по json и всем его братьям, если удовлетворяем, идем к след условию
-*/
-bool query_check(const Query *const q, const Json *const json, const Type *json_type)
+bool query_check(const Query *const query, const Json *const json, const Type *json_type)
 {
-    const Query_item *cur_query_itm = q->f_query_itm;
+    const Query_item *cur_query_itm = query->f_query_itm;
     while (cur_query_itm != NULL)
     {
-        const Json *temp = json->son;
-        bool is_satisfies = false;
-
-        while (temp != NULL)
-        {
-            if (query_item_check(cur_query_itm, temp) == true)
-            {
-                is_satisfies = true;
-                break;
-            }
-
-            temp = temp->bro;
-        }
-
-        // Если горизонтально не нашли объекта, который удовлетворяет условию
-        if (is_satisfies == false)
+        if (query_item_check(cur_query_itm, json) == false)
             return false;
-
+        
         cur_query_itm = cur_query_itm->next;
     }
 
-    return query_check_type(q, json_type);
+    return query_check_type(query, json_type);
 }
 
 static bool query_check_type(const Query *const q, const Type *const type)

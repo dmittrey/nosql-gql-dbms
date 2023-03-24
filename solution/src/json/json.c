@@ -206,3 +206,16 @@ bool json_is_apply_type(const Json *const j, const Type *const t)
         return FAILED;
     }
 }
+
+Json *json_son_by_key(const Json *const json, String *key)
+{
+    Json *cur_son = json->son;
+    while (cur_son != NULL)
+    {
+        if (string_cmp(cur_son->key, key) == 0)
+            return cur_son;
+        
+        cur_son = cur_son->bro;
+    }
+    return NULL;
+}

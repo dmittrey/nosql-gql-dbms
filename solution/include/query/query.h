@@ -9,7 +9,7 @@ typedef struct Query
 } Query;
 
 Query *query_new();
-void query_ctor(Query *, String *);
+void query_ctor(Query *query, String *type_name);
 
 void query_dtor(Query *);
 
