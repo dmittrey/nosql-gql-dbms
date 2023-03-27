@@ -59,7 +59,7 @@ dkms.conf
 
 # Others
 *.bin
-*.txt
 /build
 /dbms/build
 /dbms/obj
+/client/build
