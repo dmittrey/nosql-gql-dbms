@@ -2,7 +2,7 @@
 
 void path_dtor(Path *p)
 {
-    string_dtor(p);
+    string_dtor(p->name);
 }
 
 int path_cmp(Path *this, Path *other)

@@ -53,16 +53,14 @@ endif
 
 ##### Configuration for `main` target.
 
-SOLUTION_DIR = solution
-
-SRCDIR.main = $(SOLUTION_DIR)/src
-INCDIR.main = $(SOLUTION_DIR)/include
-OBJDIR.main = $(OBJDIR)/$(SOLUTION_DIR)
+SRCDIR.main = src
+INCDIR.main = include
+OBJDIR.main = $(OBJDIR)
 
 SOURCES.main += $(wildcard $(SRCDIR.main)/*.c) $(wildcard $(SRCDIR.main)/*/*.c)
 TARGET.main  := $(BUILDDIR)/$(NAME)
 
-CFLAGS.main += $(strip $(file < $(SOLUTION_DIR)/compile_flags.txt)) -g $(CFLAGS) -I$(INCDIR.main)
+CFLAGS.main += $(strip $(file < compile_flags.txt)) -g $(CFLAGS) -I$(INCDIR.main)
 
 ##### Configuration for `tester` target.
 

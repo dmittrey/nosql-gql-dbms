@@ -44,7 +44,7 @@ bool query_item_check(const Query_item *const q_itm, const Json *const j)
         return cur_json->value.float_val == q_itm->query_val.float_val;
     case TYPE_BOOL:
         return cur_json->value.bool_val == q_itm->query_val.bool_val;
+    default:
+        return false;
     }
-
-    return false;
 }
