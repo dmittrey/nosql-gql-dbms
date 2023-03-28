@@ -9,7 +9,7 @@
 
 
 cmake_minimum_required(VERSION 3.13.4)
-project(client)
+project(GQLclient)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
