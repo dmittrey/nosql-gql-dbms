@@ -14,9 +14,10 @@ namespace yy
     class Driver
     {
         FlexLexer *plex_;
-        std::vector<Node> *queryList = new std::vector<Node>;
+        std::vector<QueryNode> *queryList = {};
 
-        const std::unordered_map<std::string, Cmp> table = {{"GT", Cmp::GT}, {"gt", Cmp::GT}, {"GE", Cmp::GE}, {"ge", Cmp::GE}, {"LT", Cmp::LT}, {"lt", Cmp::LT}, {"LE", Cmp::LE}, {"le", Cmp::LE}, {"EQ", Cmp::EQ}, {"eq", Cmp::EQ}, {"IN", Cmp::IN}, {"in", Cmp::IN}};
+        const std::unordered_map<std::string, Cmp> cmpTable = {{"GT", Cmp::GT}, {"gt", Cmp::GT}, {"GE", Cmp::GE}, {"ge", Cmp::GE}, {"LT", Cmp::LT}, {"lt", Cmp::LT}, {"LE", Cmp::LE}, {"le", Cmp::LE}, {"EQ", Cmp::EQ}, {"eq", Cmp::EQ}, {"IN", Cmp::IN}, {"in", Cmp::IN}};
+        const std::unordered_map<std::string, Command> commandTable = {{"insert", Command::INSERT}, {"INSERT", Command::INSERT}, {"delete", Command::DELETE}, {"DELETE", Command::DELETE}, {"update", Command::UPDATE}, {"UPDATE", Command::UPDATE}, {"select", Command::SELECT}, {"SELECT", Command::SELECT}};
 
     public:
         Driver(FlexLexer *plex) : plex_(plex) {}
@@ -29,10 +30,6 @@ namespace yy
             {
             case yy::parser::token_type::WORD:
             case yy::parser::token_type::STRING:
-            case yy::parser::token_type::INSERT:
-            case yy::parser::token_type::DELETE:
-            case yy::parser::token_type::SELECT:
-            case yy::parser::token_type::UPDATE:
                 yylval->as<std::string>() = plex_->YYText();
                 break;
             case yy::parser::token_type::INT:
@@ -47,7 +44,14 @@ namespace yy
             case yy::parser::token_type::CMP:
             case yy::parser::token_type::EQ:
             case yy::parser::token_type::IN:
-                yylval->as<Cmp>() = table.find(plex_->YYText())->second;
+                yylval->as<Cmp>() = cmpTable.find(plex_->YYText())->second;
+                break;
+            case yy::parser::token_type::INSERT:
+            case yy::parser::token_type::DELETE:
+            case yy::parser::token_type::SELECT:
+            case yy::parser::token_type::UPDATE:
+                yylval->as<Command>() = commandTable.find(plex_->YYText())->second;
+                break;
             default:
                 break;
             }
@@ -61,7 +65,7 @@ namespace yy
             return parser.parse();
         }
 
-        void insert(Node &query)
+        void insert(QueryNode &query)
         {
             queryList->push_back(query);
         }

@@ -88,83 +88,87 @@ parser::token_type yylex(parser::semantic_type* yylval,
 
 %token <std::string> WORD
 
-%token <std::string> INSERT
-%token <std::string> DELETE
-%token <std::string> SELECT
-%token <std::string> UPDATE
+%token <Command> INSERT
+%token <Command> DELETE
+%token <Command> SELECT
+%token <Command> UPDATE
 
 %token <Cmp> CMP
 %token <Cmp> EQ
 %token <Cmp> IN
 
-%nterm <FieldNode> field
-%nterm <ListNode<FieldNode>> field_list
-%nterm <ListNode<FieldNode>> entity
+%nterm <FieldNode> field 
+%nterm <FieldListNode> field_list
+%nterm <ConditionNode> condition
+%nterm <ConditionBodyNode> condition_body
+
+%nterm <PropertyNode> property 
+%nterm <PropertyListNode> property_list 
+%nterm <EntityNode> entity
 %nterm <EntityBodyNode> entity_body
 
-%nterm <PropertyNode> property  
-%nterm <ListNode<PropertyNode>> property_list conditional
-%nterm <ConditionalBodyNode> conditional_body
+%nterm <WordListNode> word_list
+%nterm <ReprNode> repr
 
-%nterm <WordListNode> word_list repr
+%nterm <QueryNode> query
 
 %start query_list
 
 %%
 
-query_list: query                             { std::cout << "Query list created!" << std::endl; }
-  | query_list query                          { std::cout << "Query list created!" << std::endl; }
+query_list: query                             { std::cout << "Query list initialized!" << std::endl;  driver->insert($1); }
+  | query_list query                          { std::cout << "Query list updated!" << std::endl;      driver->insert($2); }
 ;
 
-query: INSERT LB entity_body repr RB          { std::cout << "Insert query created!" << std::endl; }
-  | SELECT LB conditional_body repr RB        { std::cout << "Select query created!" << std::endl; }
-  | DELETE LB conditional_body repr RB        { std::cout << "Delete query created!" << std::endl; }
-  | UPDATE LB conditional_body entity repr RB { std::cout << "Update query created!" << std::endl; }
+query: INSERT LB entity_body repr RB          { $$ = InsertQueryNode{$1, $3, $4}; }
+  | SELECT LB condition_body repr RB          { $$ = SelectQueryNode{$1, $3, $4}; }
+  | DELETE LB condition_body repr RB          { $$ = DeleteQueryNode{$1, $3, $4}; }
+  | UPDATE LB condition_body entity repr RB   { $$ = UpdateQueryNode{$1, $3, $4, $5}; }
 ;
 
-entity_body: WORD LP entity RP                { $$ = EntityBodyNode{$3, $1}; }
+entity_body: WORD LP entity RP                { $$ = EntityBodyNode{$1, $3}; }
 ;
 
-entity: LB field_list RB                      { $$ = $2; }
+entity: LB field_list RB                      { $$ = EntityNode{$2}; }
 ;
 
-conditional_body: WORD LP conditional RP      { $$ = ConditionalBodyNode{$3, $1}; }
+condition_body: WORD LP condition RP          { $$ = ConditionBodyNode{$1, $3}; }
 ;
 
-conditional: LB property_list RB              { $$ = $2; }
+condition: LB property_list RB                { $$ = ConditionNode{$2}; }
 ;
 
-repr: LB word_list RB                         { $$ = $2; }
-  | LB RB                                     { /* */ }
+repr: LB word_list RB                         { $$ = ReprNode{$2}; }
+  | LB RB                                     { $$ = ReprNode{};   }
 ;
 
-word_list: WORD                               { $$.collection.push_back($1); }
-  | word_list WORD                            { $$.collection.push_back($2); }
+word_list: WORD                               { $$.add($1); }
+  | word_list WORD                            { $$.add($2); }
 ;
 
-property_list: property                       { $$.add_son($1); }
-  | property_list property                    { $$.add_son($2); }
+property_list: property                       { $$.add($1); }
+  | property_list property                    { $$.add($2); }
 ;
 
-field_list: field                             { $$.add_son($1); }
-  | field_list field                          { $$.add_son($2); }
+field_list: field                             { $$.add($1); }
+  | field_list field                          { $$.add($2); }
 ;
 
-property: WORD IN STRING                      { $$ = PropertyNode{$1, FieldType::STRING, $2}; }
-  | WORD EQ STRING                            { $$ = PropertyNode{$1, FieldType::STRING, $2}; }
-  | WORD CMP INT                              { $$ = PropertyNode{$1, FieldType::INT32, $2}; }
-  | WORD EQ INT                               { $$ = PropertyNode{$1, FieldType::INT32, $2}; }
-  | WORD CMP DOUBLE                           { $$ = PropertyNode{$1, FieldType::DOUBLE, $2}; }
-  | WORD EQ DOUBLE                            { $$ = PropertyNode{$1, FieldType::DOUBLE, $2}; }
-  | WORD CMP BOOL                             { $$ = PropertyNode{$1, FieldType::BOOL, $2}; }
-  | WORD EQ BOOL                              { $$ = PropertyNode{$1, FieldType::BOOL, $2}; }
-  | WORD COLON conditional                    { /* */ }
+property: WORD IN STRING                      { $$ = StringPropertyNode{$1, $2, $3}; }
+  | WORD EQ STRING                            { $$ = StringPropertyNode{$1, $2, $3}; }
+  | WORD CMP INT                              { $$ = IntPropertyNode{$1, $2, $3}; }
+  | WORD EQ INT                               { $$ = IntPropertyNode{$1, $2, $3}; }
+  | WORD CMP DOUBLE                           { $$ = DoublePropertyNode{$1, $2, $3}; }
+  | WORD EQ DOUBLE                            { $$ = DoublePropertyNode{$1, $2, $3}; }
+  | WORD CMP BOOL                             { $$ = BoolPropertyNode{$1, $2, $3}; }
+  | WORD EQ BOOL                              { $$ = BoolPropertyNode{$1, $2, $3}; }
+  | WORD COLON condition                      { /* */ }
 ;
 
-field: WORD COLON STRING                      { $$ = FieldNode{$1, $3}; }
-  | WORD COLON INT                            { $$ = FieldNode{$1, $3}; }
-  | WORD COLON DOUBLE                         { $$ = FieldNode{$1, $3}; }
-  | WORD COLON BOOL                           { $$ = FieldNode{$1, $3}; }
+field: WORD COLON STRING                      { $$ = StringFieldNode{$1, $3}; }
+  | WORD COLON INT                            { $$ = IntFieldNode{$1, $3}; }
+  | WORD COLON DOUBLE                         { $$ = DoubleFieldNode{$1, $3}; }
+  | WORD COLON BOOL                           { $$ = BoolFieldNode{$1, $3}; }
   | WORD COLON entity                         { /* */ }
 ;
 
