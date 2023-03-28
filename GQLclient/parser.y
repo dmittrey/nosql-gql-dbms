@@ -115,7 +115,7 @@ parser::token_type yylex(parser::semantic_type* yylval,
 %nterm <DeleteQueryNode> delete_query
 %nterm <UpdateQueryNode> update_query
 
-%start repr
+%start query_list
 
 %%
 
@@ -150,37 +150,37 @@ condition_body: WORD LP condition RP          { $$ = ConditionBodyNode{$1, $3}; 
 condition: LB property_list RB                { $$ = ConditionNode{$2}; }
 ;
 
-repr: LB word_list RB                         { $$ = ReprNode{$2}; }
-  | LB RB                                     { $$ = ReprNode{};   }
+repr: LB word_list RB                         { $$ = ReprNode{$2};  }
+  | LB RB                                     {  }
 ;
 
-word_list: WORD                               { $$ = WordListNode{}; $$.add(FieldNode{FIELD, $1}); }
-  | word_list WORD                            { $$.add(FieldNode{FIELD, $2}); }
+word_list: WORD                               { $$.add($1); }
+  | word_list WORD                            { $$ = $1; $$.add($2); }
 ;
 
 property_list: property                       { $$.add($1); }
-  | property_list property                    { $$.add($2); }
+  | property_list property                    { $$ = $1; $$.add($2); }
 ;
 
 field_list: field                             { $$.add($1); }
-  | field_list field                          { $$.add($2); }
+  | field_list field                          { $$ = $1; $$.add($2); }
 ;
 
-property: WORD IN STRING                      { $$ = StringPropertyNode{$1, $2, $3}; }
-  | WORD EQ STRING                            { $$ = StringPropertyNode{$1, $2, $3}; }
-  | WORD CMP INT                              { $$ = IntPropertyNode{$1, $2, $3}; }
-  | WORD EQ INT                               { $$ = IntPropertyNode{$1, $2, $3}; }
-  | WORD CMP DOUBLE                           { $$ = DoublePropertyNode{$1, $2, $3}; }
-  | WORD EQ DOUBLE                            { $$ = DoublePropertyNode{$1, $2, $3}; }
-  | WORD CMP BOOL                             { $$ = BoolPropertyNode{$1, $2, $3}; }
-  | WORD EQ BOOL                              { $$ = BoolPropertyNode{$1, $2, $3}; }
+property: WORD IN STRING                      { $$ = PropertyNode{$1, $2, $3}; }
+  | WORD EQ STRING                            { $$ = PropertyNode{$1, $2, $3}; }
+  | WORD CMP INT                              { $$ = PropertyNode{$1, $2, $3}; }
+  | WORD EQ INT                               { $$ = PropertyNode{$1, $2, $3}; }
+  | WORD CMP DOUBLE                           { $$ = PropertyNode{$1, $2, $3}; }
+  | WORD EQ DOUBLE                            { $$ = PropertyNode{$1, $2, $3}; }
+  | WORD CMP BOOL                             { $$ = PropertyNode{$1, $2, $3}; }
+  | WORD EQ BOOL                              { $$ = PropertyNode{$1, $2, $3}; }
   | WORD COLON condition                      { /* */ }
 ;
 
-field: WORD COLON STRING                      { $$ = StringFieldNode{$1, $3}; }
-  | WORD COLON INT                            { $$ = IntFieldNode{$1, $3}; }
-  | WORD COLON DOUBLE                         { $$ = DoubleFieldNode{$1, $3}; }
-  | WORD COLON BOOL                           { $$ = BoolFieldNode{$1, $3}; }
+field: WORD COLON STRING                      { $$ = FieldNode{$1, $3}; }
+  | WORD COLON INT                            { $$ = FieldNode{$1, $3}; }
+  | WORD COLON DOUBLE                         { $$ = FieldNode{$1, $3}; }
+  | WORD COLON BOOL                           { $$ = FieldNode{$1, $3}; }
   | WORD COLON entity                         { /* */ }
 ;
 
