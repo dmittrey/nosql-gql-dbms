@@ -14,7 +14,7 @@ namespace yy
     class Driver
     {
         FlexLexer *plex_;
-        std::vector<QueryNode> *queryList = {};
+        std::vector<QueryNode> *queryList = new std::vector<QueryNode>{};
 
         const std::unordered_map<std::string, Cmp> cmpTable = {{"GT", Cmp::GT}, {"gt", Cmp::GT}, {"GE", Cmp::GE}, {"ge", Cmp::GE}, {"LT", Cmp::LT}, {"lt", Cmp::LT}, {"LE", Cmp::LE}, {"le", Cmp::LE}, {"EQ", Cmp::EQ}, {"eq", Cmp::EQ}, {"IN", Cmp::IN}, {"in", Cmp::IN}};
         const std::unordered_map<std::string, Command> commandTable = {{"insert", Command::INSERT}, {"INSERT", Command::INSERT}, {"delete", Command::DELETE}, {"DELETE", Command::DELETE}, {"update", Command::UPDATE}, {"UPDATE", Command::UPDATE}, {"select", Command::SELECT}, {"SELECT", Command::SELECT}};
@@ -68,6 +68,8 @@ namespace yy
         void insert(QueryNode &query)
         {
             queryList->push_back(query);
+            std::cout << "Query node inserted!" << std::endl;
+
         }
     };
 }

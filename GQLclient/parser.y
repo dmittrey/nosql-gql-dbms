@@ -116,8 +116,8 @@ parser::token_type yylex(parser::semantic_type* yylval,
 
 %%
 
-query_list: query                             { std::cout << "Query list initialized!" << std::endl;  driver->insert($1); }
-  | query_list query                          { std::cout << "Query list updated!" << std::endl;      driver->insert($2); }
+query_list: query                             { driver->insert($1); }
+  | query_list query                          { driver->insert($2); }
 ;
 
 query: INSERT LB entity_body repr RB          { $$ = InsertQueryNode{$1, $3, $4}; }
