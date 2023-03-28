@@ -53,6 +53,8 @@
 %code requires
 {
 
+#include "Node.hpp"
+
 // forward decl of argument to parser
 namespace yy { class Driver; }
 
@@ -91,68 +93,79 @@ parser::token_type yylex(parser::semantic_type* yylval,
 %token <std::string> SELECT
 %token <std::string> UPDATE
 
-%token CMP
-%token EQ
-%token IN
+%token <Cmp> CMP
+%token <Cmp> EQ
+%token <Cmp> IN
+
+%nterm <FieldNode> field
+%nterm <ListNode<FieldNode>> field_list
+%nterm <ListNode<FieldNode>> entity
+%nterm <EntityBodyNode> entity_body
+
+%nterm <PropertyNode> property  
+%nterm <ListNode<PropertyNode>> property_list conditional
+%nterm <ConditionalBodyNode> conditional_body
+
+%nterm <WordListNode> word_list repr
 
 %start query_list
 
 %%
 
-query_list: query                            { std::cout << "Query list created!" << std::endl; }
-  | query_list query                         { std::cout << "Query list created!" << std::endl; }
+query_list: query                             { std::cout << "Query list created!" << std::endl; }
+  | query_list query                          { std::cout << "Query list created!" << std::endl; }
 ;
 
-query: INSERT LB entity_body repr RB       { std::cout << "Insert query created!" << std::endl; }
+query: INSERT LB entity_body repr RB          { std::cout << "Insert query created!" << std::endl; }
   | SELECT LB conditional_body repr RB        { std::cout << "Select query created!" << std::endl; }
   | DELETE LB conditional_body repr RB        { std::cout << "Delete query created!" << std::endl; }
   | UPDATE LB conditional_body entity repr RB { std::cout << "Update query created!" << std::endl; }
 ;
 
-entity_body: WORD LP entity RP               { std::cout << "Entity Body created!" << std::endl; }
+entity_body: WORD LP entity RP                { $$ = EntityBodyNode{$3, $1}; }
 ;
 
-entity: LB field_list RB                     { std::cout << "Entity created!" << std::endl; }
+entity: LB field_list RB                      { $$ = $2; }
 ;
 
-conditional_body: WORD LP conditional RP     { std::cout << "Conditional body created!" << std::endl; }
+conditional_body: WORD LP conditional RP      { $$ = ConditionalBodyNode{$3, $1}; }
 ;
 
-conditional: LB property_list RB             { std::cout << "Conditional created!" << std::endl; }
+conditional: LB property_list RB              { $$ = $2; }
 ;
 
-repr: LB word_list RB                        { std::cout << "Representation created!" << std::endl; }
-  | LB RB                                    { std::cout << "Representation created!" << std::endl; }
+repr: LB word_list RB                         { $$ = $2; }
+  | LB RB                                     { /* */ }
 ;
 
-word_list: WORD                              { std::cout << "WordList: " << $1 << std::endl; }
-  | word_list WORD                           { std::cout << "Field: " << $2 << std::endl; }
+word_list: WORD                               { $$.collection.push_back($1); }
+  | word_list WORD                            { $$.collection.push_back($2); }
 ;
 
-property_list: property                    { std::cout << "Property list created!" << std::endl; }
-  | property_list property                   { std::cout << "Property list created!" << std::endl; }
+property_list: property                       { $$.add_son($1); }
+  | property_list property                    { $$.add_son($2); }
 ;
 
-field_list: field                            { std::cout << "Field list created!" << std::endl; }
-  | field_list field                         { std::cout << "Field list created!" << std::endl; }
+field_list: field                             { $$.add_son($1); }
+  | field_list field                          { $$.add_son($2); }
 ;
 
-property: WORD IN STRING                   { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD EQ STRING                           { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD CMP INT                             { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD EQ INT                              { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD CMP DOUBLE                          { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD EQ DOUBLE                           { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD CMP BOOL                            { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD EQ BOOL                             { std::cout << "Property: " << $1 << "Val: " << $3 << std::endl; }
-  | WORD COLON conditional                   { std::cout << "Property: " << $1 << std::endl; }
+property: WORD IN STRING                      { $$ = PropertyNode{$1, FieldType::STRING, $2}; }
+  | WORD EQ STRING                            { $$ = PropertyNode{$1, FieldType::STRING, $2}; }
+  | WORD CMP INT                              { $$ = PropertyNode{$1, FieldType::INT32, $2}; }
+  | WORD EQ INT                               { $$ = PropertyNode{$1, FieldType::INT32, $2}; }
+  | WORD CMP DOUBLE                           { $$ = PropertyNode{$1, FieldType::DOUBLE, $2}; }
+  | WORD EQ DOUBLE                            { $$ = PropertyNode{$1, FieldType::DOUBLE, $2}; }
+  | WORD CMP BOOL                             { $$ = PropertyNode{$1, FieldType::BOOL, $2}; }
+  | WORD EQ BOOL                              { $$ = PropertyNode{$1, FieldType::BOOL, $2}; }
+  | WORD COLON conditional                    { /* */ }
 ;
 
-field: WORD COLON STRING                     { std::cout << "Field: " << $1 << "\tVal: " << $3 << std::endl; }
-  | WORD COLON INT                           { std::cout << "Field: " << $1 << "\tVal: " << $3 << std::endl; }
-  | WORD COLON DOUBLE                        { std::cout << "Field: " << $1 << "\tVal: " << $3 << std::endl; }
-  | WORD COLON BOOL                          { std::cout << "Field: " << $1 << "\tVal: " << $3 << std::endl; }
-  | WORD COLON entity                        { std::cout << "Field: " << $1 << "\tVal: entity" << std::endl; }
+field: WORD COLON STRING                      { $$ = FieldNode{$1, $3}; }
+  | WORD COLON INT                            { $$ = FieldNode{$1, $3}; }
+  | WORD COLON DOUBLE                         { $$ = FieldNode{$1, $3}; }
+  | WORD COLON BOOL                           { $$ = FieldNode{$1, $3}; }
+  | WORD COLON entity                         { /* */ }
 ;
 
 %%

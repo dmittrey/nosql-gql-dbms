@@ -2,18 +2,21 @@
 
 #include <iostream>
 #include <numeric>
+#include <unordered_map>
 
 #include "parser.tab.hh"
 #include <FlexLexer.h>
 
-#include "INode.hpp"
+#include "Node.hpp"
 
 namespace yy
 {
-
     class Driver
     {
         FlexLexer *plex_;
+        std::vector<Node> *queryList = new std::vector<Node>;
+
+        const std::unordered_map<std::string, Cmp> table = {{"GT", Cmp::GT}, {"gt", Cmp::GT}, {"GE", Cmp::GE}, {"ge", Cmp::GE}, {"LT", Cmp::LT}, {"lt", Cmp::LT}, {"LE", Cmp::LE}, {"le", Cmp::LE}, {"EQ", Cmp::EQ}, {"eq", Cmp::EQ}, {"IN", Cmp::IN}, {"in", Cmp::IN}};
 
     public:
         Driver(FlexLexer *plex) : plex_(plex) {}
@@ -41,6 +44,10 @@ namespace yy
             case yy::parser::token_type::BOOL:
                 yylval->as<bool>() = (strcmp(plex_->YYText(), "true") == 0 || strcmp(plex_->YYText(), "TRUE") == 0);
                 break;
+            case yy::parser::token_type::CMP:
+            case yy::parser::token_type::EQ:
+            case yy::parser::token_type::IN:
+                yylval->as<Cmp>() = table.find(plex_->YYText())->second;
             default:
                 break;
             }
@@ -53,6 +60,10 @@ namespace yy
             parser parser(this);
             return parser.parse();
         }
-    };
 
+        void insert(Node &query)
+        {
+            queryList->push_back(query);
+        }
+    };
 }
