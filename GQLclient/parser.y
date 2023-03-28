@@ -110,20 +110,32 @@ parser::token_type yylex(parser::semantic_type* yylval,
 %nterm <WordListNode> word_list
 %nterm <ReprNode> repr
 
-%nterm <QueryNode> query
+%nterm <InsertQueryNode> insert_query
+%nterm <SelectQueryNode> select_query
+%nterm <DeleteQueryNode> delete_query
+%nterm <UpdateQueryNode> update_query
 
-%start query_list
+%start repr
 
 %%
 
-query_list: query                             { driver->insert($1); }
-  | query_list query                          { driver->insert($2); }
+query_list: insert_query                                { driver->insert($1); }
+  | query_list insert_query                             { driver->insert($2); }
+  | select_query                                        { driver->insert($1); }
+  | query_list select_query                             { driver->insert($2); }
+  | delete_query                                        { driver->insert($1); }
+  | query_list delete_query                             { driver->insert($2); }
+  | update_query                                        { driver->insert($1); }
+  | query_list update_query                             { driver->insert($2); }
 ;
 
-query: INSERT LB entity_body repr RB          { $$ = InsertQueryNode{$1, $3, $4}; }
-  | SELECT LB condition_body repr RB          { $$ = SelectQueryNode{$1, $3, $4}; }
-  | DELETE LB condition_body repr RB          { $$ = DeleteQueryNode{$1, $3, $4}; }
-  | UPDATE LB condition_body entity repr RB   { $$ = UpdateQueryNode{$1, $3, $4, $5}; }
+insert_query: INSERT LB entity_body repr RB             { $$ = InsertQueryNode{$1, $3, $4}; }
+;
+select_query: SELECT LB condition_body repr RB          { $$ = SelectQueryNode{$1, $3, $4}; }
+;
+delete_query: DELETE LB condition_body repr RB          { $$ = DeleteQueryNode{$1, $3, $4}; }
+;
+update_query: UPDATE LB condition_body entity repr RB   { $$ = UpdateQueryNode{$1, $3, $4, $5}; }
 ;
 
 entity_body: WORD LP entity RP                { $$ = EntityBodyNode{$1, $3}; }
@@ -142,8 +154,8 @@ repr: LB word_list RB                         { $$ = ReprNode{$2}; }
   | LB RB                                     { $$ = ReprNode{};   }
 ;
 
-word_list: WORD                               { $$.add($1); }
-  | word_list WORD                            { $$.add($2); }
+word_list: WORD                               { $$ = WordListNode{}; $$.add(FieldNode{FIELD, $1}); }
+  | word_list WORD                            { $$.add(FieldNode{FIELD, $2}); }
 ;
 
 property_list: property                       { $$.add($1); }

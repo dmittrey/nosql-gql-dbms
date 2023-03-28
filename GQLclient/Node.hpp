@@ -58,7 +58,10 @@ struct Node
     Node() {}
     Node(NodeType type) : type_(type) {}
 
-    virtual std::string repr() { return "Hello from Node!"; }
+    virtual std::string repr(int level) { return "Hello from Node!"; }
+
+protected:
+    std::string offset(int level) { return std::string(level, '\t'); }
 };
 
 /* ---------------------- FIELD NODES ---------------------- */
@@ -72,7 +75,7 @@ public:
     FieldNode() {}
     FieldNode(NodeType type, std::string &name) : Node(type), name_(name) {}
 
-    std::string repr() override { return "|Field| name: " + name_; }
+    std::string repr(int level) override { return name_; }
 };
 
 struct StringFieldNode : FieldNode
@@ -83,7 +86,7 @@ protected:
 public:
     StringFieldNode(std::string &name, std::string &value) : FieldNode(STRING_FIELD, name), value_(value) {}
 
-    std::string repr() override { return "|StringField| name: " + name_ + "\tvalue: " + value_; }
+    std::string repr(int level) override { return "|StringField| name: " + name_ + "\tvalue: " + value_; }
 };
 
 struct IntFieldNode : FieldNode
@@ -95,7 +98,7 @@ protected:
 public:
     IntFieldNode(std::string &name, int32_t &value) : FieldNode(INT32_FIELD, name), value_(value) {}
 
-    std::string repr() override { return "|IntField| name: " + name_ + "\tvalue: " + std::to_string(value_); }
+    std::string repr(int level) override { return "|IntField| name: " + name_ + "\tvalue: " + std::to_string(value_); }
 };
 
 struct DoubleFieldNode : FieldNode
@@ -107,7 +110,7 @@ protected:
 public:
     DoubleFieldNode(std::string &name, double &value) : FieldNode(DOUBLE_FIELD, name), name_(name), value_(value) {}
 
-    std::string repr() override { return "|DoubleField| name: " + name_ + "\tvalue: " + std::to_string(value_); }
+    std::string repr(int level) override { return "|DoubleField| name: " + name_ + "\tvalue: " + std::to_string(value_); }
 };
 
 struct BoolFieldNode : FieldNode
@@ -119,7 +122,7 @@ protected:
 public:
     BoolFieldNode(std::string &name, bool &value) : FieldNode(BOOL_FIELD, name), value_(value) {}
 
-    std::string repr() override { return "|BoolField| name: " + name_ + "\tvalue: " + std::to_string(value_); }
+    std::string repr(int level) override { return "|BoolField| name: " + name_ + "\tvalue: " + std::to_string(value_); }
 };
 
 struct FieldListNode : Node
@@ -143,7 +146,7 @@ public:
     PropertyNode() {}
     PropertyNode(NodeType type, std::string &name, Cmp cmp) : Node(type), name_(name), cmp_(cmp) {}
 
-    std::string repr() override { return "|Property| name: " + name_; }
+    std::string repr(int level) override { return "|Property| name: " + name_; }
 };
 
 struct StringPropertyNode : PropertyNode
@@ -154,7 +157,7 @@ protected:
 public:
     StringPropertyNode(std::string &name, Cmp cmp, std::string &val) : PropertyNode(STRING_PROPERTY, name, cmp), val_(val) {}
 
-    std::string repr() override { return "|StringProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + val_; }
+    std::string repr(int level) override { return "|StringProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + val_; }
 };
 
 struct IntPropertyNode : PropertyNode
@@ -165,7 +168,7 @@ protected:
 public:
     IntPropertyNode(std::string &name, Cmp cmp, int32_t &val) : PropertyNode(STRING_PROPERTY, name, cmp), val_(val) {}
 
-    std::string repr() override { return "|IntProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + std::to_string(val_); }
+    std::string repr(int level) override { return "|IntProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + std::to_string(val_); }
 };
 
 struct DoublePropertyNode : PropertyNode
@@ -176,7 +179,7 @@ protected:
 public:
     DoublePropertyNode(std::string &name, Cmp cmp, double &val) : PropertyNode(STRING_PROPERTY, name, cmp), val_(val) {}
 
-    std::string repr() override { return "|DoubleProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + std::to_string(val_); }
+    std::string repr(int level) override { return "|DoubleProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + std::to_string(val_); }
 };
 
 struct BoolPropertyNode : PropertyNode
@@ -187,7 +190,7 @@ protected:
 public:
     BoolPropertyNode(std::string &name, Cmp cmp, bool &val) : PropertyNode(STRING_PROPERTY, name, cmp), val_(val) {}
 
-    std::string repr() override { return "|BoolProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + std::to_string(val_); }
+    std::string repr(int level) override { return "|BoolProperty| name: " + name_ + "\tCmp: " + std::to_string(cmp_) + "\tValue: " + std::to_string(val_); }
 };
 
 struct PropertyListNode : Node
@@ -203,19 +206,43 @@ struct PropertyListNode : Node
 
 struct WordListNode : Node
 {
-    std::vector<std::string> fields = {};
+    std::vector<FieldNode> fields = {};
 
-    void add(std::string &field) { fields.push_back(field); }
+    void add(FieldNode field)
+    {
+        fields.push_back(field);
+        std::cout << fields.size() << std::endl;
+    }
+
+    std::string repr(int level) override
+    {
+        std::string result = std::string{"GQLWordList"};
+        for (std::vector<FieldNode>::iterator i = fields.begin(); i != fields.end(); ++i)
+        {
+            result += " " + i->repr(level + 1) + " ";
+        }
+        return result;
+    }
 };
 
 /* --------------------------------------------------------------- */
 
 /* ---------------------- ALIAS NODES ---------------------------- */
 
-struct ReprNode : WordListNode
+struct ReprNode : Node
 {
+protected:
+    WordListNode wordListNode_;
+
+public:
     ReprNode() {}
-    ReprNode(const WordListNode &wordList) { fields = std::vector<std::string>{wordList.fields}; }
+    ReprNode(const WordListNode &wordListNode) : wordListNode_(wordListNode) {}
+
+    std::string repr(int level) override
+    {
+        return std::string{"GQLRepresentation"} +
+               "\n" + offset(level + 1) + "└─" + wordListNode_.repr(level + 1);
+    }
 };
 
 struct ConditionNode : PropertyListNode
@@ -244,7 +271,7 @@ public:
     ConditionBodyNode() {}
     ConditionBodyNode(const std::string &typeName, const ConditionNode &conditionNode) : typeName_(typeName), conditionNode_(conditionNode) {}
 
-    std::string repr() override { return "GQLConditionBody"; }
+    std::string repr(int level) override { return "GQLConditionBody"; }
 };
 
 struct EntityBodyNode : Node
@@ -257,11 +284,11 @@ public:
     EntityBodyNode() {}
     EntityBodyNode(const std::string &typeName, const EntityNode &entityNode) : typeName_(typeName), entityNode_(entityNode) {}
 
-    std::string repr() override
+    std::string repr(int level) override
     {
-        return std::string{"GQLEntityBody"} + 
-                            "├─GQLWord " + 
-                            "└─GQLEntity ";
+        return std::string{"GQLEntityBody"} +
+               "├─GQLWord " +
+               "└─GQLEntity ";
     }
 };
 
@@ -278,6 +305,11 @@ protected:
 public:
     QueryNode() {}
     QueryNode(Command command, const ReprNode &reprNode) : command_(command), reprNode_(reprNode) {}
+
+    std::string repr(int level) override
+    {
+        return "Hello from query node!";
+    }
 };
 
 struct InsertQueryNode : QueryNode
@@ -286,7 +318,16 @@ protected:
     EntityBodyNode entityBodyNode_;
 
 public:
+    InsertQueryNode() {}
     InsertQueryNode(Command command, const EntityBodyNode &entityBodeNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, entityBodyNode_(entityBodeNode) {}
+
+    std::string repr(int level) override
+    {
+        return std::string{"GQLInsertQuery"} +
+               "\n├─GQLCommand " + std::to_string(command_) +
+               "\n├─GQLEntityBody " + entityBodyNode_.repr(level) +
+               "\n└─" + reprNode_.repr(level);
+    }
 };
 
 struct SelectQueryNode : QueryNode
@@ -295,6 +336,7 @@ protected:
     ConditionBodyNode conditionBodyNode_;
 
 public:
+    SelectQueryNode() {}
     SelectQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode) {}
 };
 
@@ -304,6 +346,7 @@ protected:
     ConditionBodyNode conditionBodyNode_;
 
 public:
+    DeleteQueryNode() {}
     DeleteQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode) {}
 };
 
@@ -314,6 +357,7 @@ protected:
     EntityNode entityNode_;
 
 public:
+    UpdateQueryNode() {}
     UpdateQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const EntityNode &entityNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode), entityNode_(entityNode) {}
 };
 

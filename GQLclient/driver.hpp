@@ -68,8 +68,7 @@ namespace yy
         void insert(QueryNode &query)
         {
             queryList->push_back(query);
-            std::cout << "Query node inserted!" << std::endl;
-
+            std::cout << query.repr(0) << std::endl;
         }
     };
 }
