@@ -1,0 +1,8 @@
+delete {
+    K({
+        count le 50 
+    }) {
+        name
+        height
+    }
+}

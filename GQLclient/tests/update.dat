@@ -1,0 +1,26 @@
+update {
+    K({                
+        name eq "Dmitry" 
+    })
+    {
+        name: "Andrey" 
+    } 
+    {
+        name
+        height
+    }
+}
+
+update {
+    K({                
+        name in "Dmitry" 
+        height lt 150
+    })
+    {
+        name: "Andrey" 
+    } 
+    {
+        name
+        height
+    }
+}
