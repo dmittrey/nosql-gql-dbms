@@ -1,5 +1,37 @@
-{
-    name
-    height
-    width
+INSERT {
+    K({
+        name: "Dmitry"
+        height: 150
+    }) {
+        name
+        height
+        width
+    }
+}
+
+INSERT {
+    K({
+        name: {
+            literals: 5
+            language: "Russian"
+        }
+        height: 150
+    }) {
+        name
+        height
+        width
+    }
+}
+
+insert {
+    K({
+        name: {
+            literals: 5
+            language: "Russian"
+            is_new: true
+        }
+        height: 150
+        width: 50.5
+    }) {
+    }
 }
