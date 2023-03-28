@@ -26,7 +26,10 @@ namespace yy
             {
             case yy::parser::token_type::WORD:
             case yy::parser::token_type::STRING:
-            case yy::parser::token_type::COMMAND:
+            case yy::parser::token_type::INSERT:
+            case yy::parser::token_type::DELETE:
+            case yy::parser::token_type::SELECT:
+            case yy::parser::token_type::UPDATE:
                 yylval->as<std::string>() = plex_->YYText();
                 break;
             case yy::parser::token_type::INT:
