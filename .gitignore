@@ -62,4 +62,4 @@ dkms.conf
 /build
 /dbms/build
 /dbms/obj
-/client/build
+/GQL client/build
