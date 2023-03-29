@@ -16,9 +16,9 @@ update {
         name in "Dmitry" 
         height lt 150
     })
-    {
+    L({
         name: "Andrey" 
-    } 
+    }) 
     {
         name
         height
