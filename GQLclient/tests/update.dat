@@ -2,9 +2,9 @@ update {
     K({                
         name eq "Dmitry" 
     })
-    {
+    L({
         name: "Andrey" 
-    } 
+    }) 
     {
         name
         height

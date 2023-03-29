@@ -53,6 +53,7 @@ protected:
 
 public:
     FieldNode() {}
+    FieldNode(std::string &name) : name_(name) {}
     FieldNode(std::string &name, std::string &value) : name_(name), str_value_(value), type(STRING) {}
     FieldNode(std::string &name, int32_t &value) : name_(name), int_value_(value), type(INT32) {}
     FieldNode(std::string &name, double &value) : name_(name), double_value_(value), type(DOUBLE) {}
@@ -97,8 +98,6 @@ struct FieldListNode : public Node
         return result;
     }
 };
-
-/* --------------------------------------------------------------- */
 
 /* ---------------------- CONDITIONAL NODES ---------------------- */
 
@@ -154,8 +153,6 @@ struct PropertyListNode : Node
     }
 };
 
-/* --------------------------------------------------------------- */
-
 /* ---------------------- WORD NODES ----------------------------- */
 
 struct WordListNode : Node
@@ -177,8 +174,6 @@ struct WordListNode : Node
         return result;
     }
 };
-
-/* --------------------------------------------------------------- */
 
 /* ---------------------- ALIAS NODES ---------------------------- */
 
@@ -217,20 +212,40 @@ public:
 struct EntityNode : Node
 {
 protected:
+    std::string nodeName_ = "Root";
     FieldListNode fieldListNode_;
 
 public:
     EntityNode() {}
     EntityNode(const FieldListNode &fieldListNode) : fieldListNode_(fieldListNode) {}
+    EntityNode(const std::string &nodeName, const FieldListNode &fieldListNode) : nodeName_(nodeName), fieldListNode_(fieldListNode) {}
 
     std::string repr(int level) override
     {
         return std::string{"GQLEntity"} +
+               "\n" + offset(level) + "├─" + "GQLEntityName " + nodeName_ +
                "\n" + offset(level) + "└─" + fieldListNode_.repr(level + 1);
     }
 };
 
-/* --------------------------------------------------------------- */
+struct EntityList : Node
+{
+protected:
+    std::vector<EntityNode> entities;
+
+public:
+    void add(const EntityNode &node) { entities.push_back(node); }
+
+    std::string repr(int level) override
+    {
+        std::string result = std::string{"GQLEntityList"};
+        for (auto i : entities)
+        {
+            result += "\n" + offset(level) + "└─" + i.repr(level + 1);
+        }
+        return result;
+    }
+};
 
 /* ---------------------- BODY NODES ----------------------------- */
 
@@ -256,21 +271,19 @@ struct EntityBodyNode : Node
 {
 protected:
     std::string typeName_;
-    EntityNode entityNode_;
+    EntityList entityList_;
 
 public:
     EntityBodyNode() {}
-    EntityBodyNode(const std::string &typeName, const EntityNode &entityNode) : typeName_(typeName), entityNode_(entityNode) {}
+    EntityBodyNode(const std::string &typeName, const EntityList &entityList) : typeName_(typeName), entityList_(entityList) {}
 
     std::string repr(int level) override
     {
         return std::string{"GQLEntityBody"} +
                "\n" + offset(level) + "├─GQLWord " + typeName_ +
-               "\n" + offset(level) + "└─" + entityNode_.repr(level + 1);
+               "\n" + offset(level) + "└─" + entityList_.repr(level + 1);
     }
 };
-
-/* --------------------------------------------------------------- */
 
 /* ---------------------- QUERY NODES ----------------------------- */
 
@@ -319,7 +332,7 @@ public:
 
     std::string repr(int level) override
     {
-        return std::string{"GQLInsertQuery"} +
+        return std::string{"GQLSelectQuery"} +
                "\n├─GQLCommand " + std::to_string(command_) +
                "\n├─" + conditionBodyNode_.repr(level + 1) +
                "\n└─" + reprNode_.repr(level + 1);
@@ -334,17 +347,32 @@ protected:
 public:
     DeleteQueryNode() {}
     DeleteQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode) {}
+
+    std::string repr(int level) override
+    {
+        return std::string{"GQLDeleteQuery"} +
+               "\n├─GQLCommand " + std::to_string(command_) +
+               "\n├─" + conditionBodyNode_.repr(level + 1) +
+               "\n└─" + reprNode_.repr(level + 1);
+    }
 };
 
 struct UpdateQueryNode : QueryNode
 {
 protected:
     ConditionBodyNode conditionBodyNode_;
-    EntityNode entityNode_;
+    EntityBodyNode entityBodyNode_;
 
 public:
     UpdateQueryNode() {}
-    UpdateQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const EntityNode &entityNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode), entityNode_(entityNode) {}
-};
+    UpdateQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
 
-/* --------------------------------------------------------------- */
+    std::string repr(int level) override
+    {
+        return std::string{"GQLUpdateQuery"} +
+               "\n├─GQLCommand " + std::to_string(command_) +
+               "\n├─" + conditionBodyNode_.repr(level + 1) +
+               "\n├─" + entityBodyNode_.repr(level + 1) +
+               "\n└─" + reprNode_.repr(level + 1);
+    }
+};

@@ -17,7 +17,6 @@ INSERT {
         }
         height: 150
     }) {
-        name
         height
         width
     }
