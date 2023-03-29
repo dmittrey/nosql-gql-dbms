@@ -32,10 +32,11 @@ enum Cmp
 
 struct Node
 {
-    virtual std::string repr(int level) { return "Node"; };
-
 protected:
     std::string offset(int level) { return std::string(level, '\t'); }
+
+public:
+    virtual std::string repr(int level) { return "Node"; };
 };
 
 /* ---------------------- FIELD NODES ---------------------- */

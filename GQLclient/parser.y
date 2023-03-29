@@ -138,50 +138,56 @@ delete_query: DELETE LB condition_body repr RB          { $$ = DeleteQueryNode{$
 update_query: UPDATE LB condition_body entity repr RB   { $$ = UpdateQueryNode{$1, $3, $4, $5}; }
 ;
 
-entity_body: WORD LP entity RP                { $$ = EntityBodyNode{$1, $3}; }
+entity_body: WORD LP entity_list RP                     { /* $$ = EntityBodyNode{$1, $3}; */  }
 ;
 
-entity: LB field_list RB                      { $$ = EntityNode{$2}; }
+entity_list: entity                                     { std::cout << "Found 1!" << std::endl; }
+| entity_list entity                                    { std::cout << "Found 2!" << std::endl; }
 ;
 
-condition_body: WORD LP condition RP          { $$ = ConditionBodyNode{$1, $3}; }
+entity: WORD COLON LB field_list RB                     { std::cout << "Found 3!" << std::endl; }
+| LB field_list RB                                      { std::cout << "Found 4!" << std::endl; }
+| LB entity_list field_list RB                          { std::cout << "Found 5!" << std::endl; }
+| LB field_list entity_list RB                          { std::cout << "Found 6!" << std::endl; }
+| LB entity_list field_list entity_list RB              { std::cout << "Found 7!" << std::endl; }
 ;
 
-condition: LB property_list RB                { $$ = ConditionNode{$2}; }
+condition_body: WORD LP condition RP                    { $$ = ConditionBodyNode{$1, $3}; }
 ;
 
-repr: LB word_list RB                         { $$ = ReprNode{$2};  }
-  | LB RB                                     {  }
+condition: LB property_list RB                          { $$ = ConditionNode{$2}; }
 ;
 
-word_list: WORD                               { $$.add($1); }
-  | word_list WORD                            { $$ = $1; $$.add($2); }
+repr: LB word_list RB                                   { $$ = ReprNode{$2};  }
+| LB RB                                                 {  }
 ;
 
-property_list: property                       { $$.add($1); }
-  | property_list property                    { $$ = $1; $$.add($2); }
+word_list: WORD                                         { $$.add($1); }
+| word_list WORD                                        { $$ = $1; $$.add($2); }
 ;
 
-field_list: field                             { $$.add($1); }
-  | field_list field                          { $$ = $1; $$.add($2); }
+property_list: property                                 { $$.add($1); }
+| property_list property                                { $$ = $1; $$.add($2); }
 ;
 
-property: WORD IN STRING                      { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD EQ STRING                            { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD CMP INT                              { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD EQ INT                               { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD CMP DOUBLE                           { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD EQ DOUBLE                            { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD CMP BOOL                             { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD EQ BOOL                              { $$ = PropertyNode{$1, $2, $3}; }
-  | WORD COLON condition                      { /* */ }
+field_list: field                                       { $$.add($1); }
+| field_list field                                      { $$ = $1; $$.add($2); }
 ;
 
-field: WORD COLON STRING                      { $$ = FieldNode{$1, $3}; }
-  | WORD COLON INT                            { $$ = FieldNode{$1, $3}; }
-  | WORD COLON DOUBLE                         { $$ = FieldNode{$1, $3}; }
-  | WORD COLON BOOL                           { $$ = FieldNode{$1, $3}; }
-  | WORD COLON entity                         { /* */ }
+property: WORD IN STRING                                { $$ = PropertyNode{$1, $2, $3}; }
+| WORD EQ STRING                                        { $$ = PropertyNode{$1, $2, $3}; }
+| WORD CMP INT                                          { $$ = PropertyNode{$1, $2, $3}; }
+| WORD EQ INT                                           { $$ = PropertyNode{$1, $2, $3}; }
+| WORD CMP DOUBLE                                       { $$ = PropertyNode{$1, $2, $3}; }
+| WORD EQ DOUBLE                                        { $$ = PropertyNode{$1, $2, $3}; }
+| WORD CMP BOOL                                         { $$ = PropertyNode{$1, $2, $3}; }
+| WORD EQ BOOL                                          { $$ = PropertyNode{$1, $2, $3}; }
+;
+
+field: WORD COLON STRING                                { $$ = FieldNode{$1, $3}; }
+| WORD COLON INT                                        { $$ = FieldNode{$1, $3}; }
+| WORD COLON DOUBLE                                     { $$ = FieldNode{$1, $3}; }
+| WORD COLON BOOL                                       { $$ = FieldNode{$1, $3}; }
 ;
 
 %%
