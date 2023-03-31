@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package dbms;
+
+service Greeter {
+    rpc Ping (HelloRequest) returns (HelloResponse) {}
+  
+    rpc Apply (OperationRequest) returns (stream OperationResponse) {}
+}
+
+// The request contains 1
+message HelloRequest {
+    bool name = 1;
+}
+  
+// The response contains 0
+message HelloResponse {
+    bool message = 1;
+}
+  
+// The request include xml with operation and useful data
+message OperationRequest {
+    google.protobuf.Any xml = 1;
+}
+  
+// The response include xml with touched by op elements
+message OperationResponse {
+    google.protobuf.Any xml = 1;
+}
