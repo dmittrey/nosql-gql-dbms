@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/zsh
 
-export MY_INSTALL_DIR=/Users/dmitry/.local/grpc
-cmake -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR ..
+mkdir ./build
+pushd ./build
+export GRPC_LIB=../grpc_lib
+cmake -DCMAKE_PREFIX_PATH=$GRPC_LIB ..
+popd

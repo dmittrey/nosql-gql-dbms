@@ -4,7 +4,7 @@ import "google/protobuf/any.proto";
 
 package dbms;
 
-service Greeter {
+service DataBase {
     rpc Ping (HelloRequest) returns (HelloResponse) {}
   
     rpc Apply (OperationRequest) returns (stream OperationResponse) {}

@@ -61,3 +61,6 @@ dkms.conf
 *.bin
 /*/obj
 /*/build
+
+# Local lib
+grpc_lib

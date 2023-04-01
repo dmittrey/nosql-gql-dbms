@@ -55,15 +55,14 @@ target_link_libraries(dbms_grpc_proto
   ${_PROTOBUF_LIBPROTOBUF}
   ${_REFLECTION})
 
-#   foreach(_target
-#   greeter_client greeter_server)
-#   add_executable(${_target} "src/${_target}.cc")
-#   target_link_libraries(${_target}
-#     hw_grpc_proto
-#     absl::flags
-#     absl::flags_parse
-#     ${_GRPC_GRPCPP_UNSECURE}
-#     ${_PROTOBUF_LIBPROTOBUF}
-#     ${_REFLECTION})
-# endforeach()
+  foreach(_target
+  dbms_server)
+  add_executable(${_target} "${_target}.cc" "${dbms_grpc_srcs}" "${dbms_proto_srcs}")
+  target_link_libraries(${_target}
+    absl::flags
+    absl::flags_parse
+    ${_GRPC_GRPCPP_UNSECURE}
+    ${_PROTOBUF_LIBPROTOBUF}
+    ${_REFLECTION})
+endforeach()
 
