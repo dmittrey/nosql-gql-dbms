@@ -20,7 +20,6 @@ message(STATUS "Using gRPC CPP Plugin ${_GRPC_CPP_PLUGIN_EXECUTABLE}")
 find_path(_INCLUDE google)
 message(STATUS "Using include path ${_INCLUDE}")
 
-
 # Proto file
 get_filename_component(dbms_proto "../protos/dbms.proto" ABSOLUTE)
 get_filename_component(dbms_proto_path "${dbms_proto}" PATH)
@@ -43,17 +42,6 @@ add_custom_command(
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${_INCLUDE}")
 set (CMAKE_CXX_STANDARD 20)
-
-# hw_grpc_proto
-add_library(dbms_grpc_proto
-  ${dbms_grpc_srcs}
-  ${dbms_grpc_hdrs}
-  ${dbms_proto_srcs}
-  ${dbms_proto_hdrs})
-target_link_libraries(dbms_grpc_proto
-  ${_GRPC_GRPCPP_UNSECURE}
-  ${_PROTOBUF_LIBPROTOBUF}
-  ${_REFLECTION})
 
 foreach(_target
   dbms_server dbms_client)
