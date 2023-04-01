@@ -55,8 +55,8 @@ target_link_libraries(dbms_grpc_proto
   ${_PROTOBUF_LIBPROTOBUF}
   ${_REFLECTION})
 
-  foreach(_target
-  dbms_server)
+foreach(_target
+  dbms_server dbms_client)
   add_executable(${_target} "${_target}.cc" "${dbms_grpc_srcs}" "${dbms_proto_srcs}")
   target_link_libraries(${_target}
     absl::flags

@@ -12,12 +12,12 @@ service DataBase {
 
 // The request contains 1
 message HelloRequest {
-    bool name = 1;
+    string message = 1;
 }
   
 // The response contains 0
 message HelloResponse {
-    bool message = 1;
+    string message = 1;
 }
   
 // The request include xml with operation and useful data
