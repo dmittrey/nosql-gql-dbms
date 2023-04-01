@@ -12,14 +12,14 @@ static Status SectionExtents_LoadEmpty_ReturnEmptyCol()
     Sect_ext *extents = sect_ext_new();
     sect_ext_ctor(extents, 0, filp);
 
-    List_Pair_Json_Entity *collection = list_Pair_Json_Entity_new();
+    List_Fileoff_itm *collection = list_Fileoff_itm_new();
     DO_OR_FAIL(sect_ext_load(extents, collection));
 
     assert(collection->head == NULL);
     assert(collection->tail == NULL);
     assert(collection->count == 0);
 
-    list_Pair_Json_Entity_dtor(collection);
+    list_Fileoff_itm_dtor(collection);
 
     sect_ext_dtor(extents);
 
@@ -64,26 +64,12 @@ static Status SectionExtents_LoadObjects_ReturnColWithFiveEls()
     DO_OR_FAIL(sect_ext_write(extents, info_json->key, json_val_ptr(info_json),
                               json_val_size(info_json), info_entity, &save_json_fileoff));
 
-    List_Pair_Json_Entity *collection = list_Pair_Json_Entity_new();
+    List_Fileoff_itm *collection = list_Fileoff_itm_new();
     DO_OR_FAIL(sect_ext_load(extents, collection));
 
-    assert(json_cmp(collection->head->f, location_json) == 0);
-    assert(entity_cmp(collection->head->s, location_entity) == 0);
-    list_Pair_Json_Entity_del_fst(collection);
-    assert(json_cmp(collection->head->f, amount_json) == 0);
-    assert(entity_cmp(collection->head->s, amount_entity) == 0);
-    list_Pair_Json_Entity_del_fst(collection);
-    assert(json_cmp(collection->head->f, city_json) == 0);
-    assert(entity_cmp(collection->head->s, city_entity) == 0);
-    list_Pair_Json_Entity_del_fst(collection);
-    assert(json_cmp(collection->head->f, flag_json) == 0);
-    assert(entity_cmp(collection->head->s, flag_entity) == 0);
-    list_Pair_Json_Entity_del_fst(collection);
-    assert(json_cmp(collection->head->f, info_json) == 0);
-    assert(entity_cmp(collection->head->s, info_entity) == 0);
-    list_Pair_Json_Entity_del_fst(collection);
+    assert(collection->count == 5);
 
-    list_Pair_Json_Entity_dtor(collection);
+    list_Fileoff_itm_dtor(collection);
 
     json_dtor(location_json);
     json_dtor(amount_json);

@@ -7,7 +7,7 @@
 #include "parser.tab.hh"
 #include <FlexLexer.h>
 
-#include "Node.hpp"
+#include "node.hpp"
 
 namespace yy
 {

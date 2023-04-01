@@ -7,7 +7,7 @@
 %code requires
 {
 
-#include "Node.hpp"
+#include "node.hpp"
 
 // forward decl of argument to parser
 namespace yy { class Driver; }
