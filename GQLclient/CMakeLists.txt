@@ -1,13 +1,3 @@
-#------------------------------------------------------------------------------
-#
-#  cmake for simplest grammar example
-#  default: cmake -DCMAKE_BUILD_TYPE=Release -DGRAMMAR="numgrammar-sr.y" ..
-#      try: cmake -DCMAKE_BUILD_TYPE=Release -DGRAMMAR="numgrammar-sr-fixed.y" ..
-#      try: cmake -DCMAKE_BUILD_TYPE=Release -DGRAMMAR="numgrammar.y" ..
-#
-#-----------------------------------------------------------------------------
-
-
 cmake_minimum_required(VERSION 3.13.4)
 project(GQLclient)
 
