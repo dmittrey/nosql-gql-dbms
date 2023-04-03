@@ -4,6 +4,7 @@
 #include "utils/table.h"
 #include "utils/string.h"
 
+#include "json/type.h"
 #include "json/object/type.h"
 
 #define JSON_VALUE_INIT_TYPE_INT32(JSON_NAME, KEY, VAL) \
@@ -46,7 +47,7 @@ typedef struct Json
     struct Json *dad;
     struct Json *bro; // next json with same parent
     struct Json *son;
-    uint64_t type;     // Тип значения
+    Json_type type;     // Тип значения
     struct Json *next; // Указатель на следующий json в секции
     Fileoff foff;
 } Json;
