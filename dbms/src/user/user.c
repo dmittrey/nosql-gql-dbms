@@ -1,3 +1,5 @@
+#include "assert.h"
+
 #include "user/user.h"
 
 #include "file/file_p.h"
@@ -7,6 +9,11 @@
 
 #include "section/types.h"
 #include "section/types_p.h"
+
+static Status user_write(struct File *const file, const Json *const json, const String *const type_name);
+static struct Iter *user_read(struct File *const file, Query *const query);
+static Status user_delete(struct File *const file, Query *const query);
+static Status user_update(struct File *const file, Query *const query, const Json *const new_json);
 
 struct File *user_open_file(const char *const name)
 {
@@ -39,7 +46,25 @@ Status user_read_type(struct File *const file, const String *const name, Type *c
     return file_find_type(file, name, o_type, &t_soff, &sect);
 }
 
-Status user_write(struct File *const file, const Json *const json, const String *const type_name)
+Status user_apply(struct File *const file, const Command command, struct Iter ** iter)
+{
+    switch (command.type)
+    {
+    case INSERT:
+        return user_write(file, command.json, command.type_name);
+    case READ:
+        *iter = user_read(file, command.query);
+        return OK;
+    case UPDATE:
+        return user_update(file, command.query, command.json);
+    case DELETE:
+        return user_delete(file, command.query);
+    default:
+        assert("Unknown type!");
+    }
+}
+
+static Status user_write(struct File *const file, const Json *const json, const String *const type_name)
 {
     Type *t = type_new();
     Sectoff soff;
@@ -58,7 +83,7 @@ Status user_write(struct File *const file, const Json *const json, const String 
     return FAILED;
 }
 
-struct Iter *user_read(struct File *const file, Query *const query)
+static struct Iter *user_read(struct File *const file, Query *const query)
 {
     struct Iter *iter = iter_new();
     iter_ctor(iter, file, query);
@@ -66,7 +91,7 @@ struct Iter *user_read(struct File *const file, Query *const query)
     return iter;
 }
 
-Status user_delete(struct File *const file, Query *const query)
+static Status user_delete(struct File *const file, Query *const query)
 {
     struct Iter *iter = iter_new();
     iter_ctor(iter, file, query);
@@ -86,7 +111,7 @@ Status user_delete(struct File *const file, Query *const query)
     return OK;
 }
 
-Status user_update(struct File *const file, Query *const query, const Json *const new_json)
+static Status user_update(struct File *const file, Query *const query, const Json *const new_json)
 {
     struct Iter *iter = iter_new();
     iter_ctor(iter, file, query);

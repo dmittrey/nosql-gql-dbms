@@ -54,7 +54,8 @@ void bench_write()
     {
         for (size_t i = 0; i < 200; i++)
         {
-            user_write(file, info_json, V_type->name);
+            Command command = {.type = INSERT, .json = info_json, .type_name = V_type->name};
+            user_apply(file, command, NULL);
         }
 
         timespec_get(&ts, TIME_UTC);
@@ -133,16 +134,21 @@ void bench_read()
     {
         for (size_t i = 0; i < 50; i++)
         {
-            user_write(file, info_json, K_type->name);
-            user_write(file, location_json, K_type->name);
-            user_write(file, flag_json, K_type->name);
+            Command command = {.type = INSERT, .json = info_json, .type_name = K_type->name};
+            user_apply(file, command, NULL);
+            command = (Command){.type = INSERT, .json = location_json, .type_name = K_type->name};
+            user_apply(file, command, NULL);
+            command = (Command){.type = INSERT, .json = flag_json, .type_name = K_type->name};
+            user_apply(file, command, NULL);
             ins_cnt += 3;
         }
 
         timespec_get(&ts, TIME_UTC);
         long cur_ts = ts.tv_nsec;
 
-        struct Iter *iter = user_read(file, query);
+        Command command = {.type = READ, .query = query};
+        struct Iter *iter;
+        user_apply(file, command, &iter);
         while (iter_is_avail(iter))
         {
             iter_next(iter);
@@ -239,22 +245,25 @@ void bench_delete()
     {
         for (size_t j = 0; j < 50 * i; j++)
         {
-            if (user_write(file, info_json, V_type->name) == FAILED)
-                printf("Failed");
-            if (user_write(file, glossary, V_type->name) == FAILED)
-                printf("Failed");
+            Command command = {.type = INSERT, .json = info_json, .type_name = V_type->name};
+            user_apply(file, command, NULL);
+            command = (Command){.type = INSERT, .json = glossary, .type_name = V_type->name};
+            user_apply(file, command, NULL);
         }
+
         ins_cnt = 50 * i;
 
         clock_t start = clock();
 
-        user_delete(file, amount_query);
+        Command command = {.type = DELETE, .query = amount_query};
+        user_apply(file, command, NULL);
 
         clock_t end = clock();
         double elapsed = (double)(end - start) * 10;
         printf("%ld, %f \t", ins_cnt, elapsed);
 
-        user_delete(file, sort_query);
+        command = (Command){.type = DELETE, .query = sort_query};
+        user_apply(file, command, NULL);
         printf("\n");
     }
 
@@ -350,22 +359,27 @@ void bench_update()
         long ins_cnt = 0;
         for (size_t j = 0; j < 200 * i; j++)
         {
-            if (user_write(file, info_json, V_type->name) == OK)
+            Command command = {.type = INSERT, .json = info_json, .type_name = V_type->name};
+            if (user_apply(file, command, NULL) == OK)
             {
                 ins_cnt++;
             }
-            user_write(file, glossary, V_type->name);
+
+            command = (Command){.type = INSERT, .json = glossary, .type_name = V_type->name};
+            user_apply(file, command, NULL);
         }
 
         clock_t start = clock();
 
-        user_update(file, amount_query, glossary);
+        Command command = {.type = UPDATE, .json = glossary, .query = amount_query};
+        user_apply(file, command, NULL);
 
         clock_t end = clock();
         double elapsed = (double)(end - start) * 10;
         printf("%ld, %f \t", ins_cnt, elapsed);
 
-        user_delete(file, sort_query);
+        command = (Command){.type = DELETE, .query = sort_query};
+        user_apply(file, command, NULL);
         printf("\n");
     }
 
@@ -432,7 +446,8 @@ void bench_read_inner()
         long ins_cnt = 0;
         for (size_t j = 0; j < 200 * i; j++)
         {
-            if (user_write(file, info_json, V_type->name) == OK)
+            Command command = (Command){.type = INSERT, .json = info_json, .type_name = V_type->name};
+            if (user_apply(file, command, NULL) == OK)
             {
                 ins_cnt++;
             }
@@ -440,7 +455,9 @@ void bench_read_inner()
 
         clock_t start = clock();
 
-        struct Iter *iter = user_read(file, query);
+        struct Iter *iter;
+        Command command = (Command){.type = INSERT, .json = info_json, .type_name = V_type->name};
+        Status status = user_apply(file, command, &iter);
 
         int cnt = 0;
 
@@ -461,7 +478,8 @@ void bench_read_inner()
 
         printf("\n");
 
-        user_delete(file, query);
+        command = (Command){.type = DELETE, .query = query};
+        user_apply(file, command, NULL);
     }
 
     type_dtor(V_type);
