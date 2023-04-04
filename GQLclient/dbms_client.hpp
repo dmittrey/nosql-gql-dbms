@@ -1,8 +1,10 @@
 #pragma once
 
-#include <iostream>
-#include <string>
+#include <iostream> 
+#include <string> 
+#include <sstream> 
 
+#include "query.hpp"
 #include <grpcpp/grpcpp.h>
 
 #include <boost/archive/xml_iarchive.hpp>
@@ -20,6 +22,7 @@ using grpc::Channel;
 using grpc::ClientContext;
 using grpc::ClientReader;
 using grpc::Status;
+using Query::Json;
 
 class DataBaseClient
 {
@@ -63,22 +66,16 @@ public:
         request.set_xml(xmlMessage);
 
         OperationResponse response;
-
         std::unique_ptr<ClientReader<OperationResponse>> reader(
             stub_->Apply(&context, request));
 
         while (reader->Read(&response))
         {
-            std::cout << "Hello" << std::endl;
-            std::cout << response.xml() << std::endl;
-
-            Request request;
-            std::stringstream ssi{response.xml()};
-            boost::archive::text_iarchive oa{ssi, boost::archive::no_header};
-            std::cout << "Helo" << std::endl;
-            oa >> request;
-
-            std::cout << request.type_name << std::endl;
+            Json json;
+            std::istringstream ssi{response.xml()};
+            boost::archive::text_iarchive ia(ssi);
+            ia >> json;
+            std::cout << json << std::endl;
         }
         Status status = reader->Finish();
         if (status.ok())

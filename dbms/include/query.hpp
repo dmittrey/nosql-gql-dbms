@@ -1,5 +1,3 @@
-#pragma once
-
 #include <string>
 #include <vector>
 
@@ -79,29 +77,6 @@ namespace Query
 			ar &BOOST_SERIALIZATION_NVP(bro_);
 			ar &BOOST_SERIALIZATION_NVP(son_);
 		}
-
-		friend std::ostream &operator<<(std::ostream &out, const Json &json)
-		{
-			out << "Key: " << json.key_;
-			switch (json.type_)
-			{
-			case JsonType::TYPE_INT32:
-				out << "\n\tValue: " << json.int32_val_;
-				break;
-			case JsonType::TYPE_STRING:
-				out << "\n\tValue: " << json.string_val_;
-				break;
-			case JsonType::TYPE_BOOL:
-				out << "\n\tValue: " << json.bool_val_;
-				break;
-			case JsonType::TYPE_DOUBLE:
-				out << "\n\tValue: " << json.double_val_;
-				break;
-			default:
-				break;
-			}
-			return out;
-		}
 	};
 
 	enum Cmp
@@ -143,7 +118,7 @@ namespace Query
 	class Conditional
 	{
 	public:
-		std::vector<ConditionalItem *> conditionals_;
+		std::vector<ConditionalItem*> conditionals_;
 
 		friend class boost::serialization::access;
 		template <class Archive>
@@ -167,8 +142,8 @@ namespace Query
 	public:
 		QueryType type;
 		std::string type_name;
-		Conditional *query = nullptr;
-		Json *json = nullptr;
+		Conditional *query;
+		Json *json;
 
 		friend class boost::serialization::access;
 		template <class Archive>

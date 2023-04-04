@@ -59,10 +59,10 @@ public:
                  const OperationRequest *request,
                  ServerWriter<OperationResponse> *writer) override
     {
-        std::cout << request->xml() << std::endl;
-
         OperationResponse response;
         response.set_xml(request->xml());
+
+        // std::cout << response.xml().value() << std::endl;
 
         writer->Write(response);
         return Status::OK;

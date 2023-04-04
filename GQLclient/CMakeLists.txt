@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.13.4)
 project(GQLclient)
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
