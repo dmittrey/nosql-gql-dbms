@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(dbms)
 
-file(GLOB_RECURSE PROJECT_HEADERS include/*.h)
-file(GLOB_RECURSE PROJECT_SOURCES src/*.c)
+file(GLOB_RECURSE PROJECT_HEADERS include/*.h include/*.hpp)
+file(GLOB_RECURSE PROJECT_SOURCES src/*.c src/*.cc)
 
 find_package(Boost 1.80 COMPONENTS serialization REQUIRED)
 

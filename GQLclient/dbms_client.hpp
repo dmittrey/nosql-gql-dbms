@@ -1,9 +1,13 @@
+#pragma once
+
 #include <iostream>
 #include <string>
 
 #include <grpcpp/grpcpp.h>
 
 #include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/export.hpp> 
 
 #include "dbms.grpc.pb.h"
 
@@ -65,14 +69,16 @@ public:
 
         while (reader->Read(&response))
         {
-            std::string xmlString = response.xml();
+            std::cout << "Hello" << std::endl;
             std::cout << response.xml() << std::endl;
 
-            Json json;
-            std::istringstream archive_stream{response.xml()};
-            boost::archive::xml_iarchive oa{archive_stream, boost::archive::no_header};
+            Request request;
+            std::stringstream ssi{response.xml()};
+            boost::archive::text_iarchive oa{ssi, boost::archive::no_header};
+            std::cout << "Helo" << std::endl;
+            oa >> request;
 
-            oa >> BOOST_SERIALIZATION_NVP(json);
+            std::cout << request.type_name << std::endl;
         }
         Status status = reader->Finish();
         if (status.ok())

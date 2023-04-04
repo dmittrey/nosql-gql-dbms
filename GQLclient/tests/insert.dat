@@ -1,20 +1,3 @@
-INSERT {
-    K({
-        name: "Dmitry"
-        height: 150
-    })
-}
-
-INSERT {
-    K({
-        name: {
-            literals: 5
-            language: "Russian"
-        }
-        height: 150
-    })
-}
-
 insert {
     K({
         name: {
