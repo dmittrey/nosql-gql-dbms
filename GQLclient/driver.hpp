@@ -8,26 +8,36 @@
 #include <numeric>
 #include <unordered_map>
 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <vector>
+#include <boost/serialization/vector.hpp>
+
 #include <FlexLexer.h>
 #include "parser.tab.hh"
 
 #include "node.hpp"
+
+#include "dbms_client.hpp"
 
 namespace yy
 {
     class Driver
     {
         FlexLexer *plex_;
+        DataBaseClient *client_;
         std::vector<QueryNode> *queryList = new std::vector<QueryNode>{};
-        std::ofstream ofs{"filename.xml"};
-        boost::archive::xml_oarchive oa{ofs, boost::archive::no_header};
+
+        std::ostringstream archive_stream{};
+        boost::archive::xml_oarchive oa{archive_stream, boost::archive::no_header};
 
         const std::unordered_map<std::string, Cmp> cmpTable = {{"GT", Cmp::GT}, {"gt", Cmp::GT}, {"GE", Cmp::GE}, {"ge", Cmp::GE}, {"LT", Cmp::LT}, {"lt", Cmp::LT}, {"LE", Cmp::LE}, {"le", Cmp::LE}, {"EQ", Cmp::EQ}, {"eq", Cmp::EQ}, {"IN", Cmp::IN}, {"in", Cmp::IN}};
         const std::unordered_map<std::string, Command> commandTable = {{"insert", Command::INSERT}, {"INSERT", Command::INSERT}, {"delete", Command::DELETE}, {"DELETE", Command::DELETE}, {"update", Command::UPDATE}, {"UPDATE", Command::UPDATE}, {"select", Command::SELECT}, {"SELECT", Command::SELECT}};
 
     public:
-        Driver(FlexLexer *plex) : plex_(plex) {
-        }
+        Driver(FlexLexer *plex, DataBaseClient *client) : plex_(plex), client_(client) {}
 
         parser::token_type yylex(parser::semantic_type *yylval)
         {
@@ -84,6 +94,8 @@ namespace yy
             Request *request = query.toRequest();
 
             oa << BOOST_SERIALIZATION_NVP(request);
+            std::string outbound_data_ = archive_stream.str();
+            client_->Apply(outbound_data_);
         }
     };
 }

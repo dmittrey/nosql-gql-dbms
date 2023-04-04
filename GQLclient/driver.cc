@@ -2,10 +2,18 @@
 
 #include "driver.hpp"
 
-
-int main() {
+int main()
+{
   FlexLexer *lexer = new yyFlexLexer;
-  yy::Driver driver(lexer);
+  DataBaseClient *client = new DataBaseClient(5433);
+  if (client->Ping() == false)
+  {
+    delete lexer;
+    return 0;
+  }
+
+  yy::Driver driver(lexer, client);
   driver.parse();
   delete lexer;
+  return 0;
 }
