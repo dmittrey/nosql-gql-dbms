@@ -3,7 +3,7 @@ project(GQLclient)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
-find_package(Boost 1.81 COMPONENTS serialization REQUIRED)
+find_package(Boost 1.80 COMPONENTS serialization REQUIRED)
 
 IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
