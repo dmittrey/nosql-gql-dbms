@@ -1,16 +1,16 @@
 #pragma once
 
+#include <fstream>
+#include <iostream>
+#include <boost/serialization/utility.hpp>
+
 #include <string>
 #include <iostream>
 #include <vector>
 
-enum FieldType
-{
-    STRING,
-    INT32,
-    DOUBLE,
-    BOOL
-};
+#include "query.hpp"
+
+using namespace Query;
 
 enum Command
 {
@@ -20,22 +20,10 @@ enum Command
     UPDATE
 };
 
-enum Cmp
-{
-    GT = 0,
-    GE,
-    LT,
-    LE,
-    IN,
-    EQ
-};
-
 struct Node
 {
-protected:
     std::string offset(int level) { return std::string(level, '\t'); }
 
-public:
     virtual std::string repr(int level) { return "Node"; };
 };
 
@@ -43,42 +31,54 @@ public:
 
 struct FieldNode : Node
 {
-protected:
-    FieldType type;
+    JsonType type_;
     std::string name_;
     std::string str_value_;
     int32_t int_value_;
     double double_value_;
     bool bool_value_;
 
-public:
     FieldNode() {}
     FieldNode(std::string &name) : name_(name) {}
-    FieldNode(std::string &name, std::string &value) : name_(name), str_value_(value), type(STRING) {}
-    FieldNode(std::string &name, int32_t &value) : name_(name), int_value_(value), type(INT32) {}
-    FieldNode(std::string &name, double &value) : name_(name), double_value_(value), type(DOUBLE) {}
-    FieldNode(std::string &name, bool &value) : name_(name), bool_value_(value), type(BOOL) {}
+    FieldNode(std::string &name, std::string &value) : name_(name), str_value_(value), type_(JsonType::TYPE_STRING) {}
+    FieldNode(std::string &name, int32_t &value) : name_(name), int_value_(value), type_(JsonType::TYPE_INT32) {}
+    FieldNode(std::string &name, double &value) : name_(name), double_value_(value), type_(JsonType::TYPE_DOUBLE) {}
+    FieldNode(std::string &name, bool &value) : name_(name), bool_value_(value), type_(JsonType::TYPE_BOOL) {}
 
     std::string repr(int level) override
     {
         std::string str = "GQLField name: " + name_ + "\tvalue: ";
-        switch (type)
+        switch (type_)
         {
-        case STRING:
+        case JsonType::TYPE_STRING:
             str += str_value_;
             break;
-        case INT32:
+        case JsonType::TYPE_INT32:
             str += std::to_string(int_value_);
             break;
-        case DOUBLE:
+        case JsonType::TYPE_DOUBLE:
             str += std::to_string(double_value_);
             break;
-        case BOOL:
+        case JsonType::TYPE_BOOL:
             str += std::to_string(bool_value_);
+            break;
+        default:
             break;
         }
 
         return str;
+    }
+
+    Json *toJson()
+    {
+        Json *json = new Json;
+        json->key_ = name_;
+        json->type_ = type_;
+        json->string_val_ = str_value_;
+        json->int32_val_ = int_value_;
+        json->double_val_ = double_value_;
+        json->bool_val_ = bool_value_;
+        return json;
     }
 };
 
@@ -90,12 +90,25 @@ struct FieldListNode : public Node
 
     std::string repr(int level) override
     {
-        std::string result = std::string{"GQLFieldList"};
+        std::string result = "GQLFieldList";
         for (auto i : fields)
         {
             result += "\n" + offset(level) + "└─" + i.repr(level);
         }
         return result;
+    }
+
+    Json *toJson()
+    {
+        Json *f_son = nullptr;
+        for (auto &sonFieldNode : fields)
+        {
+            if (f_son == nullptr)
+                f_son = sonFieldNode.toJson();
+            else
+                f_son->addBro(sonFieldNode.toJson());
+        }
+        return f_son;
     }
 };
 
@@ -103,10 +116,8 @@ struct FieldListNode : public Node
 
 struct PropertyNode : FieldNode
 {
-protected:
     Cmp cmp_;
 
-public:
     PropertyNode() {}
     PropertyNode(std::string &name, Cmp cmp, std::string &value) : FieldNode{name, value}, cmp_(cmp) {}
     PropertyNode(std::string &name, Cmp cmp, int32_t &value) : FieldNode{name, value}, cmp_(cmp) {}
@@ -116,23 +127,38 @@ public:
     std::string repr(int level) override
     {
         std::string str = "GQLProperty name: " + name_ + "\tOperation: " + std::to_string(cmp_) + "\tvalue: ";
-        switch (type)
+        switch (type_)
         {
-        case STRING:
+        case JsonType::TYPE_STRING:
             str += str_value_;
             break;
-        case INT32:
+        case JsonType::TYPE_INT32:
             str += std::to_string(int_value_);
             break;
-        case DOUBLE:
+        case JsonType::TYPE_DOUBLE:
             str += std::to_string(double_value_);
             break;
-        case BOOL:
+        case JsonType::TYPE_BOOL:
             str += std::to_string(bool_value_);
+            break;
+        default:
             break;
         }
 
         return str;
+    }
+
+    ConditionalItem *toConditionalItem()
+    {
+        ConditionalItem *item = new ConditionalItem;
+        item->key_ = name_;
+        item->type_ = type_;
+        item->cmp_ = cmp_;
+        item->string_val_ = str_value_;
+        item->int32_val_ = int_value_;
+        item->double_val_ = double_value_;
+        item->bool_val_ = bool_value_;
+        return item;
     }
 };
 
@@ -150,6 +176,16 @@ struct PropertyListNode : Node
             result += "\n" + offset(level) + "└─" + i.repr(level);
         }
         return result;
+    }
+
+    std::vector<ConditionalItem *> toConditionalItemVector()
+    {
+        std::vector<ConditionalItem *> cond_items{};
+        for (auto &i : fields)
+        {
+            cond_items.push_back(i.toConditionalItem());
+        }
+        return cond_items;
     }
 };
 
@@ -179,10 +215,8 @@ struct WordListNode : Node
 
 struct ReprNode : Node
 {
-protected:
     WordListNode wordListNode_;
 
-public:
     ReprNode() {}
     ReprNode(const WordListNode &wordListNode) : wordListNode_(wordListNode) {}
 
@@ -195,10 +229,8 @@ public:
 
 struct ConditionNode : Node
 {
-protected:
     PropertyListNode propertyListNode_;
 
-public:
     ConditionNode() {}
     ConditionNode(const PropertyListNode &propertyListNode) : propertyListNode_(propertyListNode) {}
 
@@ -207,33 +239,46 @@ public:
         return std::string{"GQLCondition"} +
                "\n" + offset(level) + "└─" + propertyListNode_.repr(level + 1);
     }
+
+    Conditional *toConditional()
+    {
+        return new Conditional{propertyListNode_.toConditionalItemVector()};
+    }
 };
 
 struct EntityNode : Node
 {
-protected:
-    std::string nodeName_ = "Root";
+    bool is_root_ = false;
+    std::string nodeName_;
     FieldListNode fieldListNode_;
 
-public:
     EntityNode() {}
-    EntityNode(const FieldListNode &fieldListNode) : fieldListNode_(fieldListNode) {}
+    EntityNode(const FieldListNode &fieldListNode) : is_root_(true), fieldListNode_(fieldListNode) {}
     EntityNode(const std::string &nodeName, const FieldListNode &fieldListNode) : nodeName_(nodeName), fieldListNode_(fieldListNode) {}
 
     std::string repr(int level) override
     {
         return std::string{"GQLEntity"} +
+               "\n" + offset(level) + "├─" + "GQLEntityIsRoot " + std::to_string(is_root_) +
                "\n" + offset(level) + "├─" + "GQLEntityName " + nodeName_ +
                "\n" + offset(level) + "└─" + fieldListNode_.repr(level + 1);
     }
+
+    std::pair<bool, Json *> toJson()
+    {
+        Json *rootJson = new Json;
+        rootJson->type_ = JsonType::TYPE_OBJECT;
+        rootJson->key_ = nodeName_;
+
+        rootJson->addSon(fieldListNode_.toJson());
+        return {is_root_, rootJson};
+    }
 };
 
-struct EntityList : Node
+struct EntityListNode : Node
 {
-protected:
     std::vector<EntityNode> entities;
 
-public:
     void add(const EntityNode &node) { entities.push_back(node); }
 
     std::string repr(int level) override
@@ -245,17 +290,34 @@ public:
         }
         return result;
     }
+
+    Json *toJson()
+    {
+        Json *rootJson;
+        for (auto &entity : entities)
+        {
+            std::pair<bool, Json *> entityJson = entity.toJson();
+            if (entityJson.first == true)
+                rootJson = entityJson.second;
+        }
+
+        for (auto &entity : entities)
+        {
+            std::pair<bool, Json *> entityJson = entity.toJson();
+            if (entityJson.first == false)
+                rootJson->addSon(entityJson.second);
+        }
+        return rootJson;
+    }
 };
 
 /* ---------------------- BODY NODES ----------------------------- */
 
 struct ConditionBodyNode : Node
 {
-protected:
     std::string typeName_;
     ConditionNode conditionNode_;
 
-public:
     ConditionBodyNode() {}
     ConditionBodyNode(const std::string &typeName, const ConditionNode &conditionNode) : typeName_(typeName), conditionNode_(conditionNode) {}
 
@@ -265,17 +327,20 @@ public:
                "\n" + offset(level) + "├─GQLWord " + typeName_ +
                "\n" + offset(level) + "└─" + conditionNode_.repr(level + 1);
     }
+
+    std::pair<std::string, Conditional *> toConditionalWithType()
+    {
+        return {typeName_, conditionNode_.toConditional()};
+    }
 };
 
 struct EntityBodyNode : Node
 {
-protected:
     std::string typeName_;
-    EntityList entityList_;
+    EntityListNode entityList_;
 
-public:
     EntityBodyNode() {}
-    EntityBodyNode(const std::string &typeName, const EntityList &entityList) : typeName_(typeName), entityList_(entityList) {}
+    EntityBodyNode(const std::string &typeName, const EntityListNode &entityList) : typeName_(typeName), entityList_(entityList) {}
 
     std::string repr(int level) override
     {
@@ -283,17 +348,20 @@ public:
                "\n" + offset(level) + "├─GQLWord " + typeName_ +
                "\n" + offset(level) + "└─" + entityList_.repr(level + 1);
     }
+
+    std::pair<std::string, Json *> toJsonWithType()
+    {
+        return {typeName_, entityList_.toJson()};
+    }
 };
 
 /* ---------------------- QUERY NODES ----------------------------- */
 
 struct QueryNode : Node
 {
-protected:
     Command command_;
     ReprNode reprNode_;
 
-public:
     QueryNode() {}
     QueryNode(Command command, const ReprNode &reprNode) : command_(command), reprNode_(reprNode) {}
 
@@ -301,14 +369,14 @@ public:
     {
         return "Hello from query node!";
     }
+
+    virtual Request *toRequest() { return nullptr; };
 };
 
 struct InsertQueryNode : QueryNode
 {
-protected:
     EntityBodyNode entityBodyNode_;
 
-public:
     InsertQueryNode() {}
     InsertQueryNode(Command command, const EntityBodyNode &entityBodeNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, entityBodyNode_(entityBodeNode) {}
 
@@ -319,14 +387,29 @@ public:
                "\n├─" + entityBodyNode_.repr(level + 1) +
                "\n└─" + reprNode_.repr(level + 1);
     }
+
+    Request *toRequest() override
+    {
+        std::pair<std::string, Json *> typeWithJson = entityBodyNode_.toJsonWithType();
+
+        std::ofstream ofs("file.xml");
+        unsigned int flags = boost::archive::no_header;
+        boost::archive::xml_oarchive oa(ofs, flags);
+        oa << BOOST_SERIALIZATION_NVP(typeWithJson);
+
+        Request *request = new Request;
+        request->type = QueryType::INSERT;
+        request->type_name = typeWithJson.first;
+        request->json = typeWithJson.second;
+
+        return request;
+    }
 };
 
 struct SelectQueryNode : QueryNode
 {
-protected:
     ConditionBodyNode conditionBodyNode_;
 
-public:
     SelectQueryNode() {}
     SelectQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode) {}
 
@@ -337,14 +420,24 @@ public:
                "\n├─" + conditionBodyNode_.repr(level + 1) +
                "\n└─" + reprNode_.repr(level + 1);
     }
+
+    Request *toRequest() override
+    {
+        std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
+
+        Request *request = new Request{};
+        request->type = QueryType::INSERT;
+        request->type_name = typeWithConditional.first;
+        request->query = typeWithConditional.second;
+
+        return request;
+    }
 };
 
 struct DeleteQueryNode : QueryNode
 {
-protected:
     ConditionBodyNode conditionBodyNode_;
 
-public:
     DeleteQueryNode() {}
     DeleteQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode) {}
 
@@ -355,15 +448,25 @@ public:
                "\n├─" + conditionBodyNode_.repr(level + 1) +
                "\n└─" + reprNode_.repr(level + 1);
     }
+
+    Request *toRequest() override
+    {
+        std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
+
+        Request *request = new Request{};
+        request->type = QueryType::INSERT;
+        request->type_name = typeWithConditional.first;
+        request->query = typeWithConditional.second;
+
+        return request;
+    }
 };
 
 struct UpdateQueryNode : QueryNode
 {
-protected:
     ConditionBodyNode conditionBodyNode_;
     EntityBodyNode entityBodyNode_;
 
-public:
     UpdateQueryNode() {}
     UpdateQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
 

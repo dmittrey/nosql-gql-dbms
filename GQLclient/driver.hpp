@@ -1,11 +1,15 @@
 #pragma once
 
+#include <fstream>
 #include <iostream>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/utility.hpp>
 #include <numeric>
 #include <unordered_map>
 
-#include "parser.tab.hh"
 #include <FlexLexer.h>
+#include "parser.tab.hh"
 
 #include "node.hpp"
 
@@ -15,12 +19,15 @@ namespace yy
     {
         FlexLexer *plex_;
         std::vector<QueryNode> *queryList = new std::vector<QueryNode>{};
+        std::ofstream ofs{"filename.xml"};
+        boost::archive::xml_oarchive oa{ofs, boost::archive::no_header};
 
         const std::unordered_map<std::string, Cmp> cmpTable = {{"GT", Cmp::GT}, {"gt", Cmp::GT}, {"GE", Cmp::GE}, {"ge", Cmp::GE}, {"LT", Cmp::LT}, {"lt", Cmp::LT}, {"LE", Cmp::LE}, {"le", Cmp::LE}, {"EQ", Cmp::EQ}, {"eq", Cmp::EQ}, {"IN", Cmp::IN}, {"in", Cmp::IN}};
         const std::unordered_map<std::string, Command> commandTable = {{"insert", Command::INSERT}, {"INSERT", Command::INSERT}, {"delete", Command::DELETE}, {"DELETE", Command::DELETE}, {"update", Command::UPDATE}, {"UPDATE", Command::UPDATE}, {"select", Command::SELECT}, {"SELECT", Command::SELECT}};
 
     public:
-        Driver(FlexLexer *plex) : plex_(plex) {}
+        Driver(FlexLexer *plex) : plex_(plex) {
+        }
 
         parser::token_type yylex(parser::semantic_type *yylval)
         {
@@ -29,8 +36,13 @@ namespace yy
             switch (tt)
             {
             case yy::parser::token_type::WORD:
+                yylval->as<std::string>() = plex_->YYText();
+                break;
             case yy::parser::token_type::STRING:
                 yylval->as<std::string>() = plex_->YYText();
+                yylval->as<std::string>().erase(
+                    remove(yylval->as<std::string>().begin(), yylval->as<std::string>().end(), '\"'),
+                    yylval->as<std::string>().end());
                 break;
             case yy::parser::token_type::INT:
                 yylval->as<int>() = std::stoi(plex_->YYText());
@@ -67,8 +79,11 @@ namespace yy
 
         void insert(QueryNode &query)
         {
-            queryList->push_back(query);
             std::cout << query.repr(0) << std::endl;
+
+            Request *request = query.toRequest();
+
+            oa << BOOST_SERIALIZATION_NVP(request);
         }
     };
 }

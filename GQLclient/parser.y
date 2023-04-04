@@ -59,7 +59,7 @@ parser::token_type yylex(parser::semantic_type* yylval,
 %nterm <PropertyNode> property 
 %nterm <PropertyListNode> property_list 
 %nterm <EntityNode> entity
-%nterm <EntityList> entity_list
+%nterm <EntityListNode> entity_list
 %nterm <EntityBodyNode> entity_body
 
 %nterm <WordListNode> word_list

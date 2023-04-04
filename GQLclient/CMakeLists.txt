@@ -3,6 +3,11 @@ project(GQLclient)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
+find_package(Boost 1.81 COMPONENTS serialization REQUIRED)
+
+IF (Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIR})
+endif()
 
 flex_target(scanner
   lexer.l
@@ -21,6 +26,7 @@ add_executable(${PROJECT_NAME}
   ${BISON_parser_OUTPUTS}
   ${FLEX_scanner_OUTPUTS}
 )
+target_link_libraries(${PROJECT_NAME} Boost::serialization)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
