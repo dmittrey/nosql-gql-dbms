@@ -4,11 +4,7 @@ update {
     })
     L({
         name: "Andrey" 
-    }) 
-    {
-        name
-        height
-    }
+    })
 }
 
 update {
@@ -18,9 +14,5 @@ update {
     })
     L({
         name: "Andrey" 
-    }) 
-    {
-        name
-        height
-    }
+    })
 }

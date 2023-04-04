@@ -3,6 +3,8 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include <boost/archive/xml_iarchive.hpp>
+
 #include "dbms.grpc.pb.h"
 
 using dbms::DataBase;

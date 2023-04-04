@@ -3,18 +3,12 @@ SELECT {
         name in "Dmitry"
         height gt 150
         width eq 555
-    }) {
-        name
-        height
-        width
-    }
+    })
 }
 
 select {
     K({
         name eq "Dmitry"
         height le 150
-    }) {
-        name
-    }
+    })
 }

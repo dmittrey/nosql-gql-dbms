@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/serialization/utility.hpp>
 #include <numeric>
@@ -95,6 +94,7 @@ namespace yy
 
             oa << BOOST_SERIALIZATION_NVP(request);
             std::string outbound_data_ = archive_stream.str();
+            std::cout << outbound_data_ << std::endl;
             client_->Apply(outbound_data_);
         }
     };

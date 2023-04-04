@@ -2,11 +2,7 @@ INSERT {
     K({
         name: "Dmitry"
         height: 150
-    }) {
-        name
-        height
-        width
-    }
+    })
 }
 
 INSERT {
@@ -16,10 +12,7 @@ INSERT {
             language: "Russian"
         }
         height: 150
-    }) {
-        height
-        width
-    }
+    })
 }
 
 insert {
@@ -31,6 +24,5 @@ insert {
         }
         height: 150
         width: 50.5
-    }) {
-    }
+    })
 }

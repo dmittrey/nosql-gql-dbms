@@ -62,9 +62,6 @@ parser::token_type yylex(parser::semantic_type* yylval,
 %nterm <EntityListNode> entity_list
 %nterm <EntityBodyNode> entity_body
 
-%nterm <WordListNode> word_list
-%nterm <ReprNode> repr
-
 %nterm <InsertQueryNode> insert_query
 %nterm <SelectQueryNode> select_query
 %nterm <DeleteQueryNode> delete_query
@@ -84,13 +81,13 @@ query_list: insert_query                                { driver->insert($1); }
   | query_list update_query                             { driver->insert($2); }
 ;
 
-insert_query: INSERT LB entity_body repr RB                   { $$ = InsertQueryNode{$1, $3, $4}; }
+insert_query: INSERT LB entity_body RB                   { $$ = InsertQueryNode{$1, $3}; }
 ;
-select_query: SELECT LB condition_body repr RB                { $$ = SelectQueryNode{$1, $3, $4}; }
+select_query: SELECT LB condition_body RB                { $$ = SelectQueryNode{$1, $3}; }
 ;
-delete_query: DELETE LB condition_body repr RB                { $$ = DeleteQueryNode{$1, $3, $4}; }
+delete_query: DELETE LB condition_body RB                { $$ = DeleteQueryNode{$1, $3}; }
 ;
-update_query: UPDATE LB condition_body entity_body repr RB    { $$ = UpdateQueryNode{$1, $3, $4, $5}; }
+update_query: UPDATE LB condition_body entity_body RB    { $$ = UpdateQueryNode{$1, $3, $4}; }
 ;
 
 entity_body: WORD LP LB entity_list RB RP                     { $$ = EntityBodyNode{$1, $4}; }
@@ -108,14 +105,6 @@ condition_body: WORD LP condition RP                          { $$ = ConditionBo
 ;
 
 condition: LB property_list RB                                { $$ = ConditionNode{$2}; }
-;
-
-repr: LB word_list RB                                         { $$ = ReprNode{$2};  }
-| LB RB                                                       {  }
-;
-
-word_list: WORD                                               { $$.add($1); }
-| word_list WORD                                              { $$ = $1; $$.add($2); }
 ;
 
 property_list: property                                       { $$.add($1); }

@@ -189,43 +189,7 @@ struct PropertyListNode : Node
     }
 };
 
-/* ---------------------- WORD NODES ----------------------------- */
-
-struct WordListNode : Node
-{
-    std::vector<std::string> fields = {};
-
-    void add(std::string field)
-    {
-        fields.push_back(field);
-    }
-
-    std::string repr(int level) override
-    {
-        std::string result = std::string{"GQLWordList"};
-        for (auto i : fields)
-        {
-            result += "\n" + offset(level) + "└─GQLWord " + i;
-        }
-        return result;
-    }
-};
-
 /* ---------------------- ALIAS NODES ---------------------------- */
-
-struct ReprNode : Node
-{
-    WordListNode wordListNode_;
-
-    ReprNode() {}
-    ReprNode(const WordListNode &wordListNode) : wordListNode_(wordListNode) {}
-
-    std::string repr(int level) override
-    {
-        return std::string{"GQLRepresentation"} +
-               "\n" + offset(level) + "└─" + wordListNode_.repr(level + 1);
-    }
-};
 
 struct ConditionNode : Node
 {
@@ -360,10 +324,9 @@ struct EntityBodyNode : Node
 struct QueryNode : Node
 {
     Command command_;
-    ReprNode reprNode_;
 
     QueryNode() {}
-    QueryNode(Command command, const ReprNode &reprNode) : command_(command), reprNode_(reprNode) {}
+    QueryNode(Command command) : command_(command) {}
 
     std::string repr(int level) override
     {
@@ -378,14 +341,13 @@ struct InsertQueryNode : QueryNode
     EntityBodyNode entityBodyNode_;
 
     InsertQueryNode() {}
-    InsertQueryNode(Command command, const EntityBodyNode &entityBodeNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, entityBodyNode_(entityBodeNode) {}
+    InsertQueryNode(Command command, const EntityBodyNode &entityBodeNode) : QueryNode{command}, entityBodyNode_(entityBodeNode) {}
 
     std::string repr(int level) override
     {
         return std::string{"GQLInsertQuery"} +
                "\n├─GQLCommand " + std::to_string(command_) +
-               "\n├─" + entityBodyNode_.repr(level + 1) +
-               "\n└─" + reprNode_.repr(level + 1);
+               "\n└─" + entityBodyNode_.repr(level + 1);
     }
 
     Request *toRequest() override
@@ -411,14 +373,13 @@ struct SelectQueryNode : QueryNode
     ConditionBodyNode conditionBodyNode_;
 
     SelectQueryNode() {}
-    SelectQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode) {}
+    SelectQueryNode(Command command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
 
     std::string repr(int level) override
     {
         return std::string{"GQLSelectQuery"} +
                "\n├─GQLCommand " + std::to_string(command_) +
-               "\n├─" + conditionBodyNode_.repr(level + 1) +
-               "\n└─" + reprNode_.repr(level + 1);
+               "\n└─" + conditionBodyNode_.repr(level + 1);
     }
 
     Request *toRequest() override
@@ -439,14 +400,13 @@ struct DeleteQueryNode : QueryNode
     ConditionBodyNode conditionBodyNode_;
 
     DeleteQueryNode() {}
-    DeleteQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode) {}
+    DeleteQueryNode(Command command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
 
     std::string repr(int level) override
     {
         return std::string{"GQLDeleteQuery"} +
                "\n├─GQLCommand " + std::to_string(command_) +
-               "\n├─" + conditionBodyNode_.repr(level + 1) +
-               "\n└─" + reprNode_.repr(level + 1);
+               "\n└─" + conditionBodyNode_.repr(level + 1);
     }
 
     Request *toRequest() override
@@ -468,14 +428,27 @@ struct UpdateQueryNode : QueryNode
     EntityBodyNode entityBodyNode_;
 
     UpdateQueryNode() {}
-    UpdateQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode, const ReprNode &reprNode) : QueryNode{command, reprNode}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
+    UpdateQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
 
     std::string repr(int level) override
     {
         return std::string{"GQLUpdateQuery"} +
                "\n├─GQLCommand " + std::to_string(command_) +
                "\n├─" + conditionBodyNode_.repr(level + 1) +
-               "\n├─" + entityBodyNode_.repr(level + 1) +
-               "\n└─" + reprNode_.repr(level + 1);
+               "\n└─" + entityBodyNode_.repr(level + 1);
+    }
+
+    Request *toRequest() override
+    {
+        std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
+        std::pair<std::string, Json *> typeWithJson = entityBodyNode_.toJsonWithType();
+
+        Request *request = new Request{};
+        request->type = QueryType::INSERT;
+        request->type_name = typeWithConditional.first;
+        request->query = typeWithConditional.second;
+        request->json = typeWithJson.second;
+
+        return request;
     }
 };
