@@ -22,10 +22,10 @@ message HelloResponse {
   
 // The request include xml with operation and useful data
 message OperationRequest {
-    google.protobuf.Any xml = 1;
+    string xml = 1;
 }
   
 // The response include xml with touched by op elements
 message OperationResponse {
-    google.protobuf.Any xml = 1;
+    string xml = 1;
 }

@@ -56,7 +56,7 @@ public:
         ClientContext context;
 
         OperationRequest request;
-        request.mutable_xml()->set_value(xmlMessage);
+        request.set_xml(xmlMessage);
 
         OperationResponse response;
 
@@ -65,7 +65,14 @@ public:
 
         while (reader->Read(&response))
         {
-            std::cout << response.xml().SerializeAsString() << std::endl;
+            std::string xmlString = response.xml();
+            std::cout << response.xml() << std::endl;
+
+            Json json;
+            std::istringstream archive_stream{response.xml()};
+            boost::archive::xml_iarchive oa{archive_stream, boost::archive::no_header};
+
+            oa >> BOOST_SERIALIZATION_NVP(json);
         }
         Status status = reader->Finish();
         if (status.ok())
