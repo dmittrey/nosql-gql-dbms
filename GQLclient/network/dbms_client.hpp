@@ -4,14 +4,10 @@
 #include <string> 
 #include <sstream> 
 
-#include "query.hpp"
 #include <grpcpp/grpcpp.h>
-
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/export.hpp> 
-
 #include "dbms.grpc.pb.h"
+
+#include "network/request.hpp"
 
 using dbms::DataBase;
 using dbms::HelloRequest;
@@ -22,7 +18,9 @@ using grpc::Channel;
 using grpc::ClientContext;
 using grpc::ClientReader;
 using grpc::Status;
-using Query::Json;
+
+using Network::Json;
+using Network::Request;
 
 class DataBaseClient
 {
@@ -58,26 +56,14 @@ public:
         }
     }
 
-    void Apply(std::string xmlMessage)
+    void Apply(Request *netRequest)
     {
         ClientContext context;
-
         OperationRequest request;
-        request.set_xml(xmlMessage);
-
         OperationResponse response;
-        std::unique_ptr<ClientReader<OperationResponse>> reader(
-            stub_->Apply(&context, request));
 
-        while (reader->Read(&response))
-        {
-            Json json;
-            std::istringstream ssi{response.xml()};
-            boost::archive::text_iarchive ia(ssi);
-            ia >> json;
-            std::cout << json << std::endl;
-        }
-        Status status = reader->Finish();
+        Status status = stub_->Apply(&context, request, &response);
+
         if (status.ok())
         {
             std::cout << "OperationResponse rpc succeeded." << std::endl;

@@ -37,15 +37,15 @@ parser::token_type yylex(parser::semantic_type* yylval,
 
 %token <int> INT
 %token <std::string> STRING
-%token <double> DOUBLE
+%token <float> FLOAT
 %token <bool> BOOL
 
 %token <std::string> WORD
 
-%token <Command> INSERT
-%token <Command> DELETE
-%token <Command> SELECT
-%token <Command> UPDATE
+%token <CommandType> INSERT
+%token <CommandType> DELETE
+%token <CommandType> SELECT
+%token <CommandType> UPDATE
 
 %token <Cmp> CMP
 %token <Cmp> EQ
@@ -119,15 +119,15 @@ property: WORD IN STRING                                      { $$ = PropertyNod
 | WORD EQ STRING                                              { $$ = PropertyNode{$1, $2, $3}; }
 | WORD CMP INT                                                { $$ = PropertyNode{$1, $2, $3}; }
 | WORD EQ INT                                                 { $$ = PropertyNode{$1, $2, $3}; }
-| WORD CMP DOUBLE                                             { $$ = PropertyNode{$1, $2, $3}; }
-| WORD EQ DOUBLE                                              { $$ = PropertyNode{$1, $2, $3}; }
+| WORD CMP FLOAT                                             { $$ = PropertyNode{$1, $2, $3}; }
+| WORD EQ FLOAT                                              { $$ = PropertyNode{$1, $2, $3}; }
 | WORD CMP BOOL                                               { $$ = PropertyNode{$1, $2, $3}; }
 | WORD EQ BOOL                                                { $$ = PropertyNode{$1, $2, $3}; }
 ;
 
 field: WORD COLON STRING                                      { $$ = FieldNode{$1, $3}; }
 | WORD COLON INT                                              { $$ = FieldNode{$1, $3}; }
-| WORD COLON DOUBLE                                           { $$ = FieldNode{$1, $3}; }
+| WORD COLON FLOAT                                           { $$ = FieldNode{$1, $3}; }
 | WORD COLON BOOL                                             { $$ = FieldNode{$1, $3}; }
 ;
 

@@ -8,17 +8,9 @@
 #include <iostream>
 #include <vector>
 
-#include "query.hpp"
+#include "network/request.hpp"
 
-using namespace Query;
-
-enum Command
-{
-    INSERT,
-    DELETE,
-    SELECT,
-    UPDATE
-};
+using namespace Network;
 
 struct Node
 {
@@ -35,14 +27,14 @@ struct FieldNode : Node
     std::string name_;
     std::string str_value_;
     int32_t int_value_;
-    double double_value_;
+    float float_value_;
     bool bool_value_;
 
     FieldNode() {}
     FieldNode(std::string &name) : name_(name) {}
     FieldNode(std::string &name, std::string &value) : name_(name), str_value_(value), type_(JsonType::TYPE_STRING) {}
     FieldNode(std::string &name, int32_t &value) : name_(name), int_value_(value), type_(JsonType::TYPE_INT32) {}
-    FieldNode(std::string &name, double &value) : name_(name), double_value_(value), type_(JsonType::TYPE_DOUBLE) {}
+    FieldNode(std::string &name, float &value) : name_(name), float_value_(value), type_(JsonType::TYPE_FLOAT) {}
     FieldNode(std::string &name, bool &value) : name_(name), bool_value_(value), type_(JsonType::TYPE_BOOL) {}
 
     std::string repr(int level) override
@@ -56,8 +48,8 @@ struct FieldNode : Node
         case JsonType::TYPE_INT32:
             str += std::to_string(int_value_);
             break;
-        case JsonType::TYPE_DOUBLE:
-            str += std::to_string(double_value_);
+        case JsonType::TYPE_FLOAT:
+            str += std::to_string(float_value_);
             break;
         case JsonType::TYPE_BOOL:
             str += std::to_string(bool_value_);
@@ -76,7 +68,7 @@ struct FieldNode : Node
         json->type_ = type_;
         json->string_val_ = str_value_;
         json->int32_val_ = int_value_;
-        json->double_val_ = double_value_;
+        json->float_val_ = float_value_;
         json->bool_val_ = bool_value_;
         return json;
     }
@@ -121,7 +113,7 @@ struct PropertyNode : FieldNode
     PropertyNode() {}
     PropertyNode(std::string &name, Cmp cmp, std::string &value) : FieldNode{name, value}, cmp_(cmp) {}
     PropertyNode(std::string &name, Cmp cmp, int32_t &value) : FieldNode{name, value}, cmp_(cmp) {}
-    PropertyNode(std::string &name, Cmp cmp, double &value) : FieldNode{name, value}, cmp_(cmp) {}
+    PropertyNode(std::string &name, Cmp cmp, float &value) : FieldNode{name, value}, cmp_(cmp) {}
     PropertyNode(std::string &name, Cmp cmp, bool &value) : FieldNode{name, value}, cmp_(cmp) {}
 
     std::string repr(int level) override
@@ -135,8 +127,8 @@ struct PropertyNode : FieldNode
         case JsonType::TYPE_INT32:
             str += std::to_string(int_value_);
             break;
-        case JsonType::TYPE_DOUBLE:
-            str += std::to_string(double_value_);
+        case JsonType::TYPE_FLOAT:
+            str += std::to_string(float_value_);
             break;
         case JsonType::TYPE_BOOL:
             str += std::to_string(bool_value_);
@@ -151,12 +143,12 @@ struct PropertyNode : FieldNode
     ConditionalItem *toConditionalItem()
     {
         ConditionalItem *item = new ConditionalItem;
-        item->key_ = name_;
+        item->key_ = {name_};
         item->type_ = type_;
         item->cmp_ = cmp_;
         item->string_val_ = str_value_;
         item->int32_val_ = int_value_;
-        item->double_val_ = double_value_;
+        item->float_val_ = float_value_;
         item->bool_val_ = bool_value_;
         return item;
     }
@@ -323,10 +315,10 @@ struct EntityBodyNode : Node
 
 struct QueryNode : Node
 {
-    Command command_;
+    CommandType command_;
 
     QueryNode() {}
-    QueryNode(Command command) : command_(command) {}
+    QueryNode(CommandType command) : command_(command) {}
 
     std::string repr(int level) override
     {
@@ -341,7 +333,7 @@ struct InsertQueryNode : QueryNode
     EntityBodyNode entityBodyNode_;
 
     InsertQueryNode() {}
-    InsertQueryNode(Command command, const EntityBodyNode &entityBodeNode) : QueryNode{command}, entityBodyNode_(entityBodeNode) {}
+    InsertQueryNode(CommandType command, const EntityBodyNode &entityBodeNode) : QueryNode{command}, entityBodyNode_(entityBodeNode) {}
 
     std::string repr(int level) override
     {
@@ -354,15 +346,10 @@ struct InsertQueryNode : QueryNode
     {
         std::pair<std::string, Json *> typeWithJson = entityBodyNode_.toJsonWithType();
 
-        std::ofstream ofs("file.xml");
-        unsigned int flags = boost::archive::no_header;
-        boost::archive::xml_oarchive oa(ofs, flags);
-        oa << BOOST_SERIALIZATION_NVP(typeWithJson);
-
         Request *request = new Request;
-        request->type = QueryType::INSERT;
-        request->type_name = typeWithJson.first;
-        request->json = typeWithJson.second;
+        request->type_ = CommandType::INSERT;
+        request->type_name_ = typeWithJson.first;
+        request->json_ = typeWithJson.second;
 
         return request;
     }
@@ -373,7 +360,7 @@ struct SelectQueryNode : QueryNode
     ConditionBodyNode conditionBodyNode_;
 
     SelectQueryNode() {}
-    SelectQueryNode(Command command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
+    SelectQueryNode(CommandType command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
 
     std::string repr(int level) override
     {
@@ -387,9 +374,9 @@ struct SelectQueryNode : QueryNode
         std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
 
         Request *request = new Request{};
-        request->type = QueryType::INSERT;
-        request->type_name = typeWithConditional.first;
-        request->query = typeWithConditional.second;
+        request->type_ = CommandType::INSERT;
+        request->type_name_ = typeWithConditional.first;
+        request->query_ = typeWithConditional.second;
 
         return request;
     }
@@ -400,7 +387,7 @@ struct DeleteQueryNode : QueryNode
     ConditionBodyNode conditionBodyNode_;
 
     DeleteQueryNode() {}
-    DeleteQueryNode(Command command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
+    DeleteQueryNode(CommandType command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
 
     std::string repr(int level) override
     {
@@ -414,9 +401,9 @@ struct DeleteQueryNode : QueryNode
         std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
 
         Request *request = new Request{};
-        request->type = QueryType::INSERT;
-        request->type_name = typeWithConditional.first;
-        request->query = typeWithConditional.second;
+        request->type_ = CommandType::INSERT;
+        request->type_name_ = typeWithConditional.first;
+        request->query_ = typeWithConditional.second;
 
         return request;
     }
@@ -428,7 +415,7 @@ struct UpdateQueryNode : QueryNode
     EntityBodyNode entityBodyNode_;
 
     UpdateQueryNode() {}
-    UpdateQueryNode(Command command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
+    UpdateQueryNode(CommandType command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
 
     std::string repr(int level) override
     {
@@ -444,10 +431,10 @@ struct UpdateQueryNode : QueryNode
         std::pair<std::string, Json *> typeWithJson = entityBodyNode_.toJsonWithType();
 
         Request *request = new Request{};
-        request->type = QueryType::INSERT;
-        request->type_name = typeWithConditional.first;
-        request->query = typeWithConditional.second;
-        request->json = typeWithJson.second;
+        request->type_ = CommandType::INSERT;
+        request->type_name_ = typeWithConditional.first;
+        request->query_ = typeWithConditional.second;
+        request->json_ = typeWithJson.second;
 
         return request;
     }

@@ -20,7 +20,7 @@ EQ                                          return yy::parser::token_type::EQ;
 IN                                          return yy::parser::token_type::IN;
 
 \"{WORD}\"                                  return yy::parser::token_type::STRING;
-(-?)(0|{DIGIT1}{DIGIT}*)(\.{DIGIT}+)        return yy::parser::token_type::DOUBLE;
+(-?)(0|{DIGIT1}{DIGIT}*)(\.{DIGIT}+)        return yy::parser::token_type::FLOAT;
 (-?){DIGIT1}{DIGIT}*                        return yy::parser::token_type::INT;
 true|false                                  return yy::parser::token_type::BOOL;
 
