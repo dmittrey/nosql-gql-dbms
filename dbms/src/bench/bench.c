@@ -110,7 +110,7 @@ void bench_read()
     list_Path_add(flag_q_key_path_list, flag_q_key_path);
 
     Query_item *flag_q_itm = query_item_new();
-    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list);
+    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list, EQ);
     flag_q_itm->query_val.bool_val = true;
 
     STR_INIT(q_name, "K");
@@ -218,7 +218,7 @@ void bench_delete()
     list_Path_add(flag_q_key_path_list, flag_q_key_path);
 
     Query_item *flag_q_itm = query_item_new();
-    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list);
+    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list, EQ);
     flag_q_itm->query_val.bool_val = true;
 
     Query *amount_query = query_new();
@@ -233,7 +233,7 @@ void bench_delete()
 
     Query_item *sort_q_itm = query_item_new();
     STR_INIT(sgml, "SGML");
-    query_item_ctor(sort_q_itm, TYPE_STRING, sort_q_key_path_list);
+    query_item_ctor(sort_q_itm, TYPE_STRING, sort_q_key_path_list, EQ);
     sort_q_itm->query_val.string_val = sgml;
 
     Query *sort_query = query_new();
@@ -333,7 +333,7 @@ void bench_update()
     list_Path_add(flag_q_key_path_list, flag_q_key_path);
 
     Query_item *flag_q_itm = query_item_new();
-    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list);
+    query_item_ctor(flag_q_itm, TYPE_INT32, flag_q_key_path_list, EQ);
     flag_q_itm->query_val.bool_val = true;
 
     Query *amount_query = query_new();
@@ -348,7 +348,7 @@ void bench_update()
 
     Query_item *sort_q_itm = query_item_new();
     STR_INIT(sgml, "SGML");
-    query_item_ctor(sort_q_itm, TYPE_STRING, sort_q_key_path_list);
+    query_item_ctor(sort_q_itm, TYPE_STRING, sort_q_key_path_list, EQ);
     sort_q_itm->query_val.string_val = sgml;
 
     Query *sort_query = query_new();
@@ -435,7 +435,7 @@ void bench_read_inner()
     Query_item *amount_q_itm = query_item_new();
     // query_item_ctor(amount_q_itm, TYPE_INT32, amount_q_key_path_list);
     // amount_q_itm->query_val.int32_val = 50000;
-    query_item_ctor(amount_q_itm, TYPE_BOOL, amount_q_key_path_list);
+    query_item_ctor(amount_q_itm, TYPE_BOOL, amount_q_key_path_list, EQ);
     amount_q_itm->query_val.bool_val = true;
 
     Query *query = query_new();

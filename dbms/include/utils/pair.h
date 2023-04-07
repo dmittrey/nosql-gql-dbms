@@ -12,7 +12,7 @@
     Pair_##F_TYPE##_##S_TYPE *pair_##F_TYPE##_##S_TYPE##_new();                                                   \
     void pair_##F_TYPE##_##S_TYPE##_ctor(Pair_##F_TYPE##_##S_TYPE *const pair, F_TYPE *const f, S_TYPE *const s); \
     void pair_##F_TYPE##_##S_TYPE##_dtor(Pair_##F_TYPE##_##S_TYPE *pair);                                         \
-    int pair_##F_TYPE##_##S_TYPE##_cmp(Pair_##F_TYPE##_##S_TYPE *this, Pair_##F_TYPE##_##S_TYPE *other);
+    int pair_##F_TYPE##_##S_TYPE##_cmp(Pair_##F_TYPE##_##S_TYPE *t, Pair_##F_TYPE##_##S_TYPE *o);
 
 #define PAIR_DEFINE(F_TYPE, S_TYPE, F_T_DTOR, F_T_CMP, S_T_DTOR, S_T_CMP)                                        \
     Pair_##F_TYPE##_##S_TYPE *pair_##F_TYPE##_##S_TYPE##_new()                                                   \

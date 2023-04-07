@@ -198,13 +198,9 @@ bool json_is_apply_type(const Json *const j, const Type *const t)
         {
             return FAILED;
         }
-
-        return OK;
     }
-    else
-    {
-        return FAILED;
-    }
+    
+    return OK;
 }
 
 Json *json_son_by_key(const Json *const json, String *key)
@@ -214,7 +210,7 @@ Json *json_son_by_key(const Json *const json, String *key)
     {
         if (string_cmp(cur_son->key, key) == 0)
             return cur_son;
-        
+
         cur_son = cur_son->bro;
     }
     return NULL;

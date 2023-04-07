@@ -5,7 +5,7 @@ package dbms;
 service DataBase {
     rpc Ping (HelloRequest) returns (HelloResponse) {}
   
-    rpc Apply (OperationRequest) returns (stream OperationResponse) {}
+    rpc Apply (OperationRequest) returns (OperationResponse) {}
 }
 
 // The request contains 1
@@ -17,13 +17,70 @@ message HelloRequest {
 message HelloResponse {
     string message = 1;
 }
-  
-// The request include xml with operation and useful data
-message OperationRequest {
-    string xml = 1;
+
+enum JsonType {
+    TYPE_INT32 = 0;
+    TYPE_FLOAT = 1;
+    TYPE_STRING = 2;
+    TYPE_BOOL = 3;
+    TYPE_OBJECT = 4;
 }
   
-// The response include xml with touched by op elements
+message Json {
+    JsonType type = 1;
+    string key = 2;
+    int32 int32_val = 3;
+    float float_val = 4;
+    string string_val = 5;
+    bool bool_val = 6;
+    Json dad = 7;
+    Json bro = 8;
+    Json son = 9;
+}
+
+enum Cmp {
+    GT = 0;
+    GE = 1;
+    LT = 2;
+    LE = 3;
+    IN = 4;
+    EQ = 5;
+}
+
+message ConditionalItem {
+    JsonType type = 1;
+    repeated string key = 2;
+    Cmp cmp = 3;
+    int32 int32_val = 4;
+    float float_val = 5;
+    string string_val = 6;
+    bool bool_val = 7;
+}
+
+message Conditional {
+    repeated ConditionalItem conditionals = 1;
+}
+
+enum OperationType {
+    INSERT = 0;
+    READ = 1;
+    UPDATE = 2;
+    DELETE = 3;
+}
+
+message OperationRequest {
+    OperationType operationType = 1;
+    string typeName = 2;
+    Conditional query = 3;
+    Json json = 4;
+}
+
+enum Status {
+    OK = 0;
+    FAILED = 1;
+}
+  
 message OperationResponse {
-    string xml = 1;
+    Status status = 1;
+    repeated Json collection = 2;
 }

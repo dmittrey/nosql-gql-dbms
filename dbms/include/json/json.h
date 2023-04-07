@@ -65,8 +65,8 @@ void json_add_bro(Json *const j, Json *const bro);
 void json_add_son(Json *const j, Json *const son);
 void json_add_nxt(Json *const j, Json *const nxt);
 
-int json_cmp(const Json *const this, const Json *const other);
-int json_cmp_wth_foff(const Json *const this, const Json *const other);
+int json_cmp(const Json *const t, const Json *const other);
+int json_cmp_wth_foff(const Json *const t, const Json *const other);
 
 bool json_is_apply_type(const Json *const json, const Type *const type);
 

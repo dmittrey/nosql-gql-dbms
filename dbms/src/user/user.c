@@ -46,7 +46,7 @@ Status user_read_type(struct File *const file, const String *const name, Type *c
     return file_find_type(file, name, o_type, &t_soff, &sect);
 }
 
-Status user_apply(struct File *const file, const Command command, struct Iter ** iter)
+Status user_apply(struct File *const file, const Command command, struct Iter **iter)
 {
     switch (command.type)
     {

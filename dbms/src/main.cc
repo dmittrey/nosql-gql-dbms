@@ -1,26 +1,17 @@
-#include "dbms_server.hpp"
+#include "network/driver.hpp"
+#include "network/dbms_server.hpp"
 
 extern "C"
 {
     #include "tests/test.h"
-
-    void bench_write();
-    void bench_read();
-    void bench_delete();
-    void bench_update();
-    void bench_read_inner();
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
-    // do_tests();
-    // bench_write();
-    // bench_read();
-    // bench_delete();
-    // bench_update();
-    // bench_read_inner();
+    do_tests();
 
-    DataBaseServiceImpl server{5433};
+    Driver driver;
+    DataBaseServiceImpl server{driver, 5433};
 
     return 0;
 }

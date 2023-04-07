@@ -42,7 +42,16 @@ void iter_dtor(Iter *iter)
 
 void iter_next(Iter *const iter)
 {
-    list_Pair_Json_Entity_del_fst(iter->cur_col);
+    if (iter->cur_col->count > 1)
+    {
+        iter->cur_col->head = iter->cur_col->head->next;
+        iter->cur_col->count--;
+    } else if (iter->cur_col->count == 1)
+    {
+        iter->cur_col->head = NULL;
+        iter->cur_col->tail = NULL;
+        iter->cur_col->count--;
+    }
 
     if (iter->cur_col->count == 0)
     {
@@ -56,7 +65,7 @@ void iter_next(Iter *const iter)
 
 bool iter_is_avail(Iter *const iter)
 {
-    return iter->cur_col->count > 0;
+    return iter != NULL && iter->cur_col->count > 0;
 }
 
 Json *iter_get_json(Iter *const iter)

@@ -1,6 +1,10 @@
+#pragma once
+
 #include <iostream>
 #include <memory>
 #include <string>
+
+#include "network/driver.hpp"
 
 #include "absl/strings/str_format.h"
 
@@ -19,23 +23,21 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerWriter;
-using grpc::Status;
 
 class DataBaseServiceImpl final : public DataBase::Service
 {
 private:
     std::unique_ptr<Server> server_;
+    Driver driver_;
 
-    DataBaseServiceImpl() : DataBase::Service() {}
+    DataBaseServiceImpl(Driver &driver) : DataBase::Service(), driver_(driver) {}
 
 public:
-    DataBaseServiceImpl(uint16_t port) : DataBaseServiceImpl("localhost", port) {}
-
-    DataBaseServiceImpl(std::string address, uint16_t port)
+    DataBaseServiceImpl(Driver &driver, uint16_t port, std::string address = "localhost")
     {
         ServerBuilder builder;
 
-        DataBaseServiceImpl service{};
+        DataBaseServiceImpl service{driver};
 
         std::string server_address = address + ":" + std::to_string(port);
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -48,23 +50,18 @@ public:
         server->Wait();
     }
 
-    Status Ping(ServerContext *context, const HelloRequest *request, HelloResponse *response) override
+    grpc::Status Ping(ServerContext *context, const HelloRequest *request, HelloResponse *response) override
     {
         std::cout << "Received from client: " << request->message() << std::endl;
         response->set_message("Pong");
-        return Status::OK;
+        return grpc::Status::OK;
     }
 
-    Status Apply(ServerContext *context,
+    grpc::Status Apply(ServerContext *context,
                  const OperationRequest *request,
-                 ServerWriter<OperationResponse> *writer) override
+                 OperationResponse *response) override
     {
-        OperationResponse response;
-        response.set_xml(request->xml());
 
-        // std::cout << response.xml().value() << std::endl;
-
-        writer->Write(response);
-        return Status::OK;
+        return grpc::Status::OK;
     }
 };
