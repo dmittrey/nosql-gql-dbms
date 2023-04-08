@@ -23,7 +23,7 @@ namespace yy
         std::vector<QueryNode> *queryList = new std::vector<QueryNode>{};
 
         const std::unordered_map<std::string, Cmp> cmpTable = {{"GT", Cmp::GT}, {"gt", Cmp::GT}, {"GE", Cmp::GE}, {"ge", Cmp::GE}, {"LT", Cmp::LT}, {"lt", Cmp::LT}, {"LE", Cmp::LE}, {"le", Cmp::LE}, {"EQ", Cmp::EQ}, {"eq", Cmp::EQ}, {"IN", Cmp::IN}, {"in", Cmp::IN}};
-        const std::unordered_map<std::string, CommandType> commandTable = {{"insert", CommandType::INSERT}, {"INSERT", CommandType::INSERT}, {"delete", CommandType::DELETE}, {"DELETE", CommandType::DELETE}, {"update", CommandType::UPDATE}, {"UPDATE", CommandType::UPDATE}, {"select", CommandType::READ}, {"SELECT", CommandType::READ}};
+        const std::unordered_map<std::string, OperationType> commandTable = {{"insert", OperationType::INSERT}, {"INSERT", OperationType::INSERT}, {"delete", OperationType::DELETE}, {"DELETE", OperationType::DELETE}, {"update", OperationType::UPDATE}, {"UPDATE", OperationType::UPDATE}, {"select", OperationType::READ}, {"SELECT", OperationType::READ}};
 
     public:
         Driver(FlexLexer *plex, DataBaseClient *client) : plex_(plex), client_(client) {}
@@ -61,7 +61,7 @@ namespace yy
             case yy::parser::token_type::DELETE:
             case yy::parser::token_type::SELECT:
             case yy::parser::token_type::UPDATE:
-                yylval->as<CommandType>() = commandTable.find(plex_->YYText())->second;
+                yylval->as<OperationType>() = commandTable.find(plex_->YYText())->second;
                 break;
             default:
                 break;
@@ -82,7 +82,7 @@ namespace yy
 
             Request *request = query.toRequest();
 
-            client_->Apply(request);
+            client_->Apply(*request);
         }
     };
 }

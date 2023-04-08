@@ -3,9 +3,11 @@
 #include <string>
 #include <vector>
 
-#include "network/cmp.hpp"
-#include "network/type.hpp"
-#include "network/command.hpp"
+#include "dbms.pb.h"
+
+using dbms::Cmp;
+using dbms::JsonType;
+using dbms::OperationType;
 
 namespace Network
 {
@@ -20,6 +22,21 @@ namespace Network
 		Json *dad_ = nullptr;
 		Json *bro_ = nullptr;
 		Json *son_ = nullptr;
+
+		operator dbms::Json *() const
+		{
+			dbms::Json *protoJson = new dbms::Json;
+			protoJson->set_type(type_);
+			protoJson->set_key(key_);
+			protoJson->set_int32_val(int32_val_);
+			protoJson->set_float_val(float_val_);
+			protoJson->set_string_val(string_val_);
+			protoJson->set_bool_val(bool_val_);
+			protoJson->set_allocated_dad(*dad_);
+			protoJson->set_allocated_bro(*bro_);
+			protoJson->set_allocated_son(*son_);
+			return protoJson;
+		}
 
 		void addBro(struct Json &&rhs)
 		{
@@ -64,18 +81,54 @@ namespace Network
 		float float_val_;
 		std::string string_val_;
 		bool bool_val_;
+
+		operator dbms::ConditionalItem *() const
+		{
+			dbms::ConditionalItem *cond_itm = new dbms::ConditionalItem;
+			cond_itm->set_type(type_);
+			for (auto &i : key_)
+				cond_itm->add_key(i);
+			cond_itm->set_cmp(cmp_);
+			cond_itm->set_int32_val(int32_val_);
+			cond_itm->set_float_val(float_val_);
+			cond_itm->set_string_val(string_val_);
+			cond_itm->set_bool_val(bool_val_);
+			return cond_itm;
+		}
 	};
 
 	struct Conditional
 	{
 		std::vector<ConditionalItem *> conditionals_;
+
+		operator dbms::Conditional *() const
+		{
+			dbms::Conditional *cond = new dbms::Conditional;
+			for (auto &i : conditionals_)
+			{
+				cond->mutable_conditionals()->AddAllocated(*i);
+			}
+			return cond;
+		}
 	};
 
 	struct Request
 	{
-		CommandType type_;
+		OperationType type_;
 		std::string type_name_;
 		Conditional *query_ = nullptr;
 		Json *json_ = nullptr;
+
+		operator dbms::OperationRequest() const
+		{
+			dbms::OperationRequest request;
+			request.set_operationtype(type_);
+			request.set_typename_(type_name_);
+			if (query_ != nullptr)
+				request.set_allocated_query(*query_);
+			if (json_ != nullptr)
+				request.set_allocated_json(*json_);
+			return request;
+		}
 	};
 }

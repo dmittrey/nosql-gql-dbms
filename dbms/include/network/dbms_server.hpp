@@ -62,6 +62,8 @@ public:
                  OperationResponse *response) override
     {
 
+        std::cout << request << std::endl;
+
         return grpc::Status::OK;
     }
 };

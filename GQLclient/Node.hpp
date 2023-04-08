@@ -12,6 +12,8 @@
 
 using namespace Network;
 
+using dbms::JsonType;
+
 struct Node
 {
     std::string offset(int level) { return std::string(level, '\t'); }
@@ -315,10 +317,10 @@ struct EntityBodyNode : Node
 
 struct QueryNode : Node
 {
-    CommandType command_;
+    OperationType command_;
 
     QueryNode() {}
-    QueryNode(CommandType command) : command_(command) {}
+    QueryNode(OperationType command) : command_(command) {}
 
     std::string repr(int level) override
     {
@@ -333,7 +335,7 @@ struct InsertQueryNode : QueryNode
     EntityBodyNode entityBodyNode_;
 
     InsertQueryNode() {}
-    InsertQueryNode(CommandType command, const EntityBodyNode &entityBodeNode) : QueryNode{command}, entityBodyNode_(entityBodeNode) {}
+    InsertQueryNode(OperationType command, const EntityBodyNode &entityBodeNode) : QueryNode{command}, entityBodyNode_(entityBodeNode) {}
 
     std::string repr(int level) override
     {
@@ -347,7 +349,7 @@ struct InsertQueryNode : QueryNode
         std::pair<std::string, Json *> typeWithJson = entityBodyNode_.toJsonWithType();
 
         Request *request = new Request;
-        request->type_ = CommandType::INSERT;
+        request->type_ = OperationType::INSERT;
         request->type_name_ = typeWithJson.first;
         request->json_ = typeWithJson.second;
 
@@ -360,7 +362,7 @@ struct SelectQueryNode : QueryNode
     ConditionBodyNode conditionBodyNode_;
 
     SelectQueryNode() {}
-    SelectQueryNode(CommandType command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
+    SelectQueryNode(OperationType command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
 
     std::string repr(int level) override
     {
@@ -374,7 +376,7 @@ struct SelectQueryNode : QueryNode
         std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
 
         Request *request = new Request{};
-        request->type_ = CommandType::INSERT;
+        request->type_ = OperationType::INSERT;
         request->type_name_ = typeWithConditional.first;
         request->query_ = typeWithConditional.second;
 
@@ -387,7 +389,7 @@ struct DeleteQueryNode : QueryNode
     ConditionBodyNode conditionBodyNode_;
 
     DeleteQueryNode() {}
-    DeleteQueryNode(CommandType command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
+    DeleteQueryNode(OperationType command, const ConditionBodyNode &conditionBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode) {}
 
     std::string repr(int level) override
     {
@@ -401,7 +403,7 @@ struct DeleteQueryNode : QueryNode
         std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
 
         Request *request = new Request{};
-        request->type_ = CommandType::INSERT;
+        request->type_ = OperationType::INSERT;
         request->type_name_ = typeWithConditional.first;
         request->query_ = typeWithConditional.second;
 
@@ -415,7 +417,7 @@ struct UpdateQueryNode : QueryNode
     EntityBodyNode entityBodyNode_;
 
     UpdateQueryNode() {}
-    UpdateQueryNode(CommandType command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
+    UpdateQueryNode(OperationType command, const ConditionBodyNode &conditionBodyNode, const EntityBodyNode &entityBodyNode) : QueryNode{command}, conditionBodyNode_(conditionBodyNode), entityBodyNode_(entityBodyNode) {}
 
     std::string repr(int level) override
     {
@@ -431,7 +433,7 @@ struct UpdateQueryNode : QueryNode
         std::pair<std::string, Json *> typeWithJson = entityBodyNode_.toJsonWithType();
 
         Request *request = new Request{};
-        request->type_ = CommandType::INSERT;
+        request->type_ = OperationType::INSERT;
         request->type_name_ = typeWithConditional.first;
         request->query_ = typeWithConditional.second;
         request->json_ = typeWithJson.second;

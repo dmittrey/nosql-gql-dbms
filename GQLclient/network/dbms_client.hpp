@@ -5,6 +5,8 @@
 #include <sstream> 
 
 #include <grpcpp/grpcpp.h>
+
+#include "dbms.pb.h"
 #include "dbms.grpc.pb.h"
 
 #include "network/request.hpp"
@@ -56,10 +58,9 @@ public:
         }
     }
 
-    void Apply(Request *netRequest)
+    void Apply(OperationRequest request)
     {
         ClientContext context;
-        OperationRequest request;
         OperationResponse response;
 
         Status status = stub_->Apply(&context, request, &response);

@@ -42,10 +42,10 @@ parser::token_type yylex(parser::semantic_type* yylval,
 
 %token <std::string> WORD
 
-%token <CommandType> INSERT
-%token <CommandType> DELETE
-%token <CommandType> SELECT
-%token <CommandType> UPDATE
+%token <OperationType> INSERT
+%token <OperationType> DELETE
+%token <OperationType> SELECT
+%token <OperationType> UPDATE
 
 %token <Cmp> CMP
 %token <Cmp> EQ
