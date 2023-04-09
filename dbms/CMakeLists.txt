@@ -4,11 +4,14 @@ project(dbms)
 file(GLOB_RECURSE PROJECT_HEADERS include/*.h include/*.hpp)
 file(GLOB_RECURSE PROJECT_SOURCES src/*.c src/*.cc)
 
-find_package(Boost 1.80 COMPONENTS serialization REQUIRED)
-
-IF (Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIR})
-endif()
+include(FetchContent)
+FetchContent_Declare(
+  gRPC
+  GIT_REPOSITORY https://github.com/grpc/grpc
+  GIT_TAG        RELEASE_TAG_HERE  # e.g v1.28.0
+)
+set(FETCHCONTENT_QUIET OFF)
+FetchContent_MakeAvailable(gRPC)
 
 find_package(Protobuf REQUIRED)
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
@@ -62,7 +65,6 @@ target_link_libraries(${PROJECT_NAME}
     ${_GRPC_GRPCPP_UNSECURE}
     ${_PROTOBUF_LIBPROTOBUF}
     ${_REFLECTION})
-target_link_libraries(${PROJECT_NAME} Boost::serialization)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
