@@ -1,5 +1,5 @@
 delete {
     K({
-        count le 50 
+        language in "Rus"
     })
 }

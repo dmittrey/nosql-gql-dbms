@@ -33,7 +33,7 @@ public:
 
         Status apply_status = user_apply(file, request, &iter);
 
-        std::vector<Json> collection;
+        std::vector<Network::Json> collection;
         while (iter_is_avail(iter))
         {
             std::cout << iter_get_json(iter)->key->val << std::endl;

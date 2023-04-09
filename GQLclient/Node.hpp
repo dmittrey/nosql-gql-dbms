@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <boost/serialization/utility.hpp>
 
 #include <string>
 #include <iostream>
@@ -376,7 +375,7 @@ struct SelectQueryNode : QueryNode
         std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
 
         Request *request = new Request{};
-        request->type_ = OperationType::INSERT;
+        request->type_ = OperationType::READ;
         request->type_name_ = typeWithConditional.first;
         request->query_ = typeWithConditional.second;
 
@@ -403,7 +402,7 @@ struct DeleteQueryNode : QueryNode
         std::pair<std::string, Conditional *> typeWithConditional = conditionBodyNode_.toConditionalWithType();
 
         Request *request = new Request{};
-        request->type_ = OperationType::INSERT;
+        request->type_ = OperationType::DELETE;
         request->type_name_ = typeWithConditional.first;
         request->query_ = typeWithConditional.second;
 
@@ -433,7 +432,7 @@ struct UpdateQueryNode : QueryNode
         std::pair<std::string, Json *> typeWithJson = entityBodyNode_.toJsonWithType();
 
         Request *request = new Request{};
-        request->type_ = OperationType::INSERT;
+        request->type_ = OperationType::UPDATE;
         request->type_name_ = typeWithConditional.first;
         request->query_ = typeWithConditional.second;
         request->json_ = typeWithJson.second;

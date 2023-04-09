@@ -4,7 +4,9 @@
 
 int main()
 {
-  FlexLexer *lexer = new yyFlexLexer;
+  // std::ifstream file("/Users/dmitry/Desktop/low-level-programming/GQLclient/tests/select.dat");
+  // FlexLexer *lexer = new yyFlexLexer{&file};
+  FlexLexer *lexer = new yyFlexLexer{};
   DataBaseClient *client = new DataBaseClient(5433);
   if (client->Ping() == false)
   {

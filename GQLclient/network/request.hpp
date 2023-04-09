@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 #include "dbms.pb.h"
 
@@ -23,6 +24,23 @@ namespace Network
 		Json *bro_ = nullptr;
 		Json *son_ = nullptr;
 
+		Json() {}
+
+		Json(const dbms::Json &json) : type_(json.type()),
+									   key_(json.key()),
+									   int32_val_(json.int32_val()),
+									   float_val_(json.float_val()),
+									   string_val_(json.string_val()),
+									   bool_val_(json.bool_val())
+		{
+			if (json.has_dad())
+				dad_ = new Json(json.dad());
+			if (json.has_bro())
+				bro_ = new Json(json.bro());
+			if (json.has_son())
+				son_ = new Json(json.son());
+		}
+
 		operator dbms::Json *() const
 		{
 			dbms::Json *protoJson = new dbms::Json;
@@ -32,10 +50,43 @@ namespace Network
 			protoJson->set_float_val(float_val_);
 			protoJson->set_string_val(string_val_);
 			protoJson->set_bool_val(bool_val_);
-			protoJson->set_allocated_dad(*dad_);
-			protoJson->set_allocated_bro(*bro_);
-			protoJson->set_allocated_son(*son_);
+			if (dad_ != nullptr)
+				protoJson->set_allocated_dad(*dad_);
+			if (bro_ != nullptr)
+				protoJson->set_allocated_bro(*bro_);
+			if (son_ != nullptr)
+				protoJson->set_allocated_son(*son_);
 			return protoJson;
+		}
+
+		friend std::ostream &operator<<(std::ostream &out, const Json &json)
+		{
+			std::cout << "Key:\t" << json.key_ << "\t";
+			switch (json.type_)
+			{
+			case JsonType::TYPE_INT32:
+				std::cout << "Value:\t" << json.int32_val_ << std::endl;
+				break;
+			case JsonType::TYPE_BOOL:
+				std::cout << "Value:\t" << json.bool_val_ << std::endl;
+				break;
+			case JsonType::TYPE_FLOAT:
+				std::cout << "Value:\t" << json.float_val_ << std::endl;
+				break;
+			case JsonType::TYPE_STRING:
+				std::cout << "Value:\t" << json.string_val_ << std::endl;
+				break;
+			case JsonType::TYPE_OBJECT:
+				std::cout << "OBJECT" << std::endl;
+				break;
+			default:
+				break;
+			}
+			if (json.bro_ != nullptr)
+				std::cout << *json.bro_ << std::endl;
+			if (json.son_ != nullptr)
+				std::cout << *json.son_ << std::endl;
+			return out;
 		}
 
 		void addBro(struct Json &&rhs)

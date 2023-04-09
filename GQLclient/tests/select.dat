@@ -1,14 +1,5 @@
 SELECT {
     K({
-        name in "Dmitry"
-        height gt 150
-        width eq 555
-    })
-}
-
-select {
-    K({
-        name eq "Dmitry"
-        height le 150
+        language eq "Russian"
     })
 }

@@ -1,14 +1,8 @@
 cmake_minimum_required(VERSION 3.13.4)
 project(GQLclient)
-set(CMAKE_BUILD_TYPE Debug)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
-find_package(Boost 1.80 COMPONENTS serialization REQUIRED)
-
-IF (Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIR})
-endif()
 
 flex_target(scanner
   lexer.l
@@ -73,7 +67,6 @@ target_link_libraries(${PROJECT_NAME}
     ${_GRPC_GRPCPP_UNSECURE}
     ${_PROTOBUF_LIBPROTOBUF}
     ${_REFLECTION})
-target_link_libraries(${PROJECT_NAME} Boost::serialization)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

@@ -47,7 +47,7 @@ namespace yy
                 yylval->as<int>() = std::stoi(plex_->YYText());
                 break;
             case yy::parser::token_type::FLOAT:
-                yylval->as<double>() = std::stod(plex_->YYText());
+                yylval->as<float>() = std::stof(plex_->YYText());
                 break;
             case yy::parser::token_type::BOOL:
                 yylval->as<bool>() = (strcmp(plex_->YYText(), "true") == 0 || strcmp(plex_->YYText(), "TRUE") == 0);
@@ -78,11 +78,12 @@ namespace yy
 
         void insert(QueryNode &query)
         {
-            std::cout << query.repr(0) << std::endl;
+            // std::cout << query.repr(0) << std::endl;
 
             Request *request = query.toRequest();
+            dbms::OperationRequest op_req = *request;
 
-            client_->Apply(*request);
+            client_->Apply(op_req);
         }
     };
 }

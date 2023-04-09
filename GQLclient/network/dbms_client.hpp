@@ -10,6 +10,7 @@
 #include "dbms.grpc.pb.h"
 
 #include "network/request.hpp"
+#include "network/response.hpp"
 
 using dbms::DataBase;
 using dbms::HelloRequest;
@@ -19,7 +20,6 @@ using dbms::OperationResponse;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::ClientReader;
-using grpc::Status;
 
 using Network::Json;
 using Network::Request;
@@ -44,7 +44,7 @@ public:
         HelloResponse reply;
         ClientContext context;
 
-        Status status = stub_->Ping(&context, request, &reply);
+        grpc::Status status = stub_->Ping(&context, request, &reply);
 
         if (status.ok())
         {
@@ -63,11 +63,18 @@ public:
         ClientContext context;
         OperationResponse response;
 
-        Status status = stub_->Apply(&context, request, &response);
+        grpc::Status status = stub_->Apply(&context, request, &response);
+
+        Network::Response operationResponse(response); 
 
         if (status.ok())
         {
-            std::cout << "OperationResponse rpc succeeded." << std::endl;
+            std::cout << response.DebugString() << std::endl;
+            std::cout << "Status: OK" << std::endl;
+            for (auto &i : operationResponse.collection)
+            {
+                std::cout << i << std::endl;
+            }
         }
         else
         {

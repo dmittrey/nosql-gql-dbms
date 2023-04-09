@@ -1,7 +1,7 @@
 insert {
     K({
         name: {
-            literals: 5
+            literals: 50.5
             language: "Russian"
             is_new: true
         }

@@ -12,6 +12,7 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 
+#include "dbms.pb.h"
 #include "dbms.grpc.pb.h"
 
 using dbms::DataBase;
@@ -23,6 +24,8 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerWriter;
+
+using Network::Request;
 
 class DataBaseServiceImpl final : public DataBase::Service
 {
@@ -58,11 +61,15 @@ public:
     }
 
     grpc::Status Apply(ServerContext *context,
-                 const OperationRequest *request,
-                 OperationResponse *response) override
+                       const OperationRequest *req,
+                       OperationResponse *resp) override
     {
+        std::cout << req->DebugString() << std::endl;
 
-        std::cout << request << std::endl;
+        Request request(*req);
+        *resp = driver_.execute(request);
+
+        std::cout << resp->DebugString() << std::endl;
 
         return grpc::Status::OK;
     }
