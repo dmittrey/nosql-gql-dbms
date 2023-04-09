@@ -30,9 +30,7 @@ private:
     std::unique_ptr<DataBase::Stub> stub_;
 
 public:
-    DataBaseClient(uint16_t port) : DataBaseClient("localhost", port) {}
-
-    DataBaseClient(std::string address, uint16_t port)
+    DataBaseClient(uint16_t port, std::string address = "localhost")
         : stub_(DataBase::NewStub(
               grpc::CreateChannel(address + ":" + std::to_string(port),
                                   grpc::InsecureChannelCredentials()))) {}

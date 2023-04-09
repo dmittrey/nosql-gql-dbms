@@ -27,8 +27,10 @@ namespace Network
 		Json *bro_ = nullptr;
 		Json *son_ = nullptr;
 
-		Json(const ::Json &json) : type_(json.type), key_(json.key->val)
+		Json(const ::Json &json) : type_(json.type)
 		{
+			key_ = std::string(json.key->val, json.key->cnt);
+
 			if (type_ == TYPE_STRING)
 			{
 				string_val_ = std::string(json.value.string_val->val, json.value.string_val->cnt);

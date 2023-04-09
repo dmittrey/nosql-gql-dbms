@@ -250,7 +250,7 @@ struct EntityListNode : Node
 
     Json *toJson()
     {
-        Json *rootJson;
+        Json *rootJson = new Json;
         for (auto &entity : entities)
         {
             std::pair<bool, Json *> entityJson = entity.toJson();

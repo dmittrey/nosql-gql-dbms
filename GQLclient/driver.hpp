@@ -73,7 +73,10 @@ namespace yy
         bool parse()
         {
             parser parser(this);
-            return parser.parse();
+            while (true)
+            {
+                parser.parse();
+            }
         }
 
         void insert(QueryNode &query)

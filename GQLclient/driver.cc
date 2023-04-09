@@ -2,12 +2,19 @@
 
 #include "driver.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
-  // std::ifstream file("/Users/dmitry/Desktop/low-level-programming/GQLclient/tests/select.dat");
-  // FlexLexer *lexer = new yyFlexLexer{&file};
   FlexLexer *lexer = new yyFlexLexer{};
-  DataBaseClient *client = new DataBaseClient(5433);
+  DataBaseClient *client;
+  if (argc == 1)
+    client = new DataBaseClient(5432);
+  if (argc == 2)
+    client = new DataBaseClient(std::stoi(argv[1]));
+  else if (argc == 3)
+    client = new DataBaseClient(std::stoi(argv[1]), argv[2]);
+  else
+    return 1;
+
   if (client->Ping() == false)
   {
     delete lexer;
@@ -15,7 +22,9 @@ int main()
   }
 
   yy::Driver driver(lexer, client);
+
   driver.parse();
+  
   delete lexer;
   return 0;
 }

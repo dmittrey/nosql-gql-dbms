@@ -98,9 +98,12 @@ Status sect_head_cmprs_frp(Sect_head *const header)
 
 Status sect_head_read(Sect_head *const header, const Sectoff soff, const size_t sz, void *const o_data)
 {
-    SAVE_FILP(header->filp, {
-        RA_FREAD_OR_FAIL(o_data, sz, sect_head_get_fileoff(header, soff), header->filp);
-    });
+    if (sz != 0)
+    {
+        SAVE_FILP(header->filp, {
+            RA_FREAD_OR_FAIL(o_data, sz, sect_head_get_fileoff(header, soff), header->filp);
+        });
+    }
 
     return OK;
 }
