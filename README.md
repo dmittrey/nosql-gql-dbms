@@ -1,23 +1,21 @@
-# NoSQL GQL syntax dbms
+# NoSQL GQL Syntax DBMS
 
-## Модуль dbms
+## DBMS Module
 
-Модуль представляет из себя трехслойную архитектуру системы управления базами данных. Путь к файлу кодируется с помощью параметра передаваемого в cli. Также передается адрес и порт.
+This module implements a three-layer architecture for a database management system. The path to the data file is configured through a CLI parameter. The server address and port are also provided via CLI arguments.
 
-## Модуль GQLclient
+## GQL Client Module
 
-Модуль представляет клиента который принимает запросы на языке GraphQL и посылает их серверу на адрес и порт который указаны при запуске клиента.
+This module implements a client that accepts queries written in GraphQL and sends them to the server at the address and port specified when starting the client.
 
-## Модуль protos
+## Protos Module
 
-В файле dbms.proto указана конфигурация передваемых сообщений и API сервиса.
+The `dbms.proto` file defines the message format and the service API configuration.
 
-# Технологии
+# Technologies
 
 - Flex
 - Bison
 - gRPC
 - Protobuf
 - CMake
-
-
